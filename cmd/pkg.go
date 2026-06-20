@@ -256,8 +256,28 @@ func NewPkgInstallCommand() *cobra.Command {
 			fmt.Printf("✓ Package installed successfully\n")
 			fmt.Printf("  Location: %s\n", installPath)
 
-			if withDependencies {
-				fmt.Printf("  Note: Dependency installation not yet implemented\n")
+			// Install dependencies if requested
+			if withDependencies && len(downloadedPkg.Dependencies) > 0 {
+				fmt.Printf("\nInstalling dependencies...\n")
+				for _, dep := range downloadedPkg.Dependencies {
+					fmt.Printf("  Installing dependency: %s (%s)\n", dep.Name, dep.Version)
+					
+					// Recursively install dependency
+					depCmd := NewPkgInstallCommand()
+					depArgs := []string{dep.Name}
+					if withDependencies {
+						depArgs = append(depArgs, "--with-dependencies")
+					}
+					
+					if err := depCmd.RunE(depCmd, depArgs); err != nil {
+						if !dep.Optional {
+							return fmt.Errorf("failed to install required dependency %s: %w", dep.Name, err)
+						}
+						fmt.Printf("  Warning: failed to install optional dependency %s: %v\n", dep.Name, err)
+					} else {
+						fmt.Printf("  ✓ Dependency %s installed\n", dep.Name)
+					}
+				}
 			}
 
 			if interactive {
