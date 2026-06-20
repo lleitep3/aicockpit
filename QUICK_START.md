@@ -2,49 +2,54 @@
 
 ## 🚀 5-Minute Setup
 
-### 1. Build the Project
+### 1. Build and Install
 ```bash
 cd /home/lleite/projects/aicockpit
-make build
+make install
 ```
 
-### 2. Run Setup
+### 2. Add to PATH (if needed)
 ```bash
-./bin/cockpit setup
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+### 3. Run Setup
+```bash
+cockpit setup
 # Follow the prompts to select language and AI provider
 ```
 
-### 3. Verify Installation
+### 4. Verify Installation
 ```bash
-./bin/cockpit doctor
+cockpit doctor
 ```
 
-### 4. View Configuration
+### 5. View Configuration
 ```bash
-./bin/cockpit info
+cockpit info
 ```
 
 ## 📦 Available Commands
 
 ```bash
 # Setup and configuration
-./bin/cockpit setup          # Interactive setup
-./bin/cockpit info           # Show configuration
-./bin/cockpit doctor         # Health check
-./bin/cockpit uninstall      # Remove AICockpit
+cockpit setup                          # Interactive setup
+cockpit info                           # Show configuration
+cockpit doctor                         # Health check
+cockpit uninstall                      # Remove AICockpit
 
 # Global flags
-./bin/cockpit --language pt-br info    # Use Portuguese
-./bin/cockpit --log-level debug info   # Debug mode
-./bin/cockpit --version                # Show version
-./bin/cockpit --help                   # Show help
+cockpit --language pt-br info          # Use Portuguese
+cockpit --log-level debug info         # Debug mode
+cockpit --version                      # Show version
+cockpit --help                         # Show help
 ```
 
 ## 🛠️ Development Commands
 
 ```bash
 # Build and test
-make build      # Build binary
+make build      # Build binary to bin/cockpit
 make test       # Run tests
 make lint       # Check code quality
 make fmt        # Format code
@@ -52,8 +57,8 @@ make check      # Run all checks (fmt + lint + test + build)
 make clean      # Clean build artifacts
 
 # Installation
-make install    # Install to $GOPATH/bin
-make uninstall  # Remove from $GOPATH/bin
+make install    # Install to ~/.local/bin/cockpit
+make uninstall  # Remove from ~/.local/bin/cockpit
 ```
 
 ## 📁 Important Directories
@@ -106,22 +111,20 @@ go tool cover -html=coverage.out
 
 ### Issue: Command not found
 ```bash
-# Make sure you're in the right directory
-cd /home/lleite/projects/aicockpit
+# Make sure ~/.local/bin is in your PATH
+export PATH="$HOME/.local/bin:$PATH"
 
-# Build first
-make build
+# Or install again
+cd /home/lleite/projects/aicockpit
+make install
 
 # Then run
-./bin/cockpit --help
+cockpit --help
 ```
 
 ### Issue: Permission denied
 ```bash
-# Make binary executable
-chmod +x bin/cockpit
-
-# Or reinstall
+# Reinstall (make install handles permissions)
 make install
 ```
 

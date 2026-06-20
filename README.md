@@ -27,8 +27,11 @@ cd aicockpit
 # Build the binary
 make build
 
-# Install globally
+# Install for current user
 make install
+
+# Add to PATH (if not already)
+export PATH="$HOME/.local/bin:$PATH"
 
 # Verify installation
 cockpit --version
