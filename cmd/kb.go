@@ -17,7 +17,7 @@ func NewKBCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translator) 
 	kbCmd := &cobra.Command{
 		Use:   "kb",
 		Short: "Knowledge base operations",
-		Long:  "Search, list, add, and manage knowledge base documents",
+		Long:  "Search, list, add, remove, and manage knowledge base documents and roots",
 	}
 
 	// Add subcommands
@@ -25,6 +25,8 @@ func NewKBCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translator) 
 	kbCmd.AddCommand(NewKBListCommand(log, cfg, t))
 	kbCmd.AddCommand(NewKBAddCommand(log, cfg, t))
 	kbCmd.AddCommand(NewKBRemoveCommand(log, cfg, t))
+	kbCmd.AddCommand(NewKBRootCommand(log, cfg, t))
+	kbCmd.AddCommand(NewKBRebuildCacheCommand(log, cfg, t))
 
 	return kbCmd
 }
@@ -37,34 +39,33 @@ func NewKBSearchCommand(log *logging.Manager, cfg *config.Config, t *i18n.Transl
 	searchCmd := &cobra.Command{
 		Use:   "search <query>",
 		Short: "Search knowledge base documents",
-		Long:  "Search knowledge base documents by keywords",
+		Long:  "Search knowledge base documents by keywords across all configured roots",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			query := args[0]
 
-			// Get KB directory
-			kbDir := filepath.Join(config.GetCockpitDir(), "kb")
-
-			// Create repository and searcher
-			repo := kb.NewFileRepository(kbDir)
-			scorer := kb.NewDefaultScorer()
-			searcher := kb.NewKeywordSearcher(scorer)
-
-			// Load all documents
-			documents, err := repo.ListDocuments(".")
-			if err != nil {
-				return fmt.Errorf("failed to load documents: %w", err)
-			}
-
-			if len(documents) == 0 {
-				fmt.Println("No documents found in knowledge base")
+			// Get KB roots from config
+			roots := cfg.KB.Roots
+			if len(roots) == 0 {
+				fmt.Println("No knowledge base roots configured")
 				return nil
 			}
 
+			// Create index path
+			indexPath := filepath.Join(config.GetCockpitDir(), ".kb-index.json")
+
+			// Create manager
+			manager := kb.NewManager(roots, indexPath)
+
 			// Perform search
-			results, err := searcher.Search(query, documents)
+			results, err := manager.Search(query)
 			if err != nil {
 				return fmt.Errorf("search failed: %w", err)
+			}
+
+			if len(results.Results) == 0 {
+				fmt.Println("No documents found matching your query")
+				return nil
 			}
 
 			// Limit results
@@ -98,16 +99,23 @@ func NewKBListCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translat
 	listCmd := &cobra.Command{
 		Use:   "list",
 		Short: "List all knowledge base documents",
-		Long:  "List all documents in the knowledge base",
+		Long:  "List all documents in the knowledge base across all configured roots",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// Get KB directory
-			kbDir := filepath.Join(config.GetCockpitDir(), "kb")
+			// Get KB roots from config
+			roots := cfg.KB.Roots
+			if len(roots) == 0 {
+				fmt.Println("No knowledge base roots configured")
+				return nil
+			}
 
-			// Create repository
-			repo := kb.NewFileRepository(kbDir)
+			// Create index path
+			indexPath := filepath.Join(config.GetCockpitDir(), ".kb-index.json")
+
+			// Create manager
+			manager := kb.NewManager(roots, indexPath)
 
 			// Load all documents
-			documents, err := repo.ListDocuments(".")
+			documents, err := manager.ListDocuments()
 			if err != nil {
 				return fmt.Errorf("failed to load documents: %w", err)
 			}
@@ -184,6 +192,162 @@ func NewKBRemoveCommand(log *logging.Manager, cfg *config.Config, t *i18n.Transl
 	}
 
 	return removeCmd
+}
+
+// NewKBRootCommand creates the kb root subcommand for managing KB roots.
+func NewKBRootCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translator) *cobra.Command {
+	rootCmd := &cobra.Command{
+		Use:   "root",
+		Short: "Manage knowledge base roots",
+		Long:  "Add, remove, or list knowledge base root directories",
+	}
+
+	// Add subcommands
+	rootCmd.AddCommand(NewKBRootAddCommand(log, cfg, t))
+	rootCmd.AddCommand(NewKBRootRemoveCommand(log, cfg, t))
+	rootCmd.AddCommand(NewKBRootListCommand(log, cfg, t))
+
+	return rootCmd
+}
+
+// NewKBRootAddCommand creates the kb root add subcommand.
+func NewKBRootAddCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translator) *cobra.Command {
+	addCmd := &cobra.Command{
+		Use:   "add <path>",
+		Short: "Add a knowledge base root",
+		Long:  "Add a new directory as a knowledge base root",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			rootPath := args[0]
+
+			// Create index path
+			indexPath := filepath.Join(config.GetCockpitDir(), ".kb-index.json")
+
+			// Create manager with current roots
+			manager := kb.NewManager(cfg.KB.Roots, indexPath)
+
+			// Add root
+			err := manager.AddRoot(rootPath)
+			if err != nil {
+				return fmt.Errorf("failed to add root: %w", err)
+			}
+
+			// Update config
+			cfg.KB.Roots = manager.GetRoots()
+			if err := cfg.Save(); err != nil {
+				return fmt.Errorf("failed to save config: %w", err)
+			}
+
+			fmt.Printf("Added knowledge base root: %s\n", rootPath)
+			return nil
+		},
+	}
+
+	return addCmd
+}
+
+// NewKBRootRemoveCommand creates the kb root remove subcommand.
+func NewKBRootRemoveCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translator) *cobra.Command {
+	removeCmd := &cobra.Command{
+		Use:   "remove <path>",
+		Short: "Remove a knowledge base root",
+		Long:  "Remove a directory from the knowledge base roots",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			rootPath := args[0]
+
+			// Create index path
+			indexPath := filepath.Join(config.GetCockpitDir(), ".kb-index.json")
+
+			// Create manager with current roots
+			manager := kb.NewManager(cfg.KB.Roots, indexPath)
+
+			// Remove root
+			err := manager.RemoveRoot(rootPath)
+			if err != nil {
+				return fmt.Errorf("failed to remove root: %w", err)
+			}
+
+			// Update config
+			cfg.KB.Roots = manager.GetRoots()
+			if err := cfg.Save(); err != nil {
+				return fmt.Errorf("failed to save config: %w", err)
+			}
+
+			fmt.Printf("Removed knowledge base root: %s\n", rootPath)
+			return nil
+		},
+	}
+
+	return removeCmd
+}
+
+// NewKBRootListCommand creates the kb root list subcommand.
+func NewKBRootListCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translator) *cobra.Command {
+	listCmd := &cobra.Command{
+		Use:   "list",
+		Short: "List knowledge base roots",
+		Long:  "List all configured knowledge base root directories",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			roots := cfg.KB.Roots
+			if len(roots) == 0 {
+				fmt.Println("No knowledge base roots configured")
+				return nil
+			}
+
+			fmt.Println("Knowledge Base Roots:")
+			for i, root := range roots {
+				fmt.Printf("%d. %s\n", i+1, root)
+			}
+
+			return nil
+		},
+	}
+
+	return listCmd
+}
+
+// NewKBRebuildCacheCommand creates the kb rebuild-cache subcommand.
+func NewKBRebuildCacheCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translator) *cobra.Command {
+	rebuildCmd := &cobra.Command{
+		Use:   "rebuild-cache",
+		Short: "Rebuild the knowledge base index cache",
+		Long:  "Rebuild the knowledge base index cache from all configured roots",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// Get KB roots from config
+			roots := cfg.KB.Roots
+			if len(roots) == 0 {
+				fmt.Println("No knowledge base roots configured")
+				return nil
+			}
+
+			// Create index path
+			indexPath := filepath.Join(config.GetCockpitDir(), ".kb-index.json")
+
+			// Create manager
+			manager := kb.NewManager(roots, indexPath)
+
+			// Rebuild index
+			fmt.Println("Rebuilding knowledge base index...")
+			err := manager.RebuildIndex()
+			if err != nil {
+				return fmt.Errorf("failed to rebuild index: %w", err)
+			}
+
+			// Get last update time
+			lastUpdate, err := manager.GetLastIndexUpdate()
+			if err != nil {
+				return fmt.Errorf("failed to get index update time: %w", err)
+			}
+
+			fmt.Println("Knowledge base index rebuilt successfully")
+			fmt.Printf("Last updated: %s\n", lastUpdate.Format("2006-01-02 15:04:05"))
+
+			return nil
+		},
+	}
+
+	return rebuildCmd
 }
 
 // outputJSON outputs search results as JSON.

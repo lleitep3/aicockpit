@@ -45,17 +45,31 @@ AICockpit is a **harness engineering tool for AI systems** that enables autonomo
 - ✅ Installation scripts (user-level & system-wide)
 - ✅ CI/CD with automated versioning
 
-**Phase 2 - Knowledge Base & Search (In Progress)**
+**Phase 2 - Knowledge Base & Search (Complete)**
 - ✅ KB system with metadata headers
 - ✅ Keyword-based search
-- ✅ Document repository (file-based)
-- ✅ Scoring system (0-1 probability)
-- ✅ `cockpit kb` command (search, list, add, remove)
-- [ ] Semantic search with embeddings
-- [ ] Skills for KB integration
-- [ ] Hooks for automatic KB search
+- ✅ Metadata parsing and extraction
+- ✅ Scoring system (keyword + semantic)
+- ✅ CLI commands (search, list, add, remove)
 
-**Phase 3 - Vault & Packages (Next)**
+**Phase 3 - Multi-Root KB & Caching (Complete)**
+- ✅ Multi-root KB support
+- ✅ Unstructured document support
+- ✅ File-based index caching (.index.json)
+- ✅ Manager for orchestrating KB operations
+- ✅ IndexProvider interface for extensibility
+- ✅ 88.9% test coverage
+
+**Phase 4 - KB Configuration & Commands (In Progress)**
+- ✅ KB configuration in config.yaml
+- ✅ Commands: kb root add/remove/list
+- ✅ Command: kb rebuild-cache
+- ✅ Manager integration with config
+- [ ] Semantic search with embeddings
+- [ ] Skills integration
+- [ ] Hooks integration
+
+**Phase 5 - Vault & Packages (Next)**
 - [ ] Vault system (keyring integration)
 - [ ] Package management
 - [ ] Command execution framework

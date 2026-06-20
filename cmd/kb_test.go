@@ -399,3 +399,92 @@ func TestKBSearchCommand_Integration(t *testing.T) {
 		t.Errorf("Loaded document title = %s, want Test Document", loaded.Metadata.Title)
 	}
 }
+
+func TestNewKBRootCommand(t *testing.T) {
+	log, err := logging.NewManager("")
+	if err != nil {
+		t.Fatalf("Failed to create logging manager: %v", err)
+	}
+	cfg := &config.Config{
+		Version:  "0.1.0",
+		Language: "en-us",
+		KB:       config.KBConfig{Roots: []string{"/tmp/kb"}},
+	}
+	translator := i18n.New("en-us")
+
+	cmd := NewKBRootCommand(log, cfg, translator)
+
+	if cmd == nil {
+		t.Error("NewKBRootCommand() returned nil")
+	}
+
+	if cmd.Use != "root" {
+		t.Errorf("NewKBRootCommand() Use = %s, want root", cmd.Use)
+	}
+
+	// Check subcommands exist
+	subcommands := cmd.Commands()
+	if len(subcommands) != 3 {
+		t.Errorf("NewKBRootCommand() has %d subcommands, want 3", len(subcommands))
+	}
+}
+
+func TestNewKBRootListCommand(t *testing.T) {
+	log, err := logging.NewManager("")
+	if err != nil {
+		t.Fatalf("Failed to create logging manager: %v", err)
+	}
+	cfg := &config.Config{
+		Version:  "0.1.0",
+		Language: "en-us",
+		KB:       config.KBConfig{Roots: []string{"/tmp/kb1", "/tmp/kb2"}},
+	}
+	translator := i18n.New("en-us")
+
+	cmd := NewKBRootListCommand(log, cfg, translator)
+
+	if cmd == nil {
+		t.Error("NewKBRootListCommand() returned nil")
+	}
+
+	if cmd.Use != "list" {
+		t.Errorf("NewKBRootListCommand() Use = %s, want list", cmd.Use)
+	}
+
+	// Test execution - just verify it doesn't error
+	err = cmd.RunE(cmd, []string{})
+	if err != nil {
+		t.Errorf("NewKBRootListCommand() RunE() error = %v", err)
+	}
+}
+
+func TestNewKBRebuildCacheCommand(t *testing.T) {
+	log, err := logging.NewManager("")
+	if err != nil {
+		t.Fatalf("Failed to create logging manager: %v", err)
+	}
+
+	tmpDir := t.TempDir()
+	cfg := &config.Config{
+		Version:  "0.1.0",
+		Language: "en-us",
+		KB:       config.KBConfig{Roots: []string{tmpDir}},
+	}
+	translator := i18n.New("en-us")
+
+	cmd := NewKBRebuildCacheCommand(log, cfg, translator)
+
+	if cmd == nil {
+		t.Error("NewKBRebuildCacheCommand() returned nil")
+	}
+
+	if cmd.Use != "rebuild-cache" {
+		t.Errorf("NewKBRebuildCacheCommand() Use = %s, want rebuild-cache", cmd.Use)
+	}
+
+	// Test execution - just verify it doesn't error
+	err = cmd.RunE(cmd, []string{})
+	if err != nil {
+		t.Errorf("NewKBRebuildCacheCommand() RunE() error = %v", err)
+	}
+}

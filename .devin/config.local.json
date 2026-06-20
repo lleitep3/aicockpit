@@ -53,7 +53,8 @@
       "Exec(tree)",
       "Exec(go test)",
       "Exec(go tool)",
-      "Exec(git checkout)"
+      "Exec(git checkout)",
+      "Exec(go build)"
     ]
   }
 }

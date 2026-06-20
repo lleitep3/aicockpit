@@ -25,15 +25,15 @@ type IndexProvider interface {
 
 // KBIndex represents the complete knowledge base index.
 type KBIndex struct {
-	Version     string       `json:"version"`
-	LastUpdated time.Time    `json:"last_updated"`
-	Roots       []RootIndex  `json:"roots"`
+	Version     string      `json:"version"`
+	LastUpdated time.Time   `json:"last_updated"`
+	Roots       []RootIndex `json:"roots"`
 }
 
 // RootIndex represents the index for a single KB root directory.
 type RootIndex struct {
-	Path      string         `json:"path"`
-	Documents []IndexEntry   `json:"documents"`
+	Path      string       `json:"path"`
+	Documents []IndexEntry `json:"documents"`
 }
 
 // IndexEntry represents a single document in the index.

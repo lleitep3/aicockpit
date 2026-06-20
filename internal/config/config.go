@@ -11,10 +11,16 @@ import (
 
 // Config represents the AICockpit configuration.
 type Config struct {
-	Version    string `yaml:"version"`
-	Language   string `yaml:"language"`
-	LogLevel   string `yaml:"log_level"`
-	AIProvider string `yaml:"ai_provider"`
+	Version    string   `yaml:"version"`
+	Language   string   `yaml:"language"`
+	LogLevel   string   `yaml:"log_level"`
+	AIProvider string   `yaml:"ai_provider"`
+	KB         KBConfig `yaml:"kb"`
+}
+
+// KBConfig represents the Knowledge Base configuration.
+type KBConfig struct {
+	Roots []string `yaml:"roots"`
 }
 
 var defaultConfig = Config{
@@ -22,6 +28,9 @@ var defaultConfig = Config{
 	Language:   "en-us",
 	LogLevel:   "info",
 	AIProvider: "claude",
+	KB: KBConfig{
+		Roots: []string{filepath.Join(GetCockpitDir(), "kb")},
+	},
 }
 
 // GetCockpitDir returns the AICockpit home directory.
@@ -145,5 +154,10 @@ func (c *Config) Update(updates map[string]interface{}) error {
 		}
 	}
 
+	return Save(c)
+}
+
+// Save saves the configuration to disk.
+func (c *Config) Save() error {
 	return Save(c)
 }
