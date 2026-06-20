@@ -54,7 +54,8 @@
       "Exec(go test)",
       "Exec(go tool)",
       "Exec(git checkout)",
-      "Exec(go build)"
+      "Exec(go build)",
+      "Exec(cp)"
     ]
   }
 }

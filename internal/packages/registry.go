@@ -21,15 +21,15 @@ type RegistryConfig struct {
 
 // PackageIndex represents the package-index.yaml file in a registry.
 type PackageIndex struct {
-	Version     string                 `yaml:"version"`
-	Name        string                 `yaml:"name"`
-	Description string                 `yaml:"description"`
-	URL         string                 `yaml:"url"`
-	Maintainer  string                 `yaml:"maintainer"`
-	Email       string                 `yaml:"maintainer_email"`
-	UpdatedAt   string                 `yaml:"updated_at"`
-	Metadata    RegistryMetadata       `yaml:"metadata"`
-	Packages    []PackageIndexEntry    `yaml:"packages"`
+	Version     string              `yaml:"version"`
+	Name        string              `yaml:"name"`
+	Description string              `yaml:"description"`
+	URL         string              `yaml:"url"`
+	Maintainer  string              `yaml:"maintainer"`
+	Email       string              `yaml:"maintainer_email"`
+	UpdatedAt   string              `yaml:"updated_at"`
+	Metadata    RegistryMetadata    `yaml:"metadata"`
+	Packages    []PackageIndexEntry `yaml:"packages"`
 }
 
 // RegistryMetadata represents registry metadata.
@@ -40,26 +40,26 @@ type RegistryMetadata struct {
 
 // PackageIndexEntry represents a package entry in the registry index.
 type PackageIndexEntry struct {
-	Name                  string   `yaml:"name"`
-	Version               string   `yaml:"version"`
-	Description           string   `yaml:"description"`
-	Author                string   `yaml:"author"`
-	License               string   `yaml:"license"`
-	Category              string   `yaml:"category"`
-	Tags                  []string `yaml:"tags"`
-	Path                  string   `yaml:"path"`
-	URL                   string   `yaml:"url"`
-	Homepage              string   `yaml:"homepage"`
-	Repository            string   `yaml:"repository"`
-	SupportedProviders    []string `yaml:"supported_providers"`
-	Features              []string `yaml:"features"`
-	Requirements          Requirements `yaml:"requirements"`
-	Dependencies          []Dependency `yaml:"dependencies"`
-	InstallationMethod    string   `yaml:"installation_method"`
-	Checksum              string   `yaml:"checksum"`
-	SizeBytes             int64    `yaml:"size_bytes"`
-	Status                string   `yaml:"status"`
-	ReleasedAt            string   `yaml:"released_at"`
+	Name               string       `yaml:"name"`
+	Version            string       `yaml:"version"`
+	Description        string       `yaml:"description"`
+	Author             string       `yaml:"author"`
+	License            string       `yaml:"license"`
+	Category           string       `yaml:"category"`
+	Tags               []string     `yaml:"tags"`
+	Path               string       `yaml:"path"`
+	URL                string       `yaml:"url"`
+	Homepage           string       `yaml:"homepage"`
+	Repository         string       `yaml:"repository"`
+	SupportedProviders []string     `yaml:"supported_providers"`
+	Features           []string     `yaml:"features"`
+	Requirements       Requirements `yaml:"requirements"`
+	Dependencies       []Dependency `yaml:"dependencies"`
+	InstallationMethod string       `yaml:"installation_method"`
+	Checksum           string       `yaml:"checksum"`
+	SizeBytes          int64        `yaml:"size_bytes"`
+	Status             string       `yaml:"status"`
+	ReleasedAt         string       `yaml:"released_at"`
 }
 
 // RegistryManager manages package registries.
@@ -293,7 +293,7 @@ func (rm *RegistryManager) matchesQuery(pkg PackageIndexEntry, query string) boo
 // contains checks if a string contains a substring (case-insensitive).
 func contains(s, substr string) bool {
 	// Simple substring check
-	return len(s) > 0 && len(substr) > 0 && 
+	return len(s) > 0 && len(substr) > 0 &&
 		(s == substr || len(s) > len(substr))
 }
 

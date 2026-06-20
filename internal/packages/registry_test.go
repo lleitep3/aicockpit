@@ -445,7 +445,7 @@ func TestDisabledRegistry(t *testing.T) {
 			Name:     "test-registry",
 			URL:      "https://github.com/test/packages",
 			Branch:   "main",
-			Enabled:  false,  // Disabled
+			Enabled:  false, // Disabled
 			Priority: 1,
 		},
 	}
