@@ -21,10 +21,10 @@ type Config struct {
 
 // ProvidersConfig represents configuration for multiple AI providers.
 type ProvidersConfig struct {
-	Enabled   []string            `yaml:"enabled"`
-	Devin     *ProviderConfig     `yaml:"devin"`
-	Goose     *ProviderConfig     `yaml:"goose"`
-	ClaudeCode *ProviderConfig    `yaml:"claude_code"`
+	Enabled       []string        `yaml:"enabled"`
+	Devin         *ProviderConfig `yaml:"devin"`
+	Goose         *ProviderConfig `yaml:"goose"`
+	ClaudeCode    *ProviderConfig `yaml:"claude_code"`
 	GitHubCopilot *ProviderConfig `yaml:"github_copilot"`
 }
 
