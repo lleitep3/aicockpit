@@ -2,7 +2,7 @@
 
 [![Test and Lint](https://github.com/lleitep3/aicockpit/workflows/Test%20and%20Lint/badge.svg)](https://github.com/lleitep3/aicockpit/actions/workflows/test.yml)
 [![Build](https://github.com/lleitep3/aicockpit/workflows/Build/badge.svg)](https://github.com/lleitep3/aicockpit/actions/workflows/build.yml)
-[![Go Version](https://img.shields.io/badge/go-1.22.4+-blue.svg)](https://golang.org)
+[![Go Version](https://img.shields.io/badge/go-1.26+-blue.svg)](https://golang.org)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 A powerful CLI-based harness engineering tool that enables AI systems to evolve autonomously and operate more efficiently by optimizing token usage and improving performance over time.
@@ -36,8 +36,9 @@ AICockpit is designed to be the "cockpit" for your AI systems - a comprehensive 
 ### Development
 
 - **[Contributing Guide](CONTRIBUTING.md)** - How to contribute to AICockpit
+- **[AI Agent Guidelines](AGENTS.md)** - Comprehensive guide for AI agents developing on AICockpit
+- **[CI/CD Pipeline](docs/CI-CD.md)** - CI/CD workflow and automation details
 - **[SDLC Guidelines](docs/SDLC.md)** - Software Development Lifecycle standards
-- **[AI Agent Guidelines](docs/AGENTS.md)** - Guidelines for AI agents working with AICockpit
 
 ### Project Information
 
