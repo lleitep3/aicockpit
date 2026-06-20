@@ -26,11 +26,12 @@ func NewPackageDownloader() *PackageDownloader {
 // It extracts only the package directory from the repository.
 //
 // Example:
-//   owner: "lleitep3"
-//   repo: "cockpit-registry"
-//   branch: "main"
-//   packageName: "hello-world"
-//   destDir: "/home/user/.cockpit/packages/hello-world"
+//
+//	owner: "lleitep3"
+//	repo: "cockpit-registry"
+//	branch: "main"
+//	packageName: "hello-world"
+//	destDir: "/home/user/.cockpit/packages/hello-world"
 func (pd *PackageDownloader) DownloadPackageFromGitHub(owner, repo, branch, packageName, destDir string) error {
 	// Construct GitHub API URL for downloading the repository as ZIP
 	// Format: https://github.com/{owner}/{repo}/archive/refs/heads/{branch}.zip

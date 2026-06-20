@@ -25,6 +25,7 @@ func NewPkgCommand() *cobra.Command {
 	cmd.AddCommand(NewPkgInstallCommand())
 	cmd.AddCommand(NewPkgUninstallCommand())
 	cmd.AddCommand(NewPkgListCommand())
+	cmd.AddCommand(NewPkgRegistriesCommand())
 
 	return cmd
 }
