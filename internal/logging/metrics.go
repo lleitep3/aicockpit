@@ -11,19 +11,19 @@ import (
 
 // ExecutionMetric represents a single command execution
 type ExecutionMetric struct {
-	Timestamp   time.Time              `json:"timestamp"`
-	Command     string                 `json:"command"`
-	Args        []string               `json:"args"`
-	Status      string                 `json:"status"` // "success" or "error"
-	ExitCode    int                    `json:"exit_code"`
-	Duration    float64                `json:"duration_ms"`
-	User        string                 `json:"user"`
-	Version     string                 `json:"version"`
-	Language    string                 `json:"language"`
-	Output      string                 `json:"output,omitempty"`
-	Error       string                 `json:"error,omitempty"`
-	ErrorType   string                 `json:"error_type,omitempty"`
-	Environment map[string]string      `json:"environment,omitempty"`
+	Timestamp   time.Time         `json:"timestamp"`
+	Command     string            `json:"command"`
+	Args        []string          `json:"args"`
+	Status      string            `json:"status"` // "success" or "error"
+	ExitCode    int               `json:"exit_code"`
+	Duration    float64           `json:"duration_ms"`
+	User        string            `json:"user"`
+	Version     string            `json:"version"`
+	Language    string            `json:"language"`
+	Output      string            `json:"output,omitempty"`
+	Error       string            `json:"error,omitempty"`
+	ErrorType   string            `json:"error_type,omitempty"`
+	Environment map[string]string `json:"environment,omitempty"`
 }
 
 // MetricsCollector collects and stores execution metrics
@@ -155,10 +155,10 @@ func (mc *MetricsCollector) GetStats() map[string]interface{} {
 	defer mc.mu.Unlock()
 
 	stats := map[string]interface{}{
-		"total_executions": len(mc.metrics),
-		"successful":       0,
-		"failed":           0,
-		"commands":         map[string]int{},
+		"total_executions":  len(mc.metrics),
+		"successful":        0,
+		"failed":            0,
+		"commands":          map[string]int{},
 		"total_duration_ms": 0.0,
 		"avg_duration_ms":   0.0,
 		"error_types":       map[string]int{},

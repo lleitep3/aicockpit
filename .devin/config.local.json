@@ -42,7 +42,13 @@
       "Exec(git log)",
       "Exec(cockpit)",
       "Exec(cat)",
-      "Exec(mv)"
+      "Exec(mv)",
+      "Exec(gh)",
+      "Exec(go fmt)",
+      "Exec(go vet)",
+      "Exec(go version)",
+      "Exec(wget)",
+      "Exec(sudo)"
     ]
   }
 }

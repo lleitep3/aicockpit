@@ -93,12 +93,12 @@ func (m *Manager) LogCommand(command string, args []string, status string, exitC
 
 	// Log to file
 	context := map[string]interface{}{
-		"command":   command,
-		"args":      args,
-		"status":    status,
-		"exit_code": exitCode,
+		"command":     command,
+		"args":        args,
+		"status":      status,
+		"exit_code":   exitCode,
 		"duration_ms": duration.Milliseconds(),
-		"user":      username,
+		"user":        username,
 	}
 
 	if errorMsg != "" {

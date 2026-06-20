@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/lleite/aicockpit/internal/version"
 	"gopkg.in/yaml.v3"
 )
 
@@ -17,7 +18,7 @@ type Config struct {
 }
 
 var defaultConfig = Config{
-	Version:    "0.1.0",
+	Version:    version.Version,
 	Language:   "en-us",
 	LogLevel:   "info",
 	AIProvider: "claude",
