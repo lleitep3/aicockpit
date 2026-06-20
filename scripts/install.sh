@@ -1,13 +1,23 @@
 #!/bin/bash
 
 # AICockpit Installation Script
-# This script handles user-level installation and PATH configuration
+# This script handles both user-level and system-wide installation
 
 set -e
 
 BINARY_NAME="cockpit"
 BINARY_PATH="bin/${BINARY_NAME}"
-INSTALL_PATH="${HOME}/.local/bin"
+
+# Determine installation path
+# Default to user-level, but allow system-wide with --global flag
+if [[ "$1" == "--global" ]]; then
+    INSTALL_PATH="/usr/local/bin"
+    SYSTEM_WIDE=true
+else
+    INSTALL_PATH="${HOME}/.local/bin"
+    SYSTEM_WIDE=false
+fi
+
 COCKPIT_PATH="${INSTALL_PATH}/${BINARY_NAME}"
 
 # Colors for output
@@ -17,7 +27,14 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-echo -e "${BLUE}=== AICockpit Installation ===${NC}\n"
+if [ "$SYSTEM_WIDE" = true ]; then
+    echo -e "${BLUE}=== AICockpit Global Installation ===${NC}\n"
+    echo -e "${YELLOW}Installing to system-wide location: $INSTALL_PATH${NC}"
+    echo -e "${YELLOW}This may require sudo${NC}\n"
+else
+    echo -e "${BLUE}=== AICockpit User-Level Installation ===${NC}\n"
+    echo -e "${YELLOW}Installing to user location: $INSTALL_PATH${NC}\n"
+fi
 
 # Check if binary exists
 if [ ! -f "$BINARY_PATH" ]; then
@@ -26,14 +43,23 @@ if [ ! -f "$BINARY_PATH" ]; then
     exit 1
 fi
 
-# Create install directory
+# Create install directory (with sudo if needed)
 echo -e "${BLUE}Creating installation directory...${NC}"
-mkdir -p "$INSTALL_PATH"
+if [ "$SYSTEM_WIDE" = true ]; then
+    sudo mkdir -p "$INSTALL_PATH"
+else
+    mkdir -p "$INSTALL_PATH"
+fi
 
-# Copy binary
+# Copy binary (with sudo if needed)
 echo -e "${BLUE}Installing binary...${NC}"
-cp "$BINARY_PATH" "$COCKPIT_PATH"
-chmod +x "$COCKPIT_PATH"
+if [ "$SYSTEM_WIDE" = true ]; then
+    sudo cp "$BINARY_PATH" "$COCKPIT_PATH"
+    sudo chmod +x "$COCKPIT_PATH"
+else
+    cp "$BINARY_PATH" "$COCKPIT_PATH"
+    chmod +x "$COCKPIT_PATH"
+fi
 echo -e "${GREEN}✓ Binary installed to $COCKPIT_PATH${NC}\n"
 
 # Function to check if PATH already contains the directory
@@ -67,42 +93,48 @@ add_to_path() {
     echo -e "${GREEN}✓ Added to $shell_config${NC}"
 }
 
-# Detect and configure shells
-echo -e "${BLUE}Configuring shell...${NC}\n"
+# Detect and configure shells (only for user-level installation)
+if [ "$SYSTEM_WIDE" = false ]; then
+    echo -e "${BLUE}Configuring shell...${NC}\n"
 
-# Bash
-if [ -n "$BASH_VERSION" ] || [ -f "$HOME/.bashrc" ]; then
-    add_to_path "$HOME/.bashrc" "Bash"
-fi
-
-# Zsh
-if [ -n "$ZSH_VERSION" ] || [ -f "$HOME/.zshrc" ]; then
-    add_to_path "$HOME/.zshrc" "Zsh"
-fi
-
-# Fish
-if [ -f "$HOME/.config/fish/config.fish" ]; then
-    if ! grep -q "\.local/bin" "$HOME/.config/fish/config.fish" 2>/dev/null; then
-        echo -e "${BLUE}Adding to Fish...${NC}"
-        echo "" >> "$HOME/.config/fish/config.fish"
-        echo "# AICockpit - Added by installation script" >> "$HOME/.config/fish/config.fish"
-        echo "set -gx PATH \$HOME/.local/bin \$PATH" >> "$HOME/.config/fish/config.fish"
-        echo -e "${GREEN}✓ Added to Fish${NC}"
-    else
-        echo -e "${YELLOW}✓ Fish: PATH already configured${NC}"
+    # Bash
+    if [ -n "$BASH_VERSION" ] || [ -f "$HOME/.bashrc" ]; then
+        add_to_path "$HOME/.bashrc" "Bash"
     fi
-fi
 
-echo ""
+    # Zsh
+    if [ -n "$ZSH_VERSION" ] || [ -f "$HOME/.zshrc" ]; then
+        add_to_path "$HOME/.zshrc" "Zsh"
+    fi
 
-# Check if PATH is already set in current session
-if echo "$PATH" | grep -q ".local/bin"; then
-    echo -e "${GREEN}✓ ~/.local/bin is already in your PATH${NC}"
-    RELOAD_NEEDED=false
+    # Fish
+    if [ -f "$HOME/.config/fish/config.fish" ]; then
+        if ! grep -q "\.local/bin" "$HOME/.config/fish/config.fish" 2>/dev/null; then
+            echo -e "${BLUE}Adding to Fish...${NC}"
+            echo "" >> "$HOME/.config/fish/config.fish"
+            echo "# AICockpit - Added by installation script" >> "$HOME/.config/fish/config.fish"
+            echo "set -gx PATH \$HOME/.local/bin \$PATH" >> "$HOME/.config/fish/config.fish"
+            echo -e "${GREEN}✓ Added to Fish${NC}"
+        else
+            echo -e "${YELLOW}✓ Fish: PATH already configured${NC}"
+        fi
+    fi
+
+    echo ""
+
+    # Check if PATH is already set in current session
+    if echo "$PATH" | grep -q ".local/bin"; then
+        echo -e "${GREEN}✓ ~/.local/bin is already in your PATH${NC}"
+        RELOAD_NEEDED=false
+    else
+        echo -e "${YELLOW}⚠ ~/.local/bin is not in your current PATH${NC}"
+        echo -e "${YELLOW}  You need to reload your shell configuration${NC}"
+        RELOAD_NEEDED=true
+    fi
 else
-    echo -e "${YELLOW}⚠ ~/.local/bin is not in your current PATH${NC}"
-    echo -e "${YELLOW}  You need to reload your shell configuration${NC}"
-    RELOAD_NEEDED=true
+    # For system-wide installation, /usr/local/bin is already in PATH
+    echo -e "${GREEN}✓ /usr/local/bin is already in system PATH${NC}"
+    RELOAD_NEEDED=false
 fi
 
 echo ""

@@ -24,14 +24,25 @@ AICockpit now includes intelligent installation scripts that automatically confi
 
 ## Installation
 
-### Linux/macOS
+### Linux/macOS - User-Level (Recommended)
 
 ```bash
 cd /path/to/aicockpit
 make install
 ```
 
-**What happens:**
+Installs to `~/.local/bin` (user-specific, no sudo required)
+
+### Linux/macOS - System-Wide (Global)
+
+```bash
+cd /path/to/aicockpit
+make install-global
+```
+
+Installs to `/usr/local/bin` (available to all users, requires sudo)
+
+**User-Level Installation - What happens:**
 1. Builds the binary
 2. Creates `~/.local/bin` directory
 3. Copies binary to `~/.local/bin/cockpit`
@@ -40,6 +51,15 @@ make install
    - `~/.bashrc` (if Bash is detected)
    - `~/.zshrc` (if Zsh is detected)
    - `~/.config/fish/config.fish` (if Fish is detected)
+6. Verifies installation
+7. Shows next steps
+
+**System-Wide Installation - What happens:**
+1. Builds the binary
+2. Creates `/usr/local/bin` directory (with sudo)
+3. Copies binary to `/usr/local/bin/cockpit` (with sudo)
+4. `/usr/local/bin` is already in system PATH
+5. Available to all users on the system
 6. Verifies installation
 7. Shows next steps
 

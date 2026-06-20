@@ -21,6 +21,8 @@ AICockpit is designed to be the "cockpit" for your AI systems - a comprehensive 
 
 #### Linux/macOS
 
+**Option 1: User-Level Installation (Recommended)**
+
 ```bash
 # Clone the repository
 git clone https://github.com/lleite/aicockpit.git
@@ -37,6 +39,27 @@ The installation script automatically:
 - Detects your shell (Bash, Zsh, Fish)
 - Adds `~/.local/bin` to your PATH
 - Creates shell config files if needed
+- Verifies the installation
+
+**Option 2: System-Wide Installation (Global)**
+
+```bash
+# Clone the repository
+git clone https://github.com/lleite/aicockpit.git
+cd aicockpit
+
+# Build and install globally (requires sudo)
+make install-global
+
+# Verify installation
+cockpit --version
+```
+
+The installation script automatically:
+- Installs to `/usr/local/bin` (system-wide)
+- Available to all users
+- Already in system PATH
+- Requires sudo password
 - Verifies the installation
 
 #### Windows

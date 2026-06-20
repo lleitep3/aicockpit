@@ -1,4 +1,4 @@
-.PHONY: help build test lint fmt check clean install install-win uninstall
+.PHONY: help build test lint fmt check clean install install-global install-win uninstall
 
 # Variables
 BINARY_NAME=cockpit
@@ -10,16 +10,17 @@ INSTALL_PATH=$(HOME)/.local/bin
 help:
 	@echo "AICockpit - Available commands:"
 	@echo ""
-	@echo "  make build        - Build the binary"
-	@echo "  make test         - Run tests with coverage"
-	@echo "  make lint         - Run linters (go vet)"
-	@echo "  make fmt          - Format code"
-	@echo "  make check        - Run all checks (fmt + lint + test + build)"
-	@echo "  make clean        - Clean build artifacts"
-	@echo "  make install      - Install binary to ~/.local/bin (Linux/macOS)"
-	@echo "  make install-win  - Install binary (Windows PowerShell)"
-	@echo "  make uninstall    - Remove installed binary"
-	@echo "  make help         - Show this help message"
+	@echo "  make build           - Build the binary"
+	@echo "  make test            - Run tests with coverage"
+	@echo "  make lint            - Run linters (go vet)"
+	@echo "  make fmt             - Format code"
+	@echo "  make check           - Run all checks (fmt + lint + test + build)"
+	@echo "  make clean           - Clean build artifacts"
+	@echo "  make install         - Install to ~/.local/bin (user-level, Linux/macOS)"
+	@echo "  make install-global  - Install to /usr/local/bin (system-wide, Linux/macOS)"
+	@echo "  make install-win     - Install binary (Windows PowerShell)"
+	@echo "  make uninstall       - Remove installed binary"
+	@echo "  make help            - Show this help message"
 	@echo ""
 
 build:
@@ -55,6 +56,9 @@ clean:
 
 install: build
 	@bash scripts/install.sh
+
+install-global: build
+	@bash scripts/install.sh --global
 
 install-win: build
 	@powershell -ExecutionPolicy Bypass -File scripts/install.ps1
