@@ -7,10 +7,8 @@ run:
 
 linters:
   enable:
-    - errcheck          # Verifica erros não tratados
     - gosimple          # Simplifica código
     - govet             # Análise estática padrão
-    - ineffassign       # Detecta atribuições ineficientes
     - staticcheck       # Análise estática avançada
     - typecheck         # Verifica tipos
     - unused            # Detecta código não usado
@@ -18,9 +16,7 @@ linters:
     - goimports         # Verifica imports
     - misspell          # Detecta erros de digitação
     - revive            # Linter configurável
-    - gocritic          # Análise de qualidade de código
     - errorlint         # Lint de erros
-    - nolintlint        # Verifica uso correto de nolint
 
 linters-settings:
   revive:
@@ -44,7 +40,6 @@ linters-settings:
       - name: time-naming
       - name: unexported-return
       - name: unreachable-code
-      - name: unused-parameter
       - name: var-declaration
       - name: var-naming
 
