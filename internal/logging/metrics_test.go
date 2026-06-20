@@ -112,6 +112,8 @@ func TestMetricsStats(t *testing.T) {
 	collector := NewMetricsCollector(tmpDir)
 
 	// Record executions
+	// i=0,3,6,9 -> error (4 errors)
+	// i=1,2,4,5,7,8 -> success (6 successes)
 	for i := 0; i < 10; i++ {
 		status := "success"
 		exitCode := 0
@@ -136,12 +138,12 @@ func TestMetricsStats(t *testing.T) {
 		t.Errorf("Expected 10 total executions, got %v", stats["total_executions"])
 	}
 
-	if stats["successful"] != 7 {
-		t.Errorf("Expected 7 successful, got %v", stats["successful"])
+	if stats["successful"] != 6 {
+		t.Errorf("Expected 6 successful, got %v", stats["successful"])
 	}
 
-	if stats["failed"] != 3 {
-		t.Errorf("Expected 3 failed, got %v", stats["failed"])
+	if stats["failed"] != 4 {
+		t.Errorf("Expected 4 failed, got %v", stats["failed"])
 	}
 }
 
