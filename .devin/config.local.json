@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "allow": [
+      "Exec(go mod)",
+      "Exec(rm)",
+      "Exec(go get)",
+      "Exec(make fmt)",
+      "Exec(go install)",
+      "Exec(make build)",
+      "Exec(tar)",
+      "Exec(ls)",
+      "Exec(sudo mv)",
+      "Exec(mkdir)",
+      "Exec(ln)",
+      "Exec(~/.local/bin/antigravity)",
+      "Exec(./bin/cockpit)",
+      "Exec(chmod)",
+      "Exec(~/.local/bin/antigravity-run)",
+      "Exec(make test)",
+      "Exec(source)",
+      "Exec(make lint)",
+      "Exec(antigravity)",
+      "Exec(find)",
+      "Exec(dpkg)",
+      "Exec($(go env GOPATH)/bin/golangci-lint)",
+      "Exec(timeout make)",
+      "Exec(sudo rm)",
+      "Exec(/home/lleite/.local/bin/antigravity)",
+      "Exec(bash)",
+      "Exec(/home/lleite/.local/opt/Antigravity/antigravity)",
+      "Exec(make check)",
+      "Exec(devin-desktop)",
+      "Exec(file)",
+      "Exec(sleep)",
+      "Exec(git status)",
+      "Exec(git init)"
+    ]
+  }
+}

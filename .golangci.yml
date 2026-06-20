@@ -1,0 +1,58 @@
+run:
+  timeout: 5m
+  tests: true
+  skip-dirs:
+    - bin
+    - vendor
+
+linters:
+  enable:
+    - errcheck          # Verifica erros não tratados
+    - gosimple          # Simplifica código
+    - govet             # Análise estática padrão
+    - ineffassign       # Detecta atribuições ineficientes
+    - staticcheck       # Análise estática avançada
+    - typecheck         # Verifica tipos
+    - unused            # Detecta código não usado
+    - gofmt             # Verifica formatação
+    - goimports         # Verifica imports
+    - misspell          # Detecta erros de digitação
+    - revive            # Linter configurável
+    - gocritic          # Análise de qualidade de código
+    - errorlint         # Lint de erros
+    - nolintlint        # Verifica uso correto de nolint
+
+linters-settings:
+  revive:
+    rules:
+      - name: blank-imports
+      - name: context-as-argument
+      - name: context-keys-type
+      - name: dot-imports
+      - name: error-naming
+      - name: error-return
+      - name: error-strings
+      - name: exported
+      - name: if-return
+      - name: increment-decrement
+      - name: indent-error-flow
+      - name: package-comments
+      - name: range
+      - name: receiver-naming
+      - name: redefines-builtin-id
+      - name: superfluous-else
+      - name: time-naming
+      - name: unexported-return
+      - name: unreachable-code
+      - name: unused-parameter
+      - name: var-declaration
+      - name: var-naming
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - unused
+        - ineffassign
+  max-issues-per-linter: 0
+  max-same-issues: 0
