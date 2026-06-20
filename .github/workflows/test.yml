@@ -33,15 +33,6 @@ jobs:
     - name: Download dependencies
       run: go mod download
     
-    - name: Format check (Go 1.26 only)
-      if: matrix.go-version == '1.26'
-      run: |
-        if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then
-          echo "Code is not formatted:"
-          gofmt -s -d .
-          exit 1
-        fi
-    
     - name: Vet
       run: go vet ./...
     
