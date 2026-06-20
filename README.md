@@ -19,25 +19,48 @@ AICockpit is designed to be the "cockpit" for your AI systems - a comprehensive 
 
 ### Installation
 
+#### Linux/macOS
+
 ```bash
 # Clone the repository
 git clone https://github.com/lleite/aicockpit.git
 cd aicockpit
 
-# Build the binary
-make build
-
-# Install for current user
+# Build and install (automatic PATH configuration)
 make install
-
-# Add to PATH (if not already)
-export PATH="$HOME/.local/bin:$PATH"
 
 # Verify installation
 cockpit --version
 ```
 
+The installation script automatically:
+- Detects your shell (Bash, Zsh, Fish)
+- Adds `~/.local/bin` to your PATH
+- Creates shell config files if needed
+- Verifies the installation
+
+#### Windows
+
+```powershell
+# Clone the repository
+git clone https://github.com/lleite/aicockpit.git
+cd aicockpit
+
+# Build and install (automatic PATH configuration)
+make install-win
+
+# Verify installation
+cockpit --version
+```
+
+The installation script automatically:
+- Adds `~/.local/bin` to your user PATH
+- Updates current PowerShell session
+- Verifies the installation
+
 ### Initial Setup
+
+After installation, run the setup wizard:
 
 ```bash
 # Run setup wizard
@@ -49,6 +72,8 @@ cockpit doctor
 # View configuration
 cockpit info
 ```
+
+For more details, see [INSTALLATION.md](INSTALLATION.md) and [QUICK_START.md](QUICK_START.md).
 
 ## 📋 Available Commands
 
