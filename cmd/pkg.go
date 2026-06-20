@@ -218,17 +218,57 @@ func NewPkgInstallCommand() *cobra.Command {
 			fmt.Printf("Registry: %s\n", registryName)
 			fmt.Printf("License: %s\n", pkgEntry.License)
 
-			// TODO: Implement actual installation from Git repository
-			fmt.Printf("\n✓ Package installation logic would be implemented here\n")
-			fmt.Printf("  - Clone from: %s\n", pkgEntry.URL)
-			fmt.Printf("  - Install to: %s\n", pm.GetPackageInstallPath(packageName))
+			// Download package from GitHub
+			fmt.Printf("\nDownloading package...\n")
+			downloader := packages.NewPackageDownloader()
+
+			// Extract owner and repo from registry URL
+			// URL format: https://github.com/{owner}/{repo}
+			owner, repo, branch, err := parseGitHubURL(pkgEntry.Repository)
+			if err != nil {
+				return fmt.Errorf("invalid repository URL: %w", err)
+			}
+
+			// Use branch from package entry if available, otherwise use default
+			if pkgEntry.URL != "" {
+				// Try to extract branch from package URL
+				// Format: https://github.com/{owner}/{repo}/tree/{branch}/{packageName}
+				if b := extractBranchFromURL(pkgEntry.URL); b != "" {
+					branch = b
+				}
+			}
+
+			// Download and extract package
+			installPath := pm.GetPackageInstallPath(packageName)
+			if err := downloader.DownloadPackageFromGitHub(owner, repo, branch, packageName, installPath); err != nil {
+				return fmt.Errorf("failed to download package: %w", err)
+			}
+
+			// Load the downloaded package manifest
+			downloadedPkg, err := packages.LoadPackage(installPath)
+			if err != nil {
+				return fmt.Errorf("failed to load downloaded package: %w", err)
+			}
+
+			// Validate the downloaded package
+			if err := downloadedPkg.Validate(); err != nil {
+				return fmt.Errorf("downloaded package validation failed: %w", err)
+			}
+
+			// Save package manifest to installation directory
+			if err := packages.SavePackage(installPath, downloadedPkg); err != nil {
+				return fmt.Errorf("failed to save package manifest: %w", err)
+			}
+
+			fmt.Printf("✓ Package installed successfully\n")
+			fmt.Printf("  Location: %s\n", installPath)
 
 			if withDependencies {
-				fmt.Printf("  - Install dependencies: true\n")
+				fmt.Printf("  Note: Dependency installation not yet implemented\n")
 			}
 
 			if interactive {
-				fmt.Printf("  - Interactive configuration: true\n")
+				fmt.Printf("  Note: Interactive configuration not yet implemented\n")
 			}
 
 			return nil
@@ -377,4 +417,58 @@ func NewPkgListCommand() *cobra.Command {
 	cmd.Flags().BoolVar(&detailed, "detailed", false, "Show detailed information")
 
 	return cmd
+}
+
+// parseGitHubURL parses a GitHub repository URL and extracts owner, repo, and branch.
+// Expected format: https://github.com/{owner}/{repo}
+func parseGitHubURL(url string) (owner, repo, branch string, err error) {
+	// Remove https:// prefix
+	if strings.HasPrefix(url, "https://") {
+		url = strings.TrimPrefix(url, "https://")
+	} else if strings.HasPrefix(url, "http://") {
+		url = strings.TrimPrefix(url, "http://")
+	}
+
+	// Remove github.com/ prefix
+	if strings.HasPrefix(url, "github.com/") {
+		url = strings.TrimPrefix(url, "github.com/")
+	}
+
+	// Split by /
+	parts := strings.Split(url, "/")
+	if len(parts) < 2 {
+		return "", "", "", fmt.Errorf("invalid GitHub URL format")
+	}
+
+	owner = parts[0]
+	repo = strings.TrimSuffix(parts[1], ".git")
+	branch = "main" // Default branch
+
+	return owner, repo, branch, nil
+}
+
+// extractBranchFromURL extracts the branch name from a GitHub URL.
+// Expected format: https://github.com/{owner}/{repo}/tree/{branch}/{path}
+func extractBranchFromURL(url string) string {
+	// Look for /tree/ in the URL
+	if !strings.Contains(url, "/tree/") {
+		return ""
+	}
+
+	// Split by /tree/
+	parts := strings.Split(url, "/tree/")
+	if len(parts) < 2 {
+		return ""
+	}
+
+	// Get the part after /tree/
+	remainder := parts[1]
+
+	// Split by / to get the branch
+	branchParts := strings.Split(remainder, "/")
+	if len(branchParts) > 0 {
+		return branchParts[0]
+	}
+
+	return ""
 }
