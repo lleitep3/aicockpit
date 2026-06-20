@@ -29,7 +29,7 @@ Please be respectful and constructive in all interactions. We are committed to p
 
 ### Prerequisites
 
-- Go 1.22.4 or later
+- **Go 1.26 or later** (required for development)
 - Git
 - Make
 

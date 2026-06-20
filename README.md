@@ -50,7 +50,7 @@ AICockpit is designed to be the "cockpit" for your AI systems - a comprehensive 
 
 ### Prerequisites
 
-- Go 1.22.4 or later
+- **Go 1.26 or later** (required for development)
 - Linux, macOS, or Windows
 - Git
 

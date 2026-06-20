@@ -12,7 +12,7 @@ jobs:
     
     strategy:
       matrix:
-        go-version: ['1.22.4', '1.23']
+        go-version: ['1.26', '1.25']
     
     steps:
     - uses: actions/checkout@v4
@@ -33,8 +33,8 @@ jobs:
     - name: Download dependencies
       run: go mod download
     
-    - name: Format check (Go 1.22.4 only)
-      if: matrix.go-version == '1.22.4'
+    - name: Format check (Go 1.26 only)
+      if: matrix.go-version == '1.26'
       run: |
         if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then
           echo "Code is not formatted:"
@@ -68,7 +68,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
-        go-version: '1.22.4'
+        go-version: '1.26'
     
     - name: golangci-lint
       uses: golangci/golangci-lint-action@v3
