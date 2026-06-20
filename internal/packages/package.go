@@ -27,8 +27,8 @@ type Package struct {
 	Requirements Requirements `yaml:"requirements"`
 
 	// Dependencies
-	Dependencies         []Dependency       `yaml:"dependencies,omitempty"`
-	ExternalDependencies ExternalDeps       `yaml:"external-dependencies,omitempty"`
+	Dependencies         []Dependency `yaml:"dependencies,omitempty"`
+	ExternalDependencies ExternalDeps `yaml:"external-dependencies,omitempty"`
 
 	// Features
 	Features Features `yaml:"features"`
@@ -69,11 +69,11 @@ type ExternalDeps struct {
 
 // Features represents all features in a package.
 type Features struct {
-	Agents    []Feature `yaml:"agents,omitempty"`
-	Skills    []Feature `yaml:"skills,omitempty"`
-	Modules   []Feature `yaml:"modules,omitempty"`
+	Agents    []Feature   `yaml:"agents,omitempty"`
+	Skills    []Feature   `yaml:"skills,omitempty"`
+	Modules   []Feature   `yaml:"modules,omitempty"`
 	KB        []KBFeature `yaml:"kb,omitempty"`
-	Workflows []Feature `yaml:"workflows,omitempty"`
+	Workflows []Feature   `yaml:"workflows,omitempty"`
 }
 
 // Feature represents a single feature.
@@ -107,11 +107,11 @@ type ConfigOption struct {
 
 // Installation represents installation configuration.
 type Installation struct {
-	SupportedProviders []string                 `yaml:"supported_providers"`
-	ProviderFeatures   map[string][]string      `yaml:"provider_features"`
-	Method             string                   `yaml:"method"` // symlink or copy
-	PreInstall         []Hook                   `yaml:"pre_install,omitempty"`
-	PostInstall        []Hook                   `yaml:"post_install,omitempty"`
+	SupportedProviders []string            `yaml:"supported_providers"`
+	ProviderFeatures   map[string][]string `yaml:"provider_features"`
+	Method             string              `yaml:"method"` // symlink or copy
+	PreInstall         []Hook              `yaml:"pre_install,omitempty"`
+	PostInstall        []Hook              `yaml:"post_install,omitempty"`
 }
 
 // Hook represents an installation hook.
@@ -122,12 +122,12 @@ type Hook struct {
 
 // Metadata represents package metadata.
 type Metadata struct {
-	Tags        []string      `yaml:"tags,omitempty"`
-	Keywords    []string      `yaml:"keywords,omitempty"`
-	Maintainers []Maintainer  `yaml:"maintainers,omitempty"`
-	Changelog   string        `yaml:"changelog,omitempty"`
-	Status      string        `yaml:"status,omitempty"` // alpha, beta, stable, deprecated
-	Support     SupportInfo   `yaml:"support,omitempty"`
+	Tags        []string     `yaml:"tags,omitempty"`
+	Keywords    []string     `yaml:"keywords,omitempty"`
+	Maintainers []Maintainer `yaml:"maintainers,omitempty"`
+	Changelog   string       `yaml:"changelog,omitempty"`
+	Status      string       `yaml:"status,omitempty"` // alpha, beta, stable, deprecated
+	Support     SupportInfo  `yaml:"support,omitempty"`
 }
 
 // Maintainer represents a package maintainer.

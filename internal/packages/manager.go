@@ -9,7 +9,7 @@ import (
 
 // PackageManager manages package installation and uninstallation.
 type PackageManager struct {
-	cockpitDir string
+	cockpitDir  string
 	packagesDir string
 }
 
@@ -77,9 +77,9 @@ func (pm *PackageManager) UninstallPackage(packageName string) error {
 	}
 
 	// Create backup
-	backupPath := filepath.Join(pm.cockpitDir, "backups", fmt.Sprintf("%s_%s_%s", 
+	backupPath := filepath.Join(pm.cockpitDir, "backups", fmt.Sprintf("%s_%s_%s",
 		pkg.Name, pkg.Version, time.Now().Format("2006-01-02T15:04:05Z")))
-	
+
 	if err := pm.backupPackage(installedPath, backupPath); err != nil {
 		return fmt.Errorf("failed to create backup: %w", err)
 	}
