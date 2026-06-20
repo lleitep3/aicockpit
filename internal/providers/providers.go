@@ -10,19 +10,19 @@ import (
 
 // ProvidersConfig represents the providers configuration from YAML.
 type ProvidersConfig struct {
-	Version     string                `yaml:"version"`
-	Description string                `yaml:"description"`
-	Providers   map[string]*Provider  `yaml:"providers"`
-	Features    map[string]*Feature   `yaml:"features"`
+	Version     string               `yaml:"version"`
+	Description string               `yaml:"description"`
+	Providers   map[string]*Provider `yaml:"providers"`
+	Features    map[string]*Feature  `yaml:"features"`
 }
 
 // Provider represents a single AI provider configuration.
 type Provider struct {
-	Enabled     bool                  `yaml:"enabled"`
-	Name        string                `yaml:"name"`
-	Description string                `yaml:"description"`
-	Workspace   string                `yaml:"workspace"`
-	Version     string                `yaml:"version"`
+	Enabled     bool                      `yaml:"enabled"`
+	Name        string                    `yaml:"name"`
+	Description string                    `yaml:"description"`
+	Workspace   string                    `yaml:"workspace"`
+	Version     string                    `yaml:"version"`
 	Features    map[string]*FeatureConfig `yaml:"features"`
 }
 

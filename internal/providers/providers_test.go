@@ -318,9 +318,9 @@ func TestRemoveProvider(t *testing.T) {
 
 func TestValidateProvider(t *testing.T) {
 	tests := []struct {
-		name    string
+		name     string
 		provider *Provider
-		wantErr bool
+		wantErr  bool
 	}{
 		{
 			name: "valid provider",
