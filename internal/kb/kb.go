@@ -26,24 +26,24 @@ type Document struct {
 
 // SearchResult represents a single search result with scoring information.
 type SearchResult struct {
-	ID             string  `json:"id"`
-	Title          string  `json:"title"`
-	Description    string  `json:"description"`
-	Path           string  `json:"path"`
-	Score          float64 `json:"score"`
-	KeywordScore   float64 `json:"keyword_score"`
-	SemanticScore  float64 `json:"semantic_score"`
-	Tags           []string `json:"tags"`
-	Excerpt        string  `json:"excerpt"`
-	Created        time.Time `json:"created"`
-	Modified       time.Time `json:"modified"`
+	ID            string    `json:"id"`
+	Title         string    `json:"title"`
+	Description   string    `json:"description"`
+	Path          string    `json:"path"`
+	Score         float64   `json:"score"`
+	KeywordScore  float64   `json:"keyword_score"`
+	SemanticScore float64   `json:"semantic_score"`
+	Tags          []string  `json:"tags"`
+	Excerpt       string    `json:"excerpt"`
+	Created       time.Time `json:"created"`
+	Modified      time.Time `json:"modified"`
 }
 
 // SearchResults represents a collection of search results.
 type SearchResults struct {
-	Query   string          `json:"query"`
-	Results []SearchResult  `json:"results"`
-	Total   int             `json:"total"`
+	Query   string         `json:"query"`
+	Results []SearchResult `json:"results"`
+	Total   int            `json:"total"`
 }
 
 // Repository defines the interface for KB operations.

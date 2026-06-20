@@ -220,18 +220,18 @@ func TestGenerateDocumentID(t *testing.T) {
 
 func TestExtractExcerpt(t *testing.T) {
 	tests := []struct {
-		name      string
-		content   string
-		maxLength int
+		name       string
+		content    string
+		maxLength  int
 		wantMaxLen int
-		wantText  string
+		wantText   string
 	}{
 		{
-			name:      "normal content",
-			content:   "This is a test content that should be extracted as excerpt.",
-			maxLength: 50,
+			name:       "normal content",
+			content:    "This is a test content that should be extracted as excerpt.",
+			maxLength:  50,
 			wantMaxLen: 53,
-			wantText:  "This is a test content that should be extracted",
+			wantText:   "This is a test content that should be extracted",
 		},
 		{
 			name:      "with markdown headers",
@@ -263,6 +263,115 @@ func TestExtractExcerpt(t *testing.T) {
 
 			if tt.wantText != "" && !strings.Contains(excerpt, tt.wantText) {
 				t.Errorf("ExtractExcerpt() = %s, want to contain %s", excerpt, tt.wantText)
+			}
+		})
+	}
+}
+
+func TestParseDocumentWithoutMetadata(t *testing.T) {
+	tests := []struct {
+		name            string
+		id              string
+		path            string
+		rawContent      string
+		wantTitle       string
+		wantDescription string
+		wantTags        int
+	}{
+		{
+			name: "document with header",
+			id:   "test-doc",
+			path: "test.md",
+			rawContent: `# Test Document
+
+This is a test document with a header.
+
+More content here.`,
+			wantTitle:       "Test Document",
+			wantDescription: "This is a test document with a header.",
+			wantTags:        0,
+		},
+		{
+			name: "document without header",
+			id:   "no-header",
+			path: "no-header.md",
+			rawContent: `This is content without a header.
+
+More content here.`,
+			wantTitle:       "no-header",
+			wantDescription: "This is content without a header.",
+			wantTags:        0,
+		},
+		{
+			name: "document with multiple headers",
+			id:   "multi-header",
+			path: "multi.md",
+			rawContent: `# First Header
+
+This is the first paragraph.
+
+## Second Header
+
+This is another section.`,
+			wantTitle:       "First Header",
+			wantDescription: "This is the first paragraph.",
+			wantTags:        0,
+		},
+		{
+			name: "empty document",
+			id:   "empty",
+			path: "empty.md",
+			rawContent: ``,
+			wantTitle:       "empty",
+			wantDescription: "",
+			wantTags:        0,
+		},
+		{
+			name: "document with list items",
+			id:   "with-list",
+			path: "list.md",
+			rawContent: `# List Document
+
+- Item 1
+- Item 2
+
+This is a paragraph after the list.`,
+			wantTitle:       "List Document",
+			wantDescription: "This is a paragraph after the list.",
+			wantTags:        0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			doc, err := ParseDocumentWithoutMetadata(tt.id, tt.path, tt.rawContent)
+
+			if err != nil {
+				t.Fatalf("ParseDocumentWithoutMetadata() error = %v", err)
+			}
+
+			if doc.ID != tt.id {
+				t.Errorf("ID = %s, want %s", doc.ID, tt.id)
+			}
+
+			if doc.Metadata.Title != tt.wantTitle {
+				t.Errorf("Title = %s, want %s", doc.Metadata.Title, tt.wantTitle)
+			}
+
+			if doc.Metadata.Description != tt.wantDescription {
+				t.Errorf("Description = %s, want %s", doc.Metadata.Description, tt.wantDescription)
+			}
+
+			if len(doc.Metadata.Tags) != tt.wantTags {
+				t.Errorf("Tags length = %d, want %d", len(doc.Metadata.Tags), tt.wantTags)
+			}
+
+			if doc.Metadata.Created.IsZero() {
+				t.Error("Created should not be zero")
+			}
+
+			if doc.Metadata.Modified.IsZero() {
+				t.Error("Modified should not be zero")
 			}
 		})
 	}

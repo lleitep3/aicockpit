@@ -145,8 +145,8 @@ func TestFileRepository_ListDocuments_Subdirectory(t *testing.T) {
 			ID:   "guide1",
 			Path: "guides/guide1.md",
 			Metadata: Metadata{
-				Title:   "Guide 1",
-				Created: time.Now(),
+				Title:    "Guide 1",
+				Created:  time.Now(),
 				Modified: time.Now(),
 			},
 			Content: "Content",
@@ -155,8 +155,8 @@ func TestFileRepository_ListDocuments_Subdirectory(t *testing.T) {
 			ID:   "guide2",
 			Path: "guides/guide2.md",
 			Metadata: Metadata{
-				Title:   "Guide 2",
-				Created: time.Now(),
+				Title:    "Guide 2",
+				Created:  time.Now(),
 				Modified: time.Now(),
 			},
 			Content: "Content",
@@ -191,8 +191,8 @@ func TestFileRepository_DeleteDocument(t *testing.T) {
 		ID:   "test-doc",
 		Path: "guides/test.md",
 		Metadata: Metadata{
-			Title:   "Test",
-			Created: time.Now(),
+			Title:    "Test",
+			Created:  time.Now(),
 			Modified: time.Now(),
 		},
 		Content: "Content",
@@ -248,8 +248,8 @@ func TestFileRepository_ListDocuments_SkipsNonMarkdown(t *testing.T) {
 		ID:   "doc1",
 		Path: "guides/doc1.md",
 		Metadata: Metadata{
-			Title:   "Document 1",
-			Created: time.Now(),
+			Title:    "Document 1",
+			Created:  time.Now(),
 			Modified: time.Now(),
 		},
 		Content: "Content",
@@ -278,5 +278,151 @@ func TestFileRepository_ListDocuments_SkipsNonMarkdown(t *testing.T) {
 
 	if listed[0].ID != "doc1" {
 		t.Errorf("ListDocuments() ID = %s, want doc1", listed[0].ID)
+	}
+}
+
+func TestFileRepository_SaveDocument_WithMetadata(t *testing.T) {
+	tmpDir := t.TempDir()
+	repo := NewFileRepository(tmpDir)
+
+	doc := &Document{
+		ID:   "test-doc",
+		Path: "guides/test.md",
+		Metadata: Metadata{
+			Title:       "Test Document",
+			Description: "A test document",
+			Tags:        []string{"test", "example"},
+			Author:      "Test Author",
+			Version:     "1.0",
+			Created:     time.Now(),
+			Modified:    time.Now(),
+		},
+		Content: "# Test\n\nContent here.",
+	}
+
+	// Save document
+	if err := repo.SaveDocument(doc); err != nil {
+		t.Fatalf("SaveDocument() error = %v", err)
+	}
+
+	// Load document back
+	loaded, err := repo.LoadDocument(doc.Path)
+	if err != nil {
+		t.Fatalf("LoadDocument() error = %v", err)
+	}
+
+	// Verify metadata
+	if loaded.Metadata.Title != doc.Metadata.Title {
+		t.Errorf("Title = %s, want %s", loaded.Metadata.Title, doc.Metadata.Title)
+	}
+
+	if loaded.Metadata.Author != doc.Metadata.Author {
+		t.Errorf("Author = %s, want %s", loaded.Metadata.Author, doc.Metadata.Author)
+	}
+
+	if len(loaded.Metadata.Tags) != len(doc.Metadata.Tags) {
+		t.Errorf("Tags length = %d, want %d", len(loaded.Metadata.Tags), len(doc.Metadata.Tags))
+	}
+}
+
+func TestFileRepository_DeleteDocument_NotFound(t *testing.T) {
+	tmpDir := t.TempDir()
+	repo := NewFileRepository(tmpDir)
+
+	// Try to delete non-existent document
+	err := repo.DeleteDocument("nonexistent.md")
+	if err == nil {
+		t.Error("DeleteDocument() should fail for non-existent file")
+	}
+}
+
+func TestFileRepository_SaveDocument_CreateDirectory(t *testing.T) {
+	tmpDir := t.TempDir()
+	repo := NewFileRepository(tmpDir)
+
+	// Create document in nested directory
+	doc := &Document{
+		ID:   "nested-doc",
+		Path: "guides/advanced/nested.md",
+		Metadata: Metadata{
+			Title:    "Nested Document",
+			Created:  time.Now(),
+			Modified: time.Now(),
+		},
+		Content: "Content",
+	}
+
+	// Save document
+	if err := repo.SaveDocument(doc); err != nil {
+		t.Fatalf("SaveDocument() error = %v", err)
+	}
+
+	// Verify file exists
+	fullPath := filepath.Join(tmpDir, doc.Path)
+	if _, err := os.Stat(fullPath); err != nil {
+		t.Errorf("Document not created at %s", fullPath)
+	}
+}
+
+func TestFileRepository_LoadDocument_WithMetadata(t *testing.T) {
+	tmpDir := t.TempDir()
+	repo := NewFileRepository(tmpDir)
+
+	// Create and save document with metadata
+	originalDoc := &Document{
+		ID:   "meta-doc",
+		Path: "test.md",
+		Metadata: Metadata{
+			Title:       "Test Document",
+			Description: "Test description",
+			Tags:        []string{"test"},
+			Author:      "Test Author",
+			Version:     "1.0",
+			Created:     time.Now(),
+			Modified:    time.Now(),
+		},
+		Content: "# Test\n\nContent",
+	}
+
+	if err := repo.SaveDocument(originalDoc); err != nil {
+		t.Fatalf("SaveDocument() error = %v", err)
+	}
+
+	// Load document
+	loaded, err := repo.LoadDocument("test.md")
+	if err != nil {
+		t.Fatalf("LoadDocument() error = %v", err)
+	}
+
+	// Verify metadata was preserved
+	if loaded.Metadata.Title != originalDoc.Metadata.Title {
+		t.Errorf("Title = %s, want %s", loaded.Metadata.Title, originalDoc.Metadata.Title)
+	}
+
+	if loaded.Metadata.Author != originalDoc.Metadata.Author {
+		t.Errorf("Author = %s, want %s", loaded.Metadata.Author, originalDoc.Metadata.Author)
+	}
+}
+
+func TestFileRepository_LoadDocument_InvalidMetadata(t *testing.T) {
+	tmpDir := t.TempDir()
+	repo := NewFileRepository(tmpDir)
+
+	// Create document with invalid metadata
+	docPath := filepath.Join(tmpDir, "invalid.md")
+	docContent := `---
+title: "Test"
+invalid_yaml: [unclosed
+---
+Content`
+
+	if err := os.WriteFile(docPath, []byte(docContent), 0o644); err != nil {
+		t.Fatalf("Failed to create test document: %v", err)
+	}
+
+	// Try to load document with invalid metadata
+	_, err := repo.LoadDocument("invalid.md")
+	if err == nil {
+		t.Error("LoadDocument() should fail for invalid metadata")
 	}
 }

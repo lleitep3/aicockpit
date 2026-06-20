@@ -117,6 +117,73 @@ func GenerateDocumentID(filename string) string {
 	return name
 }
 
+// ParseDocumentWithoutMetadata parses a document without structured metadata.
+// It automatically extracts:
+// - Title: from the first markdown header (#)
+// - Description: from the first paragraph
+// - Tags: empty (can be set manually)
+// - Created/Modified: current time
+func ParseDocumentWithoutMetadata(id, path, rawContent string) (*Document, error) {
+	lines := strings.Split(rawContent, "\n")
+
+	// Extract title from first header
+	title := ""
+	descriptionStart := 0
+	for i, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if strings.HasPrefix(trimmed, "# ") {
+			title = strings.TrimPrefix(trimmed, "# ")
+			title = strings.TrimSpace(title)
+			descriptionStart = i + 1
+			break
+		}
+	}
+
+	// If no title found, use filename
+	if title == "" {
+		title = id
+	}
+
+	// Extract description from first paragraph
+	description := ""
+	for i := descriptionStart; i < len(lines); i++ {
+		trimmed := strings.TrimSpace(lines[i])
+		if trimmed == "" {
+			continue
+		}
+		// Skip headers and list items
+		if strings.HasPrefix(trimmed, "#") || strings.HasPrefix(trimmed, "-") || strings.HasPrefix(trimmed, "*") {
+			continue
+		}
+		description = trimmed
+		break
+	}
+
+	// Limit description length
+	if len(description) > 200 {
+		description = description[:200] + "..."
+	}
+
+	// Create metadata with defaults
+	metadata := Metadata{
+		Title:       title,
+		Description: description,
+		Tags:        []string{},
+		Created:     time.Now(),
+		Modified:    time.Now(),
+		Related:     []string{},
+		Author:      "",
+		Version:     "1.0",
+	}
+
+	return &Document{
+		ID:       id,
+		Path:     path,
+		Metadata: metadata,
+		Content:  rawContent,
+	}, nil
+}
+
 // ExtractExcerpt extracts a brief excerpt from document content.
 // Returns first N characters or first paragraph, whichever is shorter.
 func ExtractExcerpt(content string, maxLength int) string {

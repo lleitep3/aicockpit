@@ -34,17 +34,17 @@ func (ks *KeywordSearcher) Search(query string, documents []*Document) (*SearchR
 		score := ks.scorer.ScoreKeyword(query, doc)
 		if score > 0 {
 			result := SearchResult{
-				ID:           doc.ID,
-				Title:        doc.Metadata.Title,
-				Description:  doc.Metadata.Description,
-				Path:         doc.Path,
-				Score:        score,
-				KeywordScore: score,
+				ID:            doc.ID,
+				Title:         doc.Metadata.Title,
+				Description:   doc.Metadata.Description,
+				Path:          doc.Path,
+				Score:         score,
+				KeywordScore:  score,
 				SemanticScore: 0,
-				Tags:         doc.Metadata.Tags,
-				Excerpt:      ExtractExcerpt(doc.Content, 200),
-				Created:      doc.Metadata.Created,
-				Modified:     doc.Metadata.Modified,
+				Tags:          doc.Metadata.Tags,
+				Excerpt:       ExtractExcerpt(doc.Content, 200),
+				Created:       doc.Metadata.Created,
+				Modified:      doc.Metadata.Modified,
 			}
 			results = append(results, result)
 		}
