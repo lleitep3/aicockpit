@@ -5,6 +5,7 @@ BINARY_NAME=cockpit
 BINARY_PATH=bin/$(BINARY_NAME)
 MAIN_PATH=.
 COVERAGE_FILE=coverage.out
+INSTALL_PATH=$(HOME)/.local/bin
 
 help:
 	@echo "AICockpit - Available commands:"
@@ -53,13 +54,20 @@ clean:
 
 install: build
 	@echo "Installing $(BINARY_NAME)..."
-	@mkdir -p $(GOPATH)/bin
-	@cp $(BINARY_PATH) $(GOPATH)/bin/$(BINARY_NAME)
-	@echo "✓ Installed to $(GOPATH)/bin/$(BINARY_NAME)"
+	@mkdir -p $(INSTALL_PATH)
+	@cp $(BINARY_PATH) $(INSTALL_PATH)/$(BINARY_NAME)
+	@chmod +x $(INSTALL_PATH)/$(BINARY_NAME)
+	@echo "✓ Installed to $(INSTALL_PATH)/$(BINARY_NAME)"
+	@echo ""
+	@echo "To use the command globally, add to your PATH:"
+	@echo "  export PATH=\"$(INSTALL_PATH):$$PATH\""
+	@echo ""
+	@echo "Or add to your shell config (~/.bashrc, ~/.zshrc, etc):"
+	@echo "  echo 'export PATH=\"$(INSTALL_PATH):$$PATH\"' >> ~/.bashrc"
 
 uninstall:
 	@echo "Uninstalling $(BINARY_NAME)..."
-	@rm -f $(GOPATH)/bin/$(BINARY_NAME)
-	@echo "✓ Uninstalled"
+	@rm -f $(INSTALL_PATH)/$(BINARY_NAME)
+	@echo "✓ Uninstalled from $(INSTALL_PATH)"
 
 .DEFAULT_GOAL := help
