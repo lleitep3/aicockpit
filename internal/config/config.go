@@ -11,13 +11,13 @@ import (
 
 // Config represents the AICockpit configuration.
 type Config struct {
-	Version           string            `yaml:"version"`
-	Language          string            `yaml:"language"`
-	LogLevel          string            `yaml:"log_level"`
-	AIProvider        string            `yaml:"ai_provider"`
-	AIProviders       ProvidersConfig   `yaml:"ai_providers"`
-	KB                KBConfig          `yaml:"kb"`
-	PackageRegistries []RegistryConfig  `yaml:"package_registries"`
+	Version           string           `yaml:"version"`
+	Language          string           `yaml:"language"`
+	LogLevel          string           `yaml:"log_level"`
+	AIProvider        string           `yaml:"ai_provider"`
+	AIProviders       ProvidersConfig  `yaml:"ai_providers"`
+	KB                KBConfig         `yaml:"kb"`
+	PackageRegistries []RegistryConfig `yaml:"package_registries"`
 }
 
 // RegistryConfig represents a package registry configuration.

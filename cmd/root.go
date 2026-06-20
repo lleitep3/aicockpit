@@ -25,6 +25,7 @@ func NewRootCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translator
 	rootCmd.AddCommand(NewUninstallCommand(log, cfg, t))
 	rootCmd.AddCommand(NewMetricsCommand(log, cfg, t))
 	rootCmd.AddCommand(NewKBCommand(log, cfg, t))
+	rootCmd.AddCommand(NewPkgCommand())
 
 	// Add flags
 	rootCmd.PersistentFlags().StringVar(&cfg.Language, "language", cfg.Language, "Set language (en-us, pt-br)")
