@@ -5,15 +5,16 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/lleite/aicockpit/internal/config"
 	"github.com/lleite/aicockpit/internal/i18n"
-	"github.com/lleite/aicockpit/internal/logger"
+	"github.com/lleite/aicockpit/internal/logging"
 	"github.com/spf13/cobra"
 )
 
 // NewSetupCommand creates the setup command.
-func NewSetupCommand(log *logger.Logger, cfg *config.Config, t *i18n.Translator) *cobra.Command {
+func NewSetupCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translator) *cobra.Command {
 	return &cobra.Command{
 		Use:   "setup",
 		Short: t.T("setup.welcome"),
@@ -24,7 +25,8 @@ func NewSetupCommand(log *logger.Logger, cfg *config.Config, t *i18n.Translator)
 	}
 }
 
-func runSetup(log *logger.Logger, cfg *config.Config, t *i18n.Translator) error {
+func runSetup(log *logging.Manager, cfg *config.Config, t *i18n.Translator) error {
+	startTime := time.Now()
 	fmt.Println(t.T("setup.welcome"))
 	fmt.Println()
 
@@ -37,7 +39,7 @@ func runSetup(log *logger.Logger, cfg *config.Config, t *i18n.Translator) error 
 	language := selectOption([]string{"en-us", "pt-br"}, "en-us")
 	t.SetLanguage(language)
 	cfg.Language = language
-	log.Info("Language selected", "language", language)
+	log.LogInfo("Language selected", map[string]interface{}{"language": language})
 
 	// Step 2: Select AI provider
 	fmt.Println()
@@ -52,20 +54,24 @@ func runSetup(log *logger.Logger, cfg *config.Config, t *i18n.Translator) error 
 	aiProviders := []string{"claude", "openai", "devin", "antigravity", "goose"}
 	aiProvider := selectOption(aiProviders, "claude")
 	cfg.AIProvider = aiProvider
-	log.Info("AI provider selected", "provider", aiProvider)
+	log.LogInfo("AI provider selected", map[string]interface{}{"provider": aiProvider})
 
 	// Step 3: Create vault
 	fmt.Println()
 	fmt.Println(t.T("setup.vault"))
 
 	if err := config.Save(cfg); err != nil {
-		log.Error("Failed to save configuration", "error", err)
+		log.LogError("Failed to save configuration", map[string]interface{}{"error": err.Error()})
 		return fmt.Errorf("failed to save configuration: %w", err)
 	}
 
 	fmt.Println()
 	fmt.Println(t.T("setup.complete"))
 	fmt.Printf(t.T("setup.saved")+"\n", config.GetConfigPath())
+
+	// Log the command execution
+	duration := time.Since(startTime)
+	log.LogCommand("setup", []string{}, "success", 0, duration, "", nil)
 
 	return nil
 }

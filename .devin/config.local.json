@@ -33,7 +33,15 @@
       "Exec(file)",
       "Exec(sleep)",
       "Exec(git status)",
-      "Exec(git init)"
+      "Exec(git init)",
+      "Exec(git add)",
+      "Exec(git commit)",
+      "Exec(make install)",
+      "Exec(~/.local/bin/cockpit)",
+      "Exec(make uninstall)",
+      "Exec(git log)",
+      "Exec(cockpit)",
+      "Exec(cat)"
     ]
   }
 }

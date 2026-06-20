@@ -5,15 +5,16 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/lleite/aicockpit/internal/config"
 	"github.com/lleite/aicockpit/internal/i18n"
-	"github.com/lleite/aicockpit/internal/logger"
+	"github.com/lleite/aicockpit/internal/logging"
 	"github.com/spf13/cobra"
 )
 
 // NewDoctorCommand creates the doctor command.
-func NewDoctorCommand(log *logger.Logger, cfg *config.Config, t *i18n.Translator) *cobra.Command {
+func NewDoctorCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translator) *cobra.Command {
 	return &cobra.Command{
 		Use:   "doctor",
 		Short: t.T("doctor.title"),
@@ -24,7 +25,8 @@ func NewDoctorCommand(log *logger.Logger, cfg *config.Config, t *i18n.Translator
 	}
 }
 
-func runDoctor(log *logger.Logger, cfg *config.Config, t *i18n.Translator) error {
+func runDoctor(log *logging.Manager, cfg *config.Config, t *i18n.Translator) error {
+	startTime := time.Now()
 	fmt.Println(t.T("doctor.title"))
 	fmt.Println("=" + strings.Repeat("=", 49))
 	fmt.Println()
@@ -96,11 +98,16 @@ func runDoctor(log *logger.Logger, cfg *config.Config, t *i18n.Translator) error
 
 	if allOk {
 		fmt.Println(t.T("doctor.passed"))
-		log.Info("Doctor check completed successfully")
 	} else {
 		fmt.Println(t.T("doctor.failed_msg"))
-		log.Warn("Doctor check found issues")
 	}
+
+	duration := time.Since(startTime)
+	status := "success"
+	if !allOk {
+		status = "error"
+	}
+	log.LogCommand("doctor", []string{}, status, 0, duration, "", nil)
 
 	return nil
 }

@@ -5,15 +5,16 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/lleite/aicockpit/internal/config"
 	"github.com/lleite/aicockpit/internal/i18n"
-	"github.com/lleite/aicockpit/internal/logger"
+	"github.com/lleite/aicockpit/internal/logging"
 	"github.com/spf13/cobra"
 )
 
 // NewUninstallCommand creates the uninstall command.
-func NewUninstallCommand(log *logger.Logger, cfg *config.Config, t *i18n.Translator) *cobra.Command {
+func NewUninstallCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translator) *cobra.Command {
 	return &cobra.Command{
 		Use:   "uninstall",
 		Short: "Uninstall AICockpit",
@@ -24,7 +25,8 @@ func NewUninstallCommand(log *logger.Logger, cfg *config.Config, t *i18n.Transla
 	}
 }
 
-func runUninstall(log *logger.Logger, cfg *config.Config, t *i18n.Translator) error {
+func runUninstall(log *logging.Manager, cfg *config.Config, t *i18n.Translator) error {
+	startTime := time.Now()
 	cockpitDir := config.GetCockpitDir()
 
 	// Confirm uninstall
@@ -37,18 +39,21 @@ func runUninstall(log *logger.Logger, cfg *config.Config, t *i18n.Translator) er
 	// Check for affirmative response (y or s for Portuguese)
 	if input != "y" && input != "s" && input != "yes" && input != "sim" {
 		fmt.Println(t.T("uninstall.cancel"))
-		log.Info("Uninstall cancelled by user")
+		duration := time.Since(startTime)
+		log.LogCommand("uninstall", []string{}, "cancelled", 0, duration, "", nil)
 		return nil
 	}
 
 	// Remove cockpit directory
 	if err := os.RemoveAll(cockpitDir); err != nil {
-		log.Error("Failed to remove cockpit directory", "error", err)
+		duration := time.Since(startTime)
+		log.LogCommand("uninstall", []string{}, "error", 1, duration, "", err)
 		return fmt.Errorf("failed to remove cockpit directory: %w", err)
 	}
 
 	fmt.Println(t.T("uninstall.success"))
-	log.Info("AICockpit uninstalled successfully")
+	duration := time.Since(startTime)
+	log.LogCommand("uninstall", []string{}, "success", 0, duration, "", nil)
 
 	return nil
 }

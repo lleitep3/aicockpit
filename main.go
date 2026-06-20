@@ -7,14 +7,10 @@ import (
 	"github.com/lleite/aicockpit/cmd"
 	"github.com/lleite/aicockpit/internal/config"
 	"github.com/lleite/aicockpit/internal/i18n"
-	"github.com/lleite/aicockpit/internal/logger"
+	"github.com/lleite/aicockpit/internal/logging"
 )
 
 func main() {
-	// Initialize logger
-	log := logger.New()
-	defer log.Close()
-
 	// Initialize config
 	cfg, err := config.Load()
 	if err != nil {
@@ -22,13 +18,24 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Initialize logging manager
+	cockpitDir := config.GetCockpitDir()
+	log, err := logging.NewManager(cockpitDir)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: Failed to initialize logging: %v\n", err)
+		os.Exit(1)
+	}
+	defer log.Close()
+
 	// Initialize translator
 	t := i18n.New(cfg.Language)
 
 	// Execute CLI
 	rootCmd := cmd.NewRootCommand(log, cfg, t)
 	if err := rootCmd.Execute(); err != nil {
-		log.Error("Command execution failed", "error", err)
+		log.LogError("Command execution failed", map[string]interface{}{
+			"error": err.Error(),
+		})
 		os.Exit(1)
 	}
 }

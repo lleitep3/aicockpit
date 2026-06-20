@@ -5,15 +5,16 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/lleite/aicockpit/internal/config"
 	"github.com/lleite/aicockpit/internal/i18n"
-	"github.com/lleite/aicockpit/internal/logger"
+	"github.com/lleite/aicockpit/internal/logging"
 	"github.com/spf13/cobra"
 )
 
 // NewInfoCommand creates the info command.
-func NewInfoCommand(log *logger.Logger, cfg *config.Config, t *i18n.Translator) *cobra.Command {
+func NewInfoCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translator) *cobra.Command {
 	return &cobra.Command{
 		Use:   "info",
 		Short: t.T("info.title"),
@@ -24,7 +25,8 @@ func NewInfoCommand(log *logger.Logger, cfg *config.Config, t *i18n.Translator) 
 	}
 }
 
-func runInfo(log *logger.Logger, cfg *config.Config, t *i18n.Translator) error {
+func runInfo(log *logging.Manager, cfg *config.Config, t *i18n.Translator) error {
+	startTime := time.Now()
 	fmt.Println(t.T("info.title"))
 	fmt.Println("=" + strings.Repeat("=", 49))
 	fmt.Println()
@@ -63,6 +65,7 @@ func runInfo(log *logger.Logger, cfg *config.Config, t *i18n.Translator) error {
 		}
 	}
 
-	log.Info("Cockpit info displayed")
+	duration := time.Since(startTime)
+	log.LogCommand("info", []string{}, "success", 0, duration, "", nil)
 	return nil
 }
