@@ -49,7 +49,10 @@
       "Exec(go version)",
       "Exec(wget)",
       "Exec(sudo)",
-      "Exec(grep)"
+      "Exec(grep)",
+      "Exec(tree)",
+      "Exec(go test)",
+      "Exec(go tool)"
     ]
   }
 }
