@@ -49,21 +49,21 @@ jobs:
     
     - name: Upload artifact (Linux)
       if: runner.os == 'Linux'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: cockpit-linux
         path: bin/cockpit
     
     - name: Upload artifact (macOS)
       if: runner.os == 'macOS'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: cockpit-macos
         path: bin/cockpit
     
     - name: Upload artifact (Windows)
       if: runner.os == 'Windows'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: cockpit-windows
         path: bin/cockpit.exe
