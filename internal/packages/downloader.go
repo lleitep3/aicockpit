@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 )
@@ -13,13 +14,38 @@ import (
 // PackageDownloader handles downloading packages from registries.
 type PackageDownloader struct {
 	httpClient *http.Client
+	gitToken   string
 }
 
 // NewPackageDownloader creates a new package downloader.
 func NewPackageDownloader() *PackageDownloader {
-	return &PackageDownloader{
+	downloader := &PackageDownloader{
 		httpClient: &http.Client{},
 	}
+
+	// Try to get GitHub token from gh CLI
+	downloader.gitToken = getGitHubToken()
+
+	// Configure redirect handling to preserve auth headers
+	downloader.httpClient.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		// Preserve Authorization header on redirects
+		if len(via) > 0 && via[0].Header.Get("Authorization") != "" {
+			req.Header.Set("Authorization", via[0].Header.Get("Authorization"))
+		}
+		return nil
+	}
+
+	return downloader
+}
+
+// getGitHubToken retrieves the GitHub token from gh CLI
+func getGitHubToken() string {
+	cmd := exec.Command("gh", "auth", "token")
+	output, err := cmd.Output()
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(string(output))
 }
 
 // DownloadPackageFromGitHub downloads a package from GitHub as a ZIP file.
@@ -39,7 +65,17 @@ func (pd *PackageDownloader) DownloadPackageFromGitHub(owner, repo, branch, pack
 
 	// Download the ZIP file
 	fmt.Printf("Downloading package from: %s\n", downloadURL)
-	resp, err := pd.httpClient.Get(downloadURL)
+	req, err := http.NewRequest("GET", downloadURL, nil)
+	if err != nil {
+		return fmt.Errorf("failed to create request: %w", err)
+	}
+
+	// Add GitHub token if available
+	if pd.gitToken != "" {
+		req.Header.Set("Authorization", fmt.Sprintf("token %s", pd.gitToken))
+	}
+
+	resp, err := pd.httpClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to download package: %w", err)
 	}
@@ -166,7 +202,17 @@ func (pd *PackageDownloader) extractPackageFromZip(zipPath, packageName, destDir
 // Useful for non-GitHub registries.
 func (pd *PackageDownloader) DownloadPackageFromURL(downloadURL, packageName, destDir string) error {
 	fmt.Printf("Downloading package from: %s\n", downloadURL)
-	resp, err := pd.httpClient.Get(downloadURL)
+	req, err := http.NewRequest("GET", downloadURL, nil)
+	if err != nil {
+		return fmt.Errorf("failed to create request: %w", err)
+	}
+
+	// Add GitHub token if available and URL is from GitHub
+	if pd.gitToken != "" && strings.Contains(downloadURL, "github.com") {
+		req.Header.Set("Authorization", fmt.Sprintf("token %s", pd.gitToken))
+	}
+
+	resp, err := pd.httpClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to download package: %w", err)
 	}

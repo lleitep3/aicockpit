@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/lleite/aicockpit/internal/config"
@@ -219,30 +221,20 @@ func NewPkgInstallCommand() *cobra.Command {
 			fmt.Printf("Registry: %s\n", registryName)
 			fmt.Printf("License: %s\n", pkgEntry.License)
 
-			// Download package from GitHub
-			fmt.Printf("\nDownloading package...\n")
-			downloader := packages.NewPackageDownloader()
+			// Copy package from registry cache
+			fmt.Printf("\nCopying package from cache...\n")
 
-			// Extract owner and repo from registry URL
-			// URL format: https://github.com/{owner}/{repo}
-			owner, repo, branch, err := parseGitHubURL(pkgEntry.Repository)
+			// Get package path from cache
+			cache := packages.NewRegistryCache(config.GetCockpitDir())
+			packageCachePath, err := cache.GetPackageFromCache(registryName, packageName)
 			if err != nil {
-				return fmt.Errorf("invalid repository URL: %w", err)
+				return fmt.Errorf("failed to find package in cache: %w", err)
 			}
 
-			// Use branch from package entry if available, otherwise use default
-			if pkgEntry.URL != "" {
-				// Try to extract branch from package URL
-				// Format: https://github.com/{owner}/{repo}/tree/{branch}/{packageName}
-				if b := extractBranchFromURL(pkgEntry.URL); b != "" {
-					branch = b
-				}
-			}
-
-			// Download and extract package
+			// Copy package to installation directory
 			installPath := pm.GetPackageInstallPath(packageName)
-			if err := downloader.DownloadPackageFromGitHub(owner, repo, branch, packageName, installPath); err != nil {
-				return fmt.Errorf("failed to download package: %w", err)
+			if err := copyDirectory(packageCachePath, installPath); err != nil {
+				return fmt.Errorf("failed to copy package: %w", err)
 			}
 
 			// Load the downloaded package manifest
@@ -420,32 +412,39 @@ func NewPkgListCommand() *cobra.Command {
 	return cmd
 }
 
-// parseGitHubURL parses a GitHub repository URL and extracts owner, repo, and branch.
-// Expected format: https://github.com/{owner}/{repo}
+// parseGitHubURL parses a repository URL and extracts owner, repo, and branch.
+// Expected format: https://github.com/{owner}/{repo} or http://localhost:8888
 func parseGitHubURL(url string) (owner, repo, branch string, err error) {
-	// Remove https:// prefix
+	originalURL := url
+
+	// Remove https:// or http:// prefix
 	if strings.HasPrefix(url, "https://") {
 		url = strings.TrimPrefix(url, "https://")
 	} else if strings.HasPrefix(url, "http://") {
 		url = strings.TrimPrefix(url, "http://")
 	}
 
-	// Remove github.com/ prefix
+	// Remove github.com/ prefix if present
 	if strings.HasPrefix(url, "github.com/") {
 		url = strings.TrimPrefix(url, "github.com/")
 	}
 
 	// Split by /
 	parts := strings.Split(url, "/")
-	if len(parts) < 2 {
-		return "", "", "", fmt.Errorf("invalid GitHub URL format")
+
+	// For GitHub URLs, we need at least owner/repo
+	// For other URLs (like localhost:8888), we use the original URL as owner
+	if len(parts) >= 2 && !strings.Contains(parts[0], ":") {
+		// GitHub-style URL (owner/repo)
+		owner = parts[0]
+		repo = strings.TrimSuffix(parts[1], ".git")
+		branch = "main" // Default branch
+		return owner, repo, branch, nil
 	}
 
-	owner = parts[0]
-	repo = strings.TrimSuffix(parts[1], ".git")
-	branch = "main" // Default branch
-
-	return owner, repo, branch, nil
+	// For non-GitHub URLs (like localhost:8888), return the original URL as-is
+	// This will be used directly in constructRawGitHubURL
+	return originalURL, "", "main", nil
 }
 
 // extractBranchFromURL extracts the branch name from a GitHub URL.
@@ -472,4 +471,60 @@ func extractBranchFromURL(url string) string {
 	}
 
 	return ""
+}
+
+// copyDirectory copies a directory recursively
+func copyDirectory(src, dst string) error {
+	// Create destination directory
+	if err := os.MkdirAll(dst, 0o755); err != nil {
+		return fmt.Errorf("failed to create destination directory: %w", err)
+	}
+
+	// Read source directory
+	entries, err := os.ReadDir(src)
+	if err != nil {
+		return fmt.Errorf("failed to read source directory: %w", err)
+	}
+
+	// Copy each entry
+	for _, entry := range entries {
+		srcPath := filepath.Join(src, entry.Name())
+		dstPath := filepath.Join(dst, entry.Name())
+
+		if entry.IsDir() {
+			// Recursively copy subdirectory
+			if err := copyDirectory(srcPath, dstPath); err != nil {
+				return err
+			}
+		} else {
+			// Copy file
+			if err := copyFile(srcPath, dstPath); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+// copyFile copies a single file
+func copyFile(src, dst string) error {
+	// Read source file
+	data, err := os.ReadFile(src)
+	if err != nil {
+		return fmt.Errorf("failed to read source file: %w", err)
+	}
+
+	// Get source file info to preserve permissions
+	srcInfo, err := os.Stat(src)
+	if err != nil {
+		return fmt.Errorf("failed to stat source file: %w", err)
+	}
+
+	// Write to destination file with same permissions
+	if err := os.WriteFile(dst, data, srcInfo.Mode()); err != nil {
+		return fmt.Errorf("failed to write destination file: %w", err)
+	}
+
+	return nil
 }

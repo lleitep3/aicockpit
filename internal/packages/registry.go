@@ -66,6 +66,7 @@ type PackageIndexEntry struct {
 type RegistryManager struct {
 	cockpitDir string
 	cacheDir   string
+	cache      *RegistryCache
 }
 
 // NewRegistryManager creates a new registry manager.
@@ -73,24 +74,27 @@ func NewRegistryManager(cockpitDir string) *RegistryManager {
 	return &RegistryManager{
 		cockpitDir: cockpitDir,
 		cacheDir:   filepath.Join(cockpitDir, "cache", "registries"),
+		cache:      NewRegistryCache(cockpitDir),
 	}
 }
 
 // LoadPackageIndex loads a package index from a registry.
+// It tries to load from cache first, then downloads if not found.
 func (rm *RegistryManager) LoadPackageIndex(registryName string) (*PackageIndex, error) {
 	indexPath := filepath.Join(rm.cacheDir, registryName, "package-index.yaml")
 
+	// Try to load from cache
 	data, err := os.ReadFile(indexPath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read package index: %w", err)
+	if err == nil {
+		var index PackageIndex
+		if err := yaml.Unmarshal(data, &index); err != nil {
+			return nil, fmt.Errorf("failed to parse package index: %w", err)
+		}
+		return &index, nil
 	}
 
-	var index PackageIndex
-	if err := yaml.Unmarshal(data, &index); err != nil {
-		return nil, fmt.Errorf("failed to parse package index: %w", err)
-	}
-
-	return &index, nil
+	// Cache miss or error - this will be handled by FetchPackageIndex
+	return nil, fmt.Errorf("package index not found in cache for registry: %s", registryName)
 }
 
 // SavePackageIndex saves a package index to cache.
@@ -133,9 +137,16 @@ func (rm *RegistryManager) SearchPackages(query string, registries []RegistryCon
 			continue
 		}
 
-		index, err := rm.LoadPackageIndex(registry.Name)
+		// Ensure registry is cloned and up-to-date
+		if err := rm.cache.EnsureRegistry(registry); err != nil {
+			fmt.Printf("Warning: failed to sync registry %s: %v\n", registry.Name, err)
+			continue
+		}
+
+		// Load package index from cache
+		index, err := rm.cache.LoadPackageIndexFromCache(registry.Name)
 		if err != nil {
-			// Skip registries that can't be loaded
+			fmt.Printf("Warning: failed to load package index from %s: %v\n", registry.Name, err)
 			continue
 		}
 
@@ -165,7 +176,13 @@ func (rm *RegistryManager) GetPackage(packageName string, registries []RegistryC
 			continue
 		}
 
-		index, err := rm.LoadPackageIndex(registry.Name)
+		// Ensure registry is cloned and up-to-date
+		if err := rm.cache.EnsureRegistry(registry); err != nil {
+			continue
+		}
+
+		// Load package index from cache
+		index, err := rm.cache.LoadPackageIndexFromCache(registry.Name)
 		if err != nil {
 			continue
 		}
