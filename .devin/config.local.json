@@ -41,7 +41,8 @@
       "Exec(make uninstall)",
       "Exec(git log)",
       "Exec(cockpit)",
-      "Exec(cat)"
+      "Exec(cat)",
+      "Exec(mv)"
     ]
   }
 }

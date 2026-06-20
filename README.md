@@ -1,21 +1,58 @@
 # AICockpit - AI Harness Engineering Platform
 
+[![Test and Lint](https://github.com/lleitep3/aicockpit/workflows/Test%20and%20Lint/badge.svg)](https://github.com/lleitep3/aicockpit/actions/workflows/test.yml)
+[![Build](https://github.com/lleitep3/aicockpit/workflows/Build/badge.svg)](https://github.com/lleitep3/aicockpit/actions/workflows/build.yml)
+[![Go Version](https://img.shields.io/badge/go-1.22.4+-blue.svg)](https://golang.org)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
 A powerful CLI-based harness engineering tool that enables AI systems to evolve autonomously and operate more efficiently by optimizing token usage and improving performance over time.
 
 ## 🎯 Vision
 
 AICockpit is designed to be the "cockpit" for your AI systems - a comprehensive control center that helps AI models:
-- Operate more efficiently
-- Save tokens through intelligent optimization
-- Learn and improve from each interaction
-- Manage knowledge bases and skills
-- Execute commands with full audit trails
+
+- 🚀 Operate more efficiently
+- 💰 Save tokens through intelligent optimization
+- 📚 Learn and improve from each interaction
+- 🧠 Manage knowledge bases and skills
+- 📋 Execute commands with full audit trails
+- 📊 Track metrics and performance
+
+## 📚 Documentation
+
+### Getting Started
+
+- **[Quick Start Guide](docs/QUICK_START.md)** - Get up and running in 5 minutes
+- **[Installation Guide](docs/INSTALLATION.md)** - Detailed installation instructions
+- **[Installation Scripts](docs/INSTALLATION_SCRIPTS.md)** - How the installation scripts work
+- **[Installation Options](docs/INSTALLATION_OPTIONS.md)** - User-level vs System-wide installation
+
+### Features & Usage
+
+- **[Features Overview](docs/FEATURES.md)** - Complete list of features and capabilities
+- **[Logging & Metrics](docs/LOGGING_AND_METRICS.md)** - How to use the logging and metrics system
+- **[Metrics Command Verification](docs/METRICS_COMMAND_VERIFICATION.md)** - Verify metrics command is working
+
+### Development
+
+- **[Contributing Guide](CONTRIBUTING.md)** - How to contribute to AICockpit
+- **[SDLC Guidelines](docs/SDLC.md)** - Software Development Lifecycle standards
+- **[AI Agent Guidelines](docs/AGENTS.md)** - Guidelines for AI agents working with AICockpit
+
+### Project Information
+
+- **[Executive Summary](docs/EXECUTIVE_SUMMARY.md)** - High-level project overview
+- **[Implementation Summary](docs/IMPLEMENTATION_SUMMARY.md)** - Phase 1 implementation details
+- **[Session Summary](docs/SESSION_SUMMARY.md)** - Latest session summary
+- **[Global Installation Verified](docs/GLOBAL_INSTALLATION_VERIFIED.md)** - Installation verification
 
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - Go 1.22.4 or later
 - Linux, macOS, or Windows
+- Git
 
 ### Installation
 
@@ -25,7 +62,7 @@ AICockpit is designed to be the "cockpit" for your AI systems - a comprehensive 
 
 ```bash
 # Clone the repository
-git clone https://github.com/lleite/aicockpit.git
+git clone git@github.com:lleitep3/aicockpit.git
 cd aicockpit
 
 # Build and install (automatic PATH configuration)
@@ -35,19 +72,9 @@ make install
 cockpit --version
 ```
 
-The installation script automatically:
-- Detects your shell (Bash, Zsh, Fish)
-- Adds `~/.local/bin` to your PATH
-- Creates shell config files if needed
-- Verifies the installation
-
 **Option 2: System-Wide Installation (Global)**
 
 ```bash
-# Clone the repository
-git clone https://github.com/lleite/aicockpit.git
-cd aicockpit
-
 # Build and install globally (requires sudo)
 make install-global
 
@@ -55,35 +82,17 @@ make install-global
 cockpit --version
 ```
 
-The installation script automatically:
-- Installs to `/usr/local/bin` (system-wide)
-- Available to all users
-- Already in system PATH
-- Requires sudo password
-- Verifies the installation
-
 #### Windows
 
 ```powershell
-# Clone the repository
-git clone https://github.com/lleite/aicockpit.git
-cd aicockpit
-
-# Build and install (automatic PATH configuration)
+# Build and install
 make install-win
 
 # Verify installation
 cockpit --version
 ```
 
-The installation script automatically:
-- Adds `~/.local/bin` to your user PATH
-- Updates current PowerShell session
-- Verifies the installation
-
 ### Initial Setup
-
-After installation, run the setup wizard:
 
 ```bash
 # Run setup wizard
@@ -96,7 +105,7 @@ cockpit doctor
 cockpit info
 ```
 
-For more details, see [INSTALLATION.md](INSTALLATION.md) and [QUICK_START.md](QUICK_START.md).
+For more details, see [Quick Start Guide](docs/QUICK_START.md).
 
 ## 📋 Available Commands
 
@@ -148,6 +157,114 @@ For more details, see [INSTALLATION.md](INSTALLATION.md) and [QUICK_START.md](QU
 - **`cockpit hooks`** - Manage hooks
 - **`cockpit kb`** - Knowledge base management
 
+## 🌍 Internationalization
+
+AICockpit supports multiple languages:
+
+- English (en-us)
+- Portuguese Brazilian (pt-br)
+
+Set language globally:
+
+```bash
+cockpit --language pt-br info
+```
+
+## 📁 Directory Structure
+
+AICockpit creates the following structure in `~/.cockpit/`:
+
+```
+~/.cockpit/
+├── config.yaml          # Configuration file
+├── metrics.json         # Execution metrics
+├── logs/                # Log files (daily rotation)
+│   ├── cockpit-2026-06-20.log
+│   ├── cockpit-2026-06-21.log
+│   └── ...
+├── cache/               # Cache directory
+├── packages/            # Installed packages
+├── vault/               # Secrets vault
+├── agents/              # AI agents
+├── skills/              # Skills
+├── rules/               # Rules
+├── hooks/               # Hooks
+└── kb/                  # Knowledge bases
+```
+
+## 🔧 Development
+
+### Build Commands
+
+```bash
+make help              # Show all available commands
+make build             # Build the binary
+make test              # Run tests with coverage
+make lint              # Run linters
+make fmt               # Format code
+make check             # Run all checks
+make clean             # Clean build artifacts
+make install-hooks     # Install git pre-commit hooks
+```
+
+### Project Structure
+
+```
+aicockpit/
+├── cmd/                    # CLI commands
+│   ├── setup.go
+│   ├── info.go
+│   ├── doctor.go
+│   ├── uninstall.go
+│   ├── metrics.go
+│   └── root.go
+├── internal/               # Internal packages
+│   ├── config/            # Configuration management
+│   ├── logger/            # Logging system (deprecated)
+│   ├── i18n/              # Internationalization
+│   └── logging/           # New logging & metrics system
+├── scripts/                # Installation scripts
+│   ├── install.sh         # Linux/macOS installer
+│   └── install.ps1        # Windows installer
+├── .github/                # GitHub configuration
+│   ├── workflows/         # GitHub Actions
+│   └── PULL_REQUEST_TEMPLATE.md
+├── docs/                   # Documentation
+├── main.go                 # Entry point
+├── Makefile                # Build automation
+├── CONTRIBUTING.md         # Contribution guidelines
+└── README.md               # This file
+```
+
+### Testing
+
+```bash
+# Run all tests
+make test
+
+# Run specific package tests
+go test -v ./internal/config
+
+# View coverage report
+go tool cover -html=coverage.out
+```
+
+## 📊 Code Quality
+
+- **Linting**: `go vet` and golangci-lint
+- **Testing**: Unit tests with >50% coverage target
+- **Formatting**: `go fmt` compliance
+- **Documentation**: Comprehensive guides and examples
+- **CI/CD**: GitHub Actions for automated validation
+
+## 🔐 Security
+
+- Secrets are stored in OS keyrings (planned)
+- All operations are logged
+- Configuration is user-specific
+- No sensitive data in logs
+- Pre-commit hooks validate code quality
+
 ## 📊 Logging & Metrics
 
 AICockpit automatically tracks all command executions with detailed metrics:
@@ -180,106 +297,41 @@ cockpit metrics list --date 2026-06-20
 - Performance metrics
 - Error analysis
 
-See [LOGGING_AND_METRICS.md](LOGGING_AND_METRICS.md) for details.
-
-## 🌍 Internationalization
-
-AICockpit supports multiple languages:
-- English (en-us)
-- Portuguese Brazilian (pt-br)
-
-Set language globally:
-```bash
-cockpit --language pt-br info
-```
-
-## 📁 Directory Structure
-
-AICockpit creates the following structure in `~/.cockpit/`:
-
-```
-~/.cockpit/
-├── config.yaml          # Configuration file
-├── metrics.json         # Execution metrics
-├── logs/                # Log files (daily rotation)
-│   ├── cockpit-2026-06-20.log
-│   ├── cockpit-2026-06-21.log
-│   └── ...
-├── cache/               # Cache directory
-├── packages/            # Installed packages
-├── vault/               # Secrets vault
-├── agents/              # AI agents
-├── skills/              # Skills
-├── rules/               # Rules
-├── hooks/               # Hooks
-└── kb/                  # Knowledge bases
-```
-
-## 🔧 Development
-
-### Build Commands
-
-```bash
-make help       # Show all available commands
-make build      # Build the binary
-make test       # Run tests with coverage
-make lint       # Run linters
-make fmt        # Format code
-make check      # Run all checks
-make clean      # Clean build artifacts
-```
-
-### Project Structure
-
-- `cmd/` - CLI commands
-- `internal/` - Internal packages
-  - `config/` - Configuration management
-  - `logger/` - Logging system
-  - `i18n/` - Internationalization
-- `main.go` - Entry point
-
-### Testing
-
-```bash
-# Run all tests
-make test
-
-# Run specific package tests
-go test -v ./internal/config
-
-# View coverage report
-go tool cover -html=coverage.out
-```
-
-## 📊 Code Quality
-
-- **Linting**: `go vet` and golangci-lint
-- **Testing**: Unit tests with >50% coverage target
-- **Formatting**: `go fmt` and `goimports`
-- **Documentation**: SDLC.md and AGENTS.md
-
-## 🔐 Security
-
-- Secrets are stored in OS keyrings (planned)
-- All operations are logged
-- Configuration is user-specific
-- No sensitive data in logs
-
-## 📝 Logging
-
-All operations are logged to `~/.cockpit/logs/cockpit-YYYY-MM-DD.log`
-
-Example log entry:
-```
-time=2026-06-20T11:30:02.021-03:00 level=INFO msg="Cockpit info displayed"
-```
+See [Logging & Metrics Documentation](docs/LOGGING_AND_METRICS.md) for details.
 
 ## 🤝 Contributing
 
-1. Follow the SDLC guidelines in `SDLC.md`
-2. Write tests for new features
-3. Run `make check` before committing
-4. Use clear commit messages
+We welcome contributions! Please follow these guidelines:
+
+1. **Read the [Contributing Guide](CONTRIBUTING.md)** - Important guidelines and standards
+2. **Semantic Commits** - Use conventional commit format
+3. **PR Requirements** - Include [MAJOR], [MINOR], or [PATCH] in PR title
+4. **Tests** - Write tests for new features
+5. **Quality** - Run `make check` before committing
+
+### Quick Contribution Steps
+
+```bash
+# 1. Fork and clone
+git clone git@github.com:YOUR_USERNAME/aicockpit.git
+cd aicockpit
+
+# 2. Create feature branch
+git checkout -b feature/your-feature
+
+# 3. Install pre-commit hooks
+make install-hooks
+
+# 4. Make changes and commit
+git add .
+git commit -m "feat(scope): description"
+
+# 5. Run checks
+make check
+
+# 6. Push and create PR
+git push origin feature/your-feature
+```
 
 ## 📄 License
 
@@ -287,33 +339,86 @@ time=2026-06-20T11:30:02.021-03:00 level=INFO msg="Cockpit info displayed"
 
 ## 🙋 Support
 
-For issues, questions, or suggestions, please open an issue on GitHub.
+For issues, questions, or suggestions:
+
+1. Check [existing issues](https://github.com/lleitep3/aicockpit/issues)
+2. Create a [new issue](https://github.com/lleitep3/aicockpit/issues/new)
+3. Join discussions
 
 ## 🗺️ Roadmap
 
-### Phase 1 (Current)
+### Phase 1 ✅ (Complete)
+
 - ✅ Core CLI structure
 - ✅ Configuration system
 - ✅ Logging and i18n
-- ⏳ Vault system
+- ✅ Metrics tracking
+- ✅ Installation scripts (user-level & system-wide)
 
-### Phase 2
-- Package management
-- Command execution with logging
-- Knowledge base search
+### Phase 2 (In Progress)
 
-### Phase 3
-- Agent management
-- Skills and rules system
-- Hooks system
+- [ ] Vault system (keyring integration)
+- [ ] Package management
+- [ ] Command execution with logging
+- [ ] Knowledge base search
 
-### Phase 4
-- AI-powered optimization
-- Token usage analytics
-- Performance metrics
+### Phase 3 (Planned)
+
+- [ ] Agent management
+- [ ] Skills and rules system
+- [ ] Hooks system
+- [ ] Advanced analytics
+
+### Phase 4 (Vision)
+
+- [ ] AI-powered optimization
+- [ ] Token usage analytics
+- [ ] Performance metrics
+- [ ] Autonomous evolution
+
+## 📈 Project Statistics
+
+- **Total Commits**: 20+
+- **Lines of Code**: 1500+
+- **Lines of Documentation**: 1000+
+- **Test Coverage**: 30.6%
+- **Tests Passing**: 20/20 ✓
 
 ## 🎓 Learn More
 
-- See `SDLC.md` for development guidelines
-- See `AGENTS.md` for agent-specific information
-- See `initial-spec.md` for the original specification
+### For Users
+
+- [Quick Start Guide](docs/QUICK_START.md) - Get started quickly
+- [Installation Guide](docs/INSTALLATION.md) - Detailed setup instructions
+- [Features Overview](docs/FEATURES.md) - All available features
+- [Logging & Metrics](docs/LOGGING_AND_METRICS.md) - How to use metrics
+
+### For Developers
+
+- [Contributing Guide](CONTRIBUTING.md) - How to contribute
+- [SDLC Guidelines](docs/SDLC.md) - Development standards
+- [AI Agent Guidelines](docs/AGENTS.md) - For AI agents working with AICockpit
+
+### For Project Managers
+
+- [Executive Summary](docs/EXECUTIVE_SUMMARY.md) - High-level overview
+- [Implementation Summary](docs/IMPLEMENTATION_SUMMARY.md) - Phase 1 details
+- [Session Summary](docs/SESSION_SUMMARY.md) - Latest work summary
+
+## 🙌 Acknowledgments
+
+AICockpit is built with:
+
+- [Go](https://golang.org/) - Programming language
+- [Cobra](https://cobra.dev/) - CLI framework
+- [GitHub Actions](https://github.com/features/actions) - CI/CD
+
+## 📞 Contact
+
+- **GitHub**: [lleitep3/aicockpit](https://github.com/lleitep3/aicockpit)
+- **Issues**: [GitHub Issues](https://github.com/lleitep3/aicockpit/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/lleitep3/aicockpit/discussions)
+
+---
+
+**Made with ❤️ for AI systems everywhere**

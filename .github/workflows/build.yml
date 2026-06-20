@@ -1,0 +1,68 @@
+name: Build
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        go-version: ['1.22.4']
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ matrix.go-version }}
+    
+    - name: Cache Go modules
+      uses: actions/cache@v3
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+    
+    - name: Download dependencies
+      run: go mod download
+    
+    - name: Build (Linux/macOS)
+      if: runner.os != 'Windows'
+      run: |
+        mkdir -p bin
+        go build -v -o bin/cockpit ./
+    
+    - name: Build (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        mkdir -p bin
+        go build -v -o bin/cockpit.exe ./
+    
+    - name: Upload artifact (Linux)
+      if: runner.os == 'Linux'
+      uses: actions/upload-artifact@v3
+      with:
+        name: cockpit-linux
+        path: bin/cockpit
+    
+    - name: Upload artifact (macOS)
+      if: runner.os == 'macOS'
+      uses: actions/upload-artifact@v3
+      with:
+        name: cockpit-macos
+        path: bin/cockpit
+    
+    - name: Upload artifact (Windows)
+      if: runner.os == 'Windows'
+      uses: actions/upload-artifact@v3
+      with:
+        name: cockpit-windows
+        path: bin/cockpit.exe

@@ -1,4 +1,4 @@
-.PHONY: help build test lint fmt check clean install install-global install-win uninstall
+.PHONY: help build test lint fmt check clean install install-global install-win uninstall install-hooks
 
 # Variables
 BINARY_NAME=cockpit
@@ -19,6 +19,7 @@ help:
 	@echo "  make install         - Install to ~/.local/bin (user-level, Linux/macOS)"
 	@echo "  make install-global  - Install to /usr/local/bin (system-wide, Linux/macOS)"
 	@echo "  make install-win     - Install binary (Windows PowerShell)"
+	@echo "  make install-hooks   - Install git pre-commit hooks"
 	@echo "  make uninstall       - Remove installed binary"
 	@echo "  make help            - Show this help message"
 	@echo ""
@@ -67,5 +68,11 @@ uninstall:
 	@echo "Uninstalling $(BINARY_NAME)..."
 	@rm -f $(INSTALL_PATH)/$(BINARY_NAME)
 	@echo "✓ Uninstalled from $(INSTALL_PATH)"
+
+install-hooks:
+	@echo "Installing git pre-commit hooks..."
+	@chmod +x .git/hooks/pre-commit
+	@echo "✓ Pre-commit hook installed"
+	@echo "Hooks will run on every commit to validate code quality"
 
 .DEFAULT_GOAL := help
