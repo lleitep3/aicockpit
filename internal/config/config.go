@@ -11,12 +11,22 @@ import (
 
 // Config represents the AICockpit configuration.
 type Config struct {
-	Version     string          `yaml:"version"`
-	Language    string          `yaml:"language"`
-	LogLevel    string          `yaml:"log_level"`
-	AIProvider  string          `yaml:"ai_provider"`
-	AIProviders ProvidersConfig `yaml:"ai_providers"`
-	KB          KBConfig        `yaml:"kb"`
+	Version           string            `yaml:"version"`
+	Language          string            `yaml:"language"`
+	LogLevel          string            `yaml:"log_level"`
+	AIProvider        string            `yaml:"ai_provider"`
+	AIProviders       ProvidersConfig   `yaml:"ai_providers"`
+	KB                KBConfig          `yaml:"kb"`
+	PackageRegistries []RegistryConfig  `yaml:"package_registries"`
+}
+
+// RegistryConfig represents a package registry configuration.
+type RegistryConfig struct {
+	Name     string `yaml:"name"`
+	URL      string `yaml:"url"`
+	Branch   string `yaml:"branch"`
+	Enabled  bool   `yaml:"enabled"`
+	Priority int    `yaml:"priority"`
 }
 
 // ProvidersConfig represents configuration for multiple AI providers.
@@ -47,6 +57,15 @@ var defaultConfig = Config{
 	AIProvider: "claude",
 	KB: KBConfig{
 		Roots: []string{filepath.Join(GetCockpitDir(), "kb")},
+	},
+	PackageRegistries: []RegistryConfig{
+		{
+			Name:     "official",
+			URL:      "https://github.com/lleitep3/cockpit-registry",
+			Branch:   "main",
+			Enabled:  true,
+			Priority: 1,
+		},
 	},
 }
 
