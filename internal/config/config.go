@@ -5,28 +5,20 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/lleite/aicockpit/internal/packages"
 	"github.com/lleite/aicockpit/internal/version"
 	"gopkg.in/yaml.v3"
 )
 
 // Config represents the AICockpit configuration.
 type Config struct {
-	Version           string           `yaml:"version"`
-	Language          string           `yaml:"language"`
-	LogLevel          string           `yaml:"log_level"`
-	AIProvider        string           `yaml:"ai_provider"`
-	AIProviders       ProvidersConfig  `yaml:"ai_providers"`
-	KB                KBConfig         `yaml:"kb"`
-	PackageRegistries []RegistryConfig `yaml:"package_registries"`
-}
-
-// RegistryConfig represents a package registry configuration.
-type RegistryConfig struct {
-	Name     string `yaml:"name"`
-	URL      string `yaml:"url"`
-	Branch   string `yaml:"branch"`
-	Enabled  bool   `yaml:"enabled"`
-	Priority int    `yaml:"priority"`
+	Version           string                    `yaml:"version"`
+	Language          string                    `yaml:"language"`
+	LogLevel          string                    `yaml:"log_level"`
+	AIProvider        string                    `yaml:"ai_provider"`
+	AIProviders       ProvidersConfig           `yaml:"ai_providers"`
+	KB                KBConfig                  `yaml:"kb"`
+	PackageRegistries []packages.RegistryConfig `yaml:"package_registries"`
 }
 
 // ProvidersConfig represents configuration for multiple AI providers.
@@ -58,7 +50,7 @@ var defaultConfig = Config{
 	KB: KBConfig{
 		Roots: []string{filepath.Join(GetCockpitDir(), "kb")},
 	},
-	PackageRegistries: []RegistryConfig{
+	PackageRegistries: []packages.RegistryConfig{
 		{
 			Name:     "official",
 			URL:      "https://github.com/lleitep3/cockpit-registry",
