@@ -120,6 +120,24 @@ For more details, see [INSTALLATION.md](INSTALLATION.md) and [QUICK_START.md](QU
 - **`cockpit uninstall`** - Remove AICockpit
   - Safely uninstall and remove all data
 
+### Metrics & Analytics
+
+- **`cockpit metrics list`** - View execution metrics
+  - Filter by command, status, or date
+  - Limit results
+  - View all command executions
+
+- **`cockpit metrics stats`** - Show execution statistics
+  - Total executions and success rate
+  - Average duration
+  - Command frequency
+  - Error types
+
+- **`cockpit metrics logs`** - View log files
+  - List all log files
+  - View logs for specific date
+  - Check log file details
+
 ### Planned Commands
 
 - **`cockpit pkg`** - Package management
@@ -129,6 +147,40 @@ For more details, see [INSTALLATION.md](INSTALLATION.md) and [QUICK_START.md](QU
 - **`cockpit rules`** - Manage rules
 - **`cockpit hooks`** - Manage hooks
 - **`cockpit kb`** - Knowledge base management
+
+## 📊 Logging & Metrics
+
+AICockpit automatically tracks all command executions with detailed metrics:
+
+```bash
+# View execution metrics
+cockpit metrics list
+
+# View statistics
+cockpit metrics stats
+
+# View log files
+cockpit metrics logs
+
+# Filter by command
+cockpit metrics list --command setup
+
+# Filter by status
+cockpit metrics list --status error
+
+# Filter by date
+cockpit metrics list --date 2026-06-20
+```
+
+**Features:**
+- Daily log rotation (cockpit-YYYY-MM-DD.log)
+- JSON format for easy parsing
+- Automatic metrics collection
+- Success/failure tracking
+- Performance metrics
+- Error analysis
+
+See [LOGGING_AND_METRICS.md](LOGGING_AND_METRICS.md) for details.
 
 ## 🌍 Internationalization
 
@@ -148,15 +200,19 @@ AICockpit creates the following structure in `~/.cockpit/`:
 ```
 ~/.cockpit/
 ├── config.yaml          # Configuration file
-├── logs/               # Log files
-├── cache/              # Cache directory
-├── packages/           # Installed packages
-├── vault/              # Secrets vault
-├── agents/             # AI agents
-├── skills/             # Skills
-├── rules/              # Rules
-├── hooks/              # Hooks
-└── kb/                 # Knowledge bases
+├── metrics.json         # Execution metrics
+├── logs/                # Log files (daily rotation)
+│   ├── cockpit-2026-06-20.log
+│   ├── cockpit-2026-06-21.log
+│   └── ...
+├── cache/               # Cache directory
+├── packages/            # Installed packages
+├── vault/               # Secrets vault
+├── agents/              # AI agents
+├── skills/              # Skills
+├── rules/               # Rules
+├── hooks/               # Hooks
+└── kb/                  # Knowledge bases
 ```
 
 ## 🔧 Development
