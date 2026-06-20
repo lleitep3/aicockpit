@@ -1,11 +1,9 @@
 run:
   timeout: 5m
   tests: true
-  skip-dirs:
-    - bin
-    - vendor
 
 linters:
+  disable-all: true
   enable:
     - gosimple          # Simplifica código
     - govet             # Análise estática padrão
@@ -44,6 +42,9 @@ linters-settings:
       - name: var-naming
 
 issues:
+  exclude-dirs:
+    - bin
+    - vendor
   exclude-rules:
     - path: _test\.go
       linters:
