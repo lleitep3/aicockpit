@@ -2,6 +2,8 @@
 
 Assim como o Goose e o Devin, o Google Antigravity também adotou o padrão unificado de **Agent Skills**. Por ser altamente autônomo, o Antigravity costuma utilizar essas skills delegando parte de suas capacidades para subagentes ou executando scripts encapsulados.
 
+**Referência Oficial:** Uso interno (Google Antigravity SDK).
+
 ## Diretórios de Skills
 - **Global:** `~/.gemini/config/skills/`
 - **Global (por Plugin):** `~/.gemini/config/plugins/<nome-do-plugin>/skills/`

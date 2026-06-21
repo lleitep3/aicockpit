@@ -8,8 +8,8 @@ Antigravity (AGY) é um poderoso assistente e agente de codificação autônomo 
 
 ## Features Suportadas Nativamente pelo Provider
 O Antigravity possui suporte a um vasto ecossistema de personalizações através das suas `customization roots`:
-- **Skills (com Frontmatter YAML):** Diretórios contendo um arquivo `SKILL.md` cuja primeira seção deve obrigatoriamente ser um bloco de metadados YAML (`name` e `description`) para indexação semântica correta.
-- **Rules (AGENTS.md):** Um arquivo markdown que consolida as diretivas, restrições e diretrizes de estilo ou de projeto para o comportamento do agente.
+- **[Skills](SKILLS.md) (com Frontmatter YAML):** Diretórios contendo um arquivo `SKILL.md` cuja primeira seção deve obrigatoriamente ser um bloco de metadados YAML (`name` e `description`) para indexação semântica correta.
+- **[Rules](RULES.md) (AGENTS.md):** Um arquivo markdown que consolida as diretivas, restrições e diretrizes de estilo ou de projeto para o comportamento do agente.
 - **Plugins & Subagentes:** Agrupamentos lógicos que empacotam configurações (`plugin.json`), múltiplas skills e subagentes prontos para serem delegados.
 - **Global Config / Workspace Config:** O agente carrega suas personalizações de um caminho global (como `~/.gemini/config`) ou local (`.agents`).
 - **Permissions:** O sistema tem capacidades de leitura, escrita e execução restritas por permissões que podem ser cedidas previamente num `config.json`.

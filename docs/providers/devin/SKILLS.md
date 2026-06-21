@@ -2,6 +2,8 @@
 
 O Devin aderiu ao padrão aberto **Agent Skills**, tornando o formato de suas habilidades amplamente compatível com outros provedores. Skills no Devin são excelentes para codificar fluxos de trabalho repetitivos (como levantar um ambiente local) e podem ser referenciadas explicitamente em regras de projeto.
 
+**Referência Oficial:** [Devin Skills Guide](https://docs.devin.ai/product-guides/skills)
+
 ## Diretórios de Skills
 - **Global (macOS/Linux):** `~/.config/devin/skills/`
 - **Global (Windows):** `%APPDATA%\devin\skills\`

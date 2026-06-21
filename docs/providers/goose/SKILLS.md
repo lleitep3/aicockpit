@@ -2,6 +2,8 @@
 
 O Goose convergiu para o padrão aberto **Agent Skills**, tornando suas capacidades altamente compatíveis com outros agentes do mercado. Em vez de injetar todo o conhecimento num prompt gigante, o Goose carrega o conteúdo da skill dinamicamente com base em matching semântico.
 
+**Referência Oficial:** [Goose Using Skills](https://goose-docs.ai/docs/guides/context-engineering/using-skills/)
+
 ## Diretórios de Skills
 - **Global (Padrão Atual):** `~/.agents/skills/`
 - **Global (Legado):** `~/.goose/skills/`

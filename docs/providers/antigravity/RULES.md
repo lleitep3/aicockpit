@@ -2,6 +2,8 @@
 
 Para o Antigravity, as regras são chamadas de "Customizations" (ou Rulesets) e são lidas dinamicamente a cada sessão para guiar as decisões técnicas, restrições e padrões de comunicação do assistente.
 
+**Referência Oficial:** Uso interno (Google Antigravity SDK).
+
 ## Diretórios e Arquivos de Regras
 - **Global:** `~/.gemini/config/rules/AGENTS.md` (Pode ser também mapeado a partir de outros arquivos na pasta config/rules/ ou no raiz do config root). O Antigravity usa a raiz `~/.gemini/config`.
 - **Project-level:** `.agents/AGENTS.md` na raiz do workspace.

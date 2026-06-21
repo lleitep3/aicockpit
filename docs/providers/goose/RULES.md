@@ -2,6 +2,8 @@
 
 As regras no Goose (conhecidas nativamente como `hints`) atuam como o System Prompt contínuo do agente para uma determinada sessão ou workspace. Elas ditam comportamentos base, estilos de resposta e limitações estritas.
 
+**Referência Oficial:** [Goose Context Engineering](https://goose-docs.ai/docs/guides/context-engineering/)
+
 ## Diretórios e Arquivos de Regras
 - **Global:** `~/.config/goose/rtk-hints.md` (ou arquivos customizados injetados via configurações globais).
 - **Project-level:** `.goosehints` na raiz do projeto.

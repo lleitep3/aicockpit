@@ -2,6 +2,8 @@
 
 O Devin, além de resolver tickets e codificar autonomamente, requer guias de estilo e diretrizes do projeto para não desviar do padrão estabelecido pela equipe. Suas regras são declaradas como contexto e memórias globais ou de projeto.
 
+**Referência Oficial:** [Devin Documentation](https://docs.devin.ai/)
+
 ## Diretórios e Arquivos de Regras
 - **Global (Windsurf / Devin Desktop):** `~/.codeium/windsurf/memories/global_rules.md`
 - **Project-level:** `.devin/AGENTS.md` ou arquivo referenciado como `.devinrules`.
