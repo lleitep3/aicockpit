@@ -250,6 +250,8 @@ func buildGoosehints(cockpitHomeDir string) (string, error) {
 		builder.WriteString("\n\n---\n\n")
 	}
 
+	builder.WriteString("## 🏅 Gold Rules & Project Guidelines\n\n")
+
 	builder.WriteString(strings.Join(rules, "\n\n---\n\n"))
 	return builder.String(), nil
 }
