@@ -46,7 +46,10 @@ var defaultConfig = Config{
 	Version:    version.Version,
 	Language:   "en-us",
 	LogLevel:   "info",
-	AIProvider: "claude",
+	AIProvider: "antigravity",
+	AIProviders: ProvidersConfig{
+		Enabled: []string{"antigravity", "devin", "goose"},
+	},
 	KB: KBConfig{
 		Roots: []string{filepath.Join(GetCockpitDir(), "kb")},
 	},
@@ -104,6 +107,9 @@ func Load() (*Config, error) {
 	if cfg.AIProvider == "" {
 		cfg.AIProvider = defaultConfig.AIProvider
 	}
+	if len(cfg.AIProviders.Enabled) == 0 {
+		cfg.AIProviders.Enabled = defaultConfig.AIProviders.Enabled
+	}
 
 	return &cfg, nil
 }
@@ -133,10 +139,11 @@ func createDefault() (*Config, error) {
 	}
 
 	cfg := &Config{
-		Version:    defaultConfig.Version,
-		Language:   defaultConfig.Language,
-		LogLevel:   defaultConfig.LogLevel,
-		AIProvider: defaultConfig.AIProvider,
+		Version:     defaultConfig.Version,
+		Language:    defaultConfig.Language,
+		LogLevel:    defaultConfig.LogLevel,
+		AIProvider:  defaultConfig.AIProvider,
+		AIProviders: defaultConfig.AIProviders,
 	}
 
 	// Save config
