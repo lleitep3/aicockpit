@@ -71,6 +71,8 @@ uninstall:
 
 install-hooks:
 	@echo "Installing git pre-commit hooks..."
+	@mkdir -p .git/hooks
+	@cp scripts/pre-commit .git/hooks/pre-commit
 	@chmod +x .git/hooks/pre-commit
 	@echo "✓ Pre-commit hook installed"
 	@echo "Hooks will run on every commit to validate code quality"

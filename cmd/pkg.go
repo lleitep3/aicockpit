@@ -261,14 +261,14 @@ func NewPkgInstallCommand() *cobra.Command {
 				fmt.Printf("\nInstalling dependencies...\n")
 				for _, dep := range downloadedPkg.Dependencies {
 					fmt.Printf("  Installing dependency: %s (%s)\n", dep.Name, dep.Version)
-					
+
 					// Recursively install dependency
 					depCmd := NewPkgInstallCommand()
 					depArgs := []string{dep.Name}
 					if withDependencies {
 						depArgs = append(depArgs, "--with-dependencies")
 					}
-					
+
 					if err := depCmd.RunE(depCmd, depArgs); err != nil {
 						if !dep.Optional {
 							return fmt.Errorf("failed to install required dependency %s: %w", dep.Name, err)

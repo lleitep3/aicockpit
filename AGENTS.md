@@ -139,9 +139,6 @@ aicockpit/
 │   ├── config/                   # Configuration management
 │   │   ├── config.go
 │   │   └── config_test.go
-│   ├── logger/                   # Legacy logging (deprecated)
-│   │   ├── logger.go
-│   │   └── logger_test.go
 │   ├── logging/                  # New logging & metrics system
 │   │   ├── file_logger.go        # Daily log rotation
 │   │   ├── file_logger_test.go

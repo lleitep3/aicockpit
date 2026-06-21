@@ -1,0 +1,16 @@
+# Binaries
+bin/
+
+# Test coverage profiles
+*.out
+
+# Local logs
+cmd/logs/
+
+# Local/Generated IA files and directories
+.agents/
+.goosehints
+
+# Local Gemini environment data
+.gemini/
+cmd/.gemini/

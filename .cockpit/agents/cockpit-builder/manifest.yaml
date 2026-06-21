@@ -1,0 +1,35 @@
+name: "cockpit-builder"
+version: "1.0.0"
+description: "Agent for building and managing AICockpit projects"
+author: "AICockpit Team"
+license: "MIT"
+
+# Agent capabilities
+capabilities:
+  - "project-setup"
+  - "code-generation"
+  - "testing"
+  - "documentation"
+
+# Required skills
+skills:
+  - "go-development"
+  - "file-management"
+  - "git-operations"
+
+# Required hooks
+hooks:
+  - "cockpit-first"
+
+# Configuration
+config:
+  timeout: 300
+  max_retries: 3
+  log_level: "info"
+  parallel_tasks: 4
+
+# Dependencies
+dependencies:
+  go: "1.26"
+  cockpit: "0.2.0"
+  git: "2.0"

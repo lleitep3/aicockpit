@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# Pre-commit hook for AICockpit.
+# Validates formatting, runs go vet, and executes fast unit tests.
+
+set -euo pipefail
+
+echo "🔍 Running pre-commit validation..."
+
+# 1. Format check
+echo "  • Checking code formatting (gofmt)..."
+UNFORMATTED=$(gofmt -l .)
+if [ -n "$UNFORMATTED" ]; then
+    echo "  ❌ Formatting check failed! Run 'make fmt' to format the following files:"
+    echo "$UNFORMATTED"
+    exit 1
+fi
+echo "  ✓ Formatting: OK"
+
+# 2. Go vet
+echo "  • Running static analysis (go vet)..."
+go vet ./...
+echo "  ✓ Static analysis: OK"
+
+# 3. Unit tests
+echo "  • Running unit tests..."
+go test ./...
+echo "  ✓ Unit tests: OK"
+
+echo "✅ All checks passed successfully! Proceeding with commit."
+exit 0

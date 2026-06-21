@@ -87,7 +87,7 @@
 
 ### 🏗️ Architecture
 - [x] **Clean separation of concerns** - CLI, config, logging, i18n
-- [x] **Singleton pattern** - Logger and Translator
+- [x] **Singleton/DI pattern** - Translator singleton, Logging Manager injected
 - [x] **Dependency injection** - Commands receive dependencies
 - [x] **Error handling** - Proper error wrapping and reporting
 - [x] **Testable design** - Core logic is testable

@@ -1,189 +1,91 @@
 # AICockpit Providers Configuration
 # This file defines all available AI providers and their supported features
-# Add new providers here to extend AICockpit functionality
 
 version: "1.0"
 description: "AI Providers Configuration for AICockpit"
 
 providers:
-  # Devin - Autonomous AI agent for software engineering
+  # Antigravity - Autonomous AI agent by Google DeepMind
+  antigravity:
+    enabled: true
+    name: "Antigravity"
+    description: "Autonomous AI agent by Google DeepMind"
+    workspace: "~"
+    version: "1.0.0"
+    features:
+      skills:
+        enabled: true
+        path: ".gemini/config/skills"
+        description: "Reusable capabilities for agents"
+      rules:
+        enabled: true
+        path: ".gemini/config/rules"
+        description: "Codebase rules and guidelines"
+      hooks:
+        enabled: true
+        path: ".gemini/config/hooks"
+        description: "Lifecycle event hooks"
+      agents:
+        enabled: true
+        path: ".gemini/config/agents"
+        description: "Autonomous subagent templates"
+      workflows:
+        enabled: true
+        path: ".gemini/config/workflows"
+        description: "Workflow files and scripts"
+
+  # Devin - Autonomous AI agent by Cognition
   devin:
     enabled: true
     name: "Devin"
-    description: "Autonomous AI agent for software engineering"
-    workspace: "~/.cockpit"
+    description: "Autonomous AI software engineer by Cognition"
+    workspace: "."
     version: "1.0.0"
-    
     features:
-      agents:
-        enabled: true
-        path: "agents"
-        description: "Autonomous agents for task execution"
-      
       skills:
         enabled: true
-        path: "skills"
-        description: "Reusable capabilities for agents"
-      
-      hooks:
+        path: ".agents/skills"
+        description: "Reusable capabilities for Devin"
+      rules:
         enabled: true
-        path: "hooks"
-        description: "Event handlers for system lifecycle"
-      
+        path: "AGENTS.md"
+        description: "Codebase rules and guidelines"
       workflows:
         enabled: true
-        path: "workflows"
-        description: "Automated workflows and automation"
-      
-      memories:
-        enabled: true
-        path: "memories"
-        description: "Memory and context management"
-      
-      kb:
-        enabled: true
-        path: "kb"
-        description: "Knowledge base for documentation"
+        path: ".devin/config.yaml"
+        description: "Devin custom tools and configuration"
 
-  # Goose - AI agent for code generation and automation
+  # Goose - Open-source AI agent by Block
   goose:
     enabled: true
     name: "Goose"
-    description: "AI agent for code generation and automation"
-    workspace: "~/.goose"
+    description: "Open-source AI agent by Block"
+    workspace: "."
     version: "1.0.0"
-    
     features:
-      agents:
-        enabled: true
-        path: "agents"
-        description: "Autonomous agents for task execution"
-      
       skills:
         enabled: true
-        path: "skills"
-        description: "Reusable capabilities for agents"
-      
-      hooks:
+        path: ".agents/skills"
+        description: "Reusable capabilities for Goose"
+      rules:
         enabled: true
-        path: "hooks"
-        description: "Event handlers for system lifecycle"
-      
-      workflows:
-        enabled: true
-        path: "workflows"
-        description: "Automated workflows and automation"
-      
-      memories:
-        enabled: false
-        path: "memories"
-        description: "Memory and context management (not supported)"
-      
-      kb:
-        enabled: true
-        path: "kb"
-        description: "Knowledge base for documentation"
-
-  # Claude Code - Claude AI integrated with code editing
-  claude-code:
-    enabled: true
-    name: "Claude Code"
-    description: "Claude AI integrated with code editing"
-    workspace: "~/.claude-code"
-    version: "1.0.0"
-    
-    features:
-      agents:
-        enabled: false
-        path: "agents"
-        description: "Autonomous agents (not supported)"
-      
-      skills:
-        enabled: true
-        path: "skills"
-        description: "Reusable capabilities for agents"
-      
-      hooks:
-        enabled: true
-        path: "hooks"
-        description: "Event handlers for system lifecycle"
-      
-      workflows:
-        enabled: false
-        path: "workflows"
-        description: "Automated workflows (not supported)"
-      
-      memories:
-        enabled: true
-        path: "memories"
-        description: "Memory and context management"
-      
-      kb:
-        enabled: true
-        path: "kb"
-        description: "Knowledge base for documentation"
-
-  # GitHub Copilot - GitHub's AI pair programmer
-  github-copilot:
-    enabled: true
-    name: "GitHub Copilot"
-    description: "GitHub's AI pair programmer"
-    workspace: "~/.github-copilot"
-    version: "1.0.0"
-    
-    features:
-      agents:
-        enabled: false
-        path: "agents"
-        description: "Autonomous agents (not supported)"
-      
-      skills:
-        enabled: true
-        path: "skills"
-        description: "Reusable capabilities for agents"
-      
-      hooks:
-        enabled: false
-        path: "hooks"
-        description: "Event handlers (not supported)"
-      
-      workflows:
-        enabled: false
-        path: "workflows"
-        description: "Automated workflows (not supported)"
-      
-      memories:
-        enabled: true
-        path: "memories"
-        description: "Memory and context management"
-      
-      kb:
-        enabled: true
-        path: "kb"
-        description: "Knowledge base for documentation"
+        path: ".goosehints"
+        description: "Always-on rules and guidelines"
 
 # Feature definitions
 features:
   agents:
     description: "Autonomous AI agents for task execution"
     example: "cockpit-builder agent"
-  
   skills:
     description: "Reusable capabilities that agents can leverage"
     example: "go-development skill"
-  
+  rules:
+    description: "Always-on rules and guidelines"
+    example: "Project coding standards"
   hooks:
-    description: "Event handlers that execute in response to system events"
-    example: "cockpit-first hook"
-  
+    description: "Lifecycle hooks for automation and policy enforcement"
+    example: "Command validation hook"
   workflows:
-    description: "Automated workflows and automation patterns"
-    example: "ci-cd workflow"
-  
-  memories:
-    description: "Memory and context management for agents"
-    example: "conversation memory"
-  
-  kb:
-    description: "Knowledge base for documentation and learning"
-    example: "guides and troubleshooting docs"
+    description: "Workflow files and scripts"
+    example: "Continuous deployment steps"

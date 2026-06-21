@@ -297,3 +297,28 @@ func (c *ProvidersConfig) ValidateConfig() error {
 
 	return nil
 }
+
+// ProviderOption represents a provider option with name and display name.
+type ProviderOption struct {
+	Name        string
+	DisplayName string
+}
+
+// GetProviderOptions returns a list of enabled provider options.
+func (c *ProvidersConfig) GetProviderOptions() []ProviderOption {
+	var options []ProviderOption
+	if c.Providers == nil {
+		return options
+	}
+
+	for name, provider := range c.Providers {
+		if provider.Enabled {
+			options = append(options, ProviderOption{
+				Name:        name,
+				DisplayName: provider.Name,
+			})
+		}
+	}
+
+	return options
+}

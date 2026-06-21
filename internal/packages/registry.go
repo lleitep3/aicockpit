@@ -140,7 +140,6 @@ func (rm *RegistryManager) SearchPackages(query string, registries []RegistryCon
 		// Ensure registry is cloned and up-to-date
 		if err := rm.cache.EnsureRegistry(registry); err != nil {
 			fmt.Printf("Warning: failed to sync registry %s: %v\n", registry.Name, err)
-			continue
 		}
 
 		// Load package index from cache
@@ -178,7 +177,7 @@ func (rm *RegistryManager) GetPackage(packageName string, registries []RegistryC
 
 		// Ensure registry is cloned and up-to-date
 		if err := rm.cache.EnsureRegistry(registry); err != nil {
-			continue
+			fmt.Printf("Warning: failed to sync registry %s: %v\n", registry.Name, err)
 		}
 
 		// Load package index from cache

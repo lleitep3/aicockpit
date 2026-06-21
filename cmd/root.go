@@ -22,6 +22,7 @@ func NewRootCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translator
 
 	// Add subcommands
 	rootCmd.AddCommand(NewSetupCommand(log, cfg, t))
+	rootCmd.AddCommand(NewDeployCommand(log, cfg, t))
 	rootCmd.AddCommand(NewInfoCommand(log, cfg, t))
 	rootCmd.AddCommand(NewDoctorCommand(log, cfg, t))
 	rootCmd.AddCommand(NewUninstallCommand(log, cfg, t))
