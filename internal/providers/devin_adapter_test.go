@@ -11,7 +11,7 @@ func TestDevinAdapter_WriteGoldRules(t *testing.T) {
 	tmpDir := t.TempDir()
 	cockpitHome := filepath.Join(tmpDir, ".cockpit")
 	rulesDir := filepath.Join(cockpitHome, "rules")
-	
+
 	if err := os.MkdirAll(rulesDir, 0o755); err != nil {
 		t.Fatalf("setup: %v", err)
 	}
@@ -29,7 +29,7 @@ func TestDevinAdapter_WriteGoldRules(t *testing.T) {
 	}
 
 	targetPath := filepath.Join(tmpDir, "global_rules.md")
-	
+
 	adapter := NewDevinAdapter()
 	if err := adapter.writeGoldRules(cockpitHome, targetPath); err != nil {
 		t.Fatalf("writeGoldRules failed: %v", err)
@@ -59,7 +59,7 @@ func TestDevinAdapter_WriteGoldRules_NoRules(t *testing.T) {
 	tmpDir := t.TempDir()
 	cockpitHome := filepath.Join(tmpDir, ".cockpit")
 	targetPath := filepath.Join(tmpDir, "global_rules.md")
-	
+
 	adapter := NewDevinAdapter()
 	if err := adapter.writeGoldRules(cockpitHome, targetPath); err != nil {
 		t.Fatalf("writeGoldRules failed for empty dir: %v", err)
