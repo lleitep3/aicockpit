@@ -11,6 +11,7 @@ O Antigravity possui suporte a um vasto ecossistema de personalizações atravé
 - **[Skills](SKILLS.md) (com Frontmatter YAML):** Diretórios contendo um arquivo `SKILL.md` cuja primeira seção deve obrigatoriamente ser um bloco de metadados YAML (`name` e `description`) para indexação semântica correta.
 - **[Rules](RULES.md) (AGENTS.md):** Um arquivo markdown que consolida as diretivas, restrições e diretrizes de estilo ou de projeto para o comportamento do agente.
 - **[Plugins & Subagents](AGENTS.md):** Agrupamentos lógicos que empacotam configurações (`plugin.json`), múltiplas skills e subagentes prontos para serem delegados assincronamente.
+- **[Workflows](WORKFLOWS.md):** Extração de rotinas e empacotamento em fluxos orquestrados.
 - **Global Config / Workspace Config:** O agente carrega suas personalizações de um caminho global (como `~/.gemini/config`) ou local (`.agents`).
 - **[Permissions](PERMISSIONS.md):** O sistema tem capacidades de leitura, escrita e execução restritas por permissões que podem ser cedidas previamente num `config.json`.
 

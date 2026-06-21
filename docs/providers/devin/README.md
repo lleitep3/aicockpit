@@ -12,8 +12,8 @@ O Devin, em sua arquitetura nativa, oferece suporte para:
 - **[Skills](SKILLS.md):** Capacidades adicionais modulares que o agente pode invocar (localizadas no diretório do projeto ou via repositórios).
 - **[Rules](RULES.md) (Contexto de Projeto):** Regras locais injetadas no contexto, frequentemente via arquivos como `AGENTS.md` ou `README.md`.
 - **[Subagents](AGENTS.md):** Delegação de tarefas demoradas para subagentes independentes que rodam em background.
+- **[Workflows](WORKFLOWS.md):** Scripts de passos orquestrados (frequentemente empacotados como Skills).
 - **Global Memory / Gold Rules:** Memória global entre projetos e regras universais através de arquivos globais como `~/.codeium/windsurf/memories/global_rules.md`.
-- **Workflows & Custom Tools:** Configurações de ferramentas customizadas e fluxos definidos localmente via `.devin/config.yaml`.
 - **Local [Permissions](PERMISSIONS.md):** Sistema de permissões locais para limitar ou autorizar quais comandos o agente pode executar no ambiente (ex: `.devin/config.local.json`).
 
 ## Integrações Atuais no AICockpit Adapter
