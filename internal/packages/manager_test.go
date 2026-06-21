@@ -359,3 +359,202 @@ func TestRunPackageHooks_NoDescription(t *testing.T) {
 		t.Errorf("RunPackageHooks failed: %v", err)
 	}
 }
+
+// ── SyncPackageAssets ────────────────────────────────────────────────────────
+
+func TestSyncPackageAssets_CopiesAllAssetTypes(t *testing.T) {
+	tmpDir := t.TempDir()
+	cockpitDir := filepath.Join(tmpDir, "cockpit")
+	pm := NewPackageManager(cockpitDir)
+
+	installPath := filepath.Join(tmpDir, "pkg-install")
+	assetDirs := []string{
+		"skills/my-skill",
+		"rules/my-rule",
+		"agents/my-agent",
+		"workflows/my-flow",
+	}
+	for _, d := range assetDirs {
+		dir := filepath.Join(installPath, d)
+		if err := os.MkdirAll(dir, 0o755); err != nil {
+			t.Fatalf("setup: %v", err)
+		}
+		if err := os.WriteFile(filepath.Join(dir, "SKILL.md"), []byte("# content"), 0o644); err != nil {
+			t.Fatalf("setup: %v", err)
+		}
+	}
+
+	pkg := &Package{
+		Name: "test-pkg",
+		Features: Features{
+			Skills:    []Feature{{Path: "skills/my-skill", Name: "my-skill"}},
+			Rules:     []Feature{{Path: "rules/my-rule", Name: "my-rule"}},
+			Agents:    []Feature{{Path: "agents/my-agent", Name: "my-agent"}},
+			Workflows: []Feature{{Path: "workflows/my-flow", Name: "my-flow"}},
+		},
+	}
+
+	if err := pm.SyncPackageAssets(pkg, installPath); err != nil {
+		t.Fatalf("SyncPackageAssets failed: %v", err)
+	}
+
+	expected := []string{
+		filepath.Join(cockpitDir, "skills", "my-skill", "SKILL.md"),
+		filepath.Join(cockpitDir, "rules", "my-rule", "SKILL.md"),
+		filepath.Join(cockpitDir, "agents", "my-agent", "SKILL.md"),
+		filepath.Join(cockpitDir, "workflows", "my-flow", "SKILL.md"),
+	}
+	for _, p := range expected {
+		if _, err := os.Stat(p); err != nil {
+			t.Errorf("expected file missing: %s", p)
+		}
+	}
+}
+
+func TestSyncPackageAssets_SkipsMissingSource(t *testing.T) {
+	tmpDir := t.TempDir()
+	pm := NewPackageManager(tmpDir)
+
+	pkg := &Package{
+		Name:     "test-pkg",
+		Features: Features{Skills: []Feature{{Path: "skills/ghost", Name: "ghost"}}},
+	}
+	// Missing source — should warn and skip, not error
+	if err := pm.SyncPackageAssets(pkg, tmpDir); err != nil {
+		t.Errorf("expected no error for missing source, got: %v", err)
+	}
+}
+
+func TestSyncPackageAssets_NoFeatures(t *testing.T) {
+	tmpDir := t.TempDir()
+	pm := NewPackageManager(tmpDir)
+	pkg := &Package{Name: "empty-pkg", Features: Features{}}
+	if err := pm.SyncPackageAssets(pkg, tmpDir); err != nil {
+		t.Errorf("expected no error for empty features, got: %v", err)
+	}
+}
+
+// ── RemovePackageAssets ──────────────────────────────────────────────────────
+
+func TestRemovePackageAssets_RemovesExistingAssets(t *testing.T) {
+	tmpDir := t.TempDir()
+	cockpitDir := filepath.Join(tmpDir, "cockpit")
+	pm := NewPackageManager(cockpitDir)
+
+	dirs := []string{
+		filepath.Join(cockpitDir, "skills", "my-skill"),
+		filepath.Join(cockpitDir, "rules", "my-rule"),
+	}
+	for _, d := range dirs {
+		if err := os.MkdirAll(d, 0o755); err != nil {
+			t.Fatalf("setup: %v", err)
+		}
+	}
+
+	pkg := &Package{
+		Name: "test-pkg",
+		Features: Features{
+			Skills: []Feature{{Name: "my-skill"}},
+			Rules:  []Feature{{Name: "my-rule"}},
+		},
+	}
+
+	if err := pm.RemovePackageAssets(pkg); err != nil {
+		t.Fatalf("RemovePackageAssets failed: %v", err)
+	}
+
+	for _, d := range dirs {
+		if _, err := os.Stat(d); !os.IsNotExist(err) {
+			t.Errorf("expected dir to be removed: %s", d)
+		}
+	}
+}
+
+func TestRemovePackageAssets_NoOpWhenNotPresent(t *testing.T) {
+	tmpDir := t.TempDir()
+	pm := NewPackageManager(tmpDir)
+	pkg := &Package{
+		Name:     "test-pkg",
+		Features: Features{Skills: []Feature{{Name: "ghost-skill"}}},
+	}
+	if err := pm.RemovePackageAssets(pkg); err != nil {
+		t.Errorf("expected no error for already-missing assets, got: %v", err)
+	}
+}
+
+func TestRemovePackageAssets_NoFeatures(t *testing.T) {
+	tmpDir := t.TempDir()
+	pm := NewPackageManager(tmpDir)
+	pkg := &Package{Name: "empty-pkg", Features: Features{}}
+	if err := pm.RemovePackageAssets(pkg); err != nil {
+		t.Errorf("expected no error for empty features, got: %v", err)
+	}
+}
+
+// ── copyDir ──────────────────────────────────────────────────────────────────
+
+func TestCopyDir_CopiesNestedStructure(t *testing.T) {
+	tmpDir := t.TempDir()
+	pm := NewPackageManager(tmpDir)
+
+	src := filepath.Join(tmpDir, "src")
+	if err := os.MkdirAll(filepath.Join(src, "sub"), 0o755); err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(src, "root.txt"), []byte("root"), 0o644); err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(src, "sub", "child.txt"), []byte("child"), 0o644); err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+
+	dst := filepath.Join(tmpDir, "dst")
+	if err := os.MkdirAll(dst, 0o755); err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+
+	if err := pm.copyDir(src, dst); err != nil {
+		t.Fatalf("copyDir failed: %v", err)
+	}
+
+	for _, rel := range []string{"root.txt", filepath.Join("sub", "child.txt")} {
+		p := filepath.Join(dst, rel)
+		if _, err := os.Stat(p); err != nil {
+			t.Errorf("expected copied file missing: %s", p)
+		}
+	}
+}
+
+func TestCopyDir_InvalidSrc(t *testing.T) {
+	tmpDir := t.TempDir()
+	pm := NewPackageManager(tmpDir)
+	err := pm.copyDir("/nonexistent/path", tmpDir)
+	if err == nil {
+		t.Error("expected error for invalid source dir")
+	}
+}
+
+// ── TriggerDeploy ────────────────────────────────────────────────────────────
+
+func TestTriggerDeploy_InvalidBinary(t *testing.T) {
+	tmpDir := t.TempDir()
+	pm := NewPackageManager(tmpDir)
+	err := pm.TriggerDeploy("/nonexistent/cockpit-binary")
+	if err == nil {
+		t.Error("expected error for invalid cockpit binary")
+	}
+}
+
+func TestTriggerDeploy_FailingCommand(t *testing.T) {
+	tmpDir := t.TempDir()
+	pm := NewPackageManager(tmpDir)
+
+	script := filepath.Join(tmpDir, "fake-cockpit")
+	if err := os.WriteFile(script, []byte("#!/bin/sh\nexit 1\n"), 0o755); err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+	err := pm.TriggerDeploy(script)
+	if err == nil {
+		t.Error("expected error when deploy command fails")
+	}
+}

@@ -278,6 +278,23 @@ func NewPkgInstallCommand() *cobra.Command {
 				}
 			}
 
+			// Sync package assets (skills/rules/agents/workflows) to canonical dirs
+			hasAssets := len(downloadedPkg.Features.Skills) > 0 ||
+				len(downloadedPkg.Features.Rules) > 0 ||
+				len(downloadedPkg.Features.Agents) > 0 ||
+				len(downloadedPkg.Features.Workflows) > 0
+			if hasAssets {
+				fmt.Printf("\nSyncing assets to canonical dirs...\n")
+				if err := pm.SyncPackageAssets(downloadedPkg, installPath); err != nil {
+					fmt.Printf("  ⚠ Asset sync warning: %v\n", err)
+				}
+
+				fmt.Printf("\nDeploying to active providers...\n")
+				if err := pm.TriggerDeploy(""); err != nil {
+					fmt.Printf("  ⚠ Deploy warning: %v\n", err)
+				}
+			}
+
 			// Install dependencies if requested
 			if withDependencies && len(downloadedPkg.Dependencies) > 0 {
 				fmt.Printf("\nInstalling dependencies...\n")
@@ -365,6 +382,18 @@ func NewPkgUninstallCommand() *cobra.Command {
 				}
 			}
 
+			// Remove package assets from canonical dirs before deleting package files
+			hasAssets := len(pkg.Features.Skills) > 0 ||
+				len(pkg.Features.Rules) > 0 ||
+				len(pkg.Features.Agents) > 0 ||
+				len(pkg.Features.Workflows) > 0
+			if hasAssets {
+				fmt.Printf("\nRemoving assets from canonical dirs...\n")
+				if err := pm.RemovePackageAssets(pkg); err != nil {
+					fmt.Printf("  ⚠ Asset removal warning: %v\n", err)
+				}
+			}
+
 			// Uninstall package
 			fmt.Printf("\nUninstalling package: %s\n", packageName)
 			err = pm.UninstallPackage(packageName)
@@ -373,6 +402,14 @@ func NewPkgUninstallCommand() *cobra.Command {
 			}
 
 			fmt.Printf("✓ Package uninstalled successfully\n")
+
+			// Redeploy to providers after removing assets
+			if hasAssets {
+				fmt.Printf("\nRedeploying to active providers...\n")
+				if err := pm.TriggerDeploy(""); err != nil {
+					fmt.Printf("  ⚠ Deploy warning: %v\n", err)
+				}
+			}
 
 			// Run post_uninstall hooks — note: package files are gone, so scripts
 			// must be self-contained or rely only on system-level paths.

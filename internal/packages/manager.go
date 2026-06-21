@@ -254,3 +254,132 @@ func (pm *PackageManager) RunPackageHooks(packageDir string, hooks []Hook) error
 	}
 	return nil
 }
+
+// SyncPackageAssets copies a package's assets (skills, rules, agents, workflows)
+// into the cockpit canonical directories so they are available for provider compilation.
+// Each feature entry's directory is copied to <cockpitDir>/<type>/<feature.Name>/.
+func (pm *PackageManager) SyncPackageAssets(pkg *Package, installPath string) error {
+	type assetGroup struct {
+		features []Feature
+		dir      string
+	}
+
+	groups := []assetGroup{
+		{features: pkg.Features.Skills, dir: "skills"},
+		{features: pkg.Features.Rules, dir: "rules"},
+		{features: pkg.Features.Agents, dir: "agents"},
+		{features: pkg.Features.Workflows, dir: "workflows"},
+	}
+
+	for _, group := range groups {
+		for _, f := range group.features {
+			src := filepath.Join(installPath, f.Path)
+			dst := filepath.Join(pm.cockpitDir, group.dir, f.Name)
+
+			if _, err := os.Stat(src); os.IsNotExist(err) {
+				fmt.Printf("  ⚠ Asset not found, skipping: %s\n", f.Path)
+				continue
+			}
+
+			if err := os.MkdirAll(dst, 0o755); err != nil {
+				return fmt.Errorf("failed to create asset dir %s: %w", dst, err)
+			}
+
+			if err := pm.copyDir(src, dst); err != nil {
+				return fmt.Errorf("failed to sync asset %s/%s: %w", group.dir, f.Name, err)
+			}
+
+			fmt.Printf("  ✓ %s/%s synced to canonical dir\n", group.dir, f.Name)
+		}
+	}
+
+	return nil
+}
+
+// RemovePackageAssets removes a package's assets from the cockpit canonical directories.
+func (pm *PackageManager) RemovePackageAssets(pkg *Package) error {
+	type assetGroup struct {
+		features []Feature
+		dir      string
+	}
+
+	groups := []assetGroup{
+		{features: pkg.Features.Skills, dir: "skills"},
+		{features: pkg.Features.Rules, dir: "rules"},
+		{features: pkg.Features.Agents, dir: "agents"},
+		{features: pkg.Features.Workflows, dir: "workflows"},
+	}
+
+	for _, group := range groups {
+		for _, f := range group.features {
+			dst := filepath.Join(pm.cockpitDir, group.dir, f.Name)
+
+			if _, err := os.Stat(dst); os.IsNotExist(err) {
+				continue // Already gone, no-op
+			}
+
+			if err := os.RemoveAll(dst); err != nil {
+				return fmt.Errorf("failed to remove asset %s/%s: %w", group.dir, f.Name, err)
+			}
+
+			fmt.Printf("  ✓ %s/%s removed from canonical dir\n", group.dir, f.Name)
+		}
+	}
+
+	return nil
+}
+
+// TriggerDeploy runs the cockpit deploy command to recompile all canonical assets
+// to the active providers. cockpitBin is the path to the cockpit binary; if empty,
+// the current process binary is used via os.Executable.
+func (pm *PackageManager) TriggerDeploy(cockpitBin string) error {
+	if cockpitBin == "" {
+		bin, err := os.Executable()
+		if err != nil {
+			return fmt.Errorf("failed to resolve cockpit binary: %w", err)
+		}
+		cockpitBin = bin
+	}
+
+	cmd := exec.Command(cockpitBin, "deploy") //nolint:gosec // path from os.Executable
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("cockpit deploy failed: %w", err)
+	}
+
+	return nil
+}
+
+// copyDir recursively copies src directory contents into dst directory.
+func (pm *PackageManager) copyDir(src, dst string) error {
+	entries, err := os.ReadDir(src)
+	if err != nil {
+		return err
+	}
+
+	for _, entry := range entries {
+		srcPath := filepath.Join(src, entry.Name())
+		dstPath := filepath.Join(dst, entry.Name())
+
+		if entry.IsDir() {
+			if err := os.MkdirAll(dstPath, 0o755); err != nil {
+				return err
+			}
+			if err := pm.copyDir(srcPath, dstPath); err != nil {
+				return err
+			}
+		} else {
+			data, err := os.ReadFile(srcPath)
+			if err != nil {
+				return err
+			}
+			if err := os.WriteFile(dstPath, data, 0o644); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
