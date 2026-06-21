@@ -86,7 +86,7 @@ func TestNewKBAddCommand(t *testing.T) {
 	cmd := NewKBAddCommand(log, cfg, translator)
 
 	if cmd == nil {
-		t.Error("NewKBAddCommand() returned nil")
+		t.Fatal("NewKBAddCommand() returned nil")
 	}
 
 	if cmd.Use != "add <file>" {
@@ -105,7 +105,7 @@ func TestNewKBRemoveCommand(t *testing.T) {
 	cmd := NewKBRemoveCommand(log, cfg, translator)
 
 	if cmd == nil {
-		t.Error("NewKBRemoveCommand() returned nil")
+		t.Fatal("NewKBRemoveCommand() returned nil")
 	}
 
 	if cmd.Use != "remove <id>" {
@@ -415,7 +415,7 @@ func TestNewKBRootCommand(t *testing.T) {
 	cmd := NewKBRootCommand(log, cfg, translator)
 
 	if cmd == nil {
-		t.Error("NewKBRootCommand() returned nil")
+		t.Fatal("NewKBRootCommand() returned nil")
 	}
 
 	if cmd.Use != "root" {
@@ -444,7 +444,7 @@ func TestNewKBRootListCommand(t *testing.T) {
 	cmd := NewKBRootListCommand(log, cfg, translator)
 
 	if cmd == nil {
-		t.Error("NewKBRootListCommand() returned nil")
+		t.Fatal("NewKBRootListCommand() returned nil")
 	}
 
 	if cmd.Use != "list" {
@@ -475,7 +475,7 @@ func TestNewKBRebuildCacheCommand(t *testing.T) {
 	cmd := NewKBRebuildCacheCommand(log, cfg, translator)
 
 	if cmd == nil {
-		t.Error("NewKBRebuildCacheCommand() returned nil")
+		t.Fatal("NewKBRebuildCacheCommand() returned nil")
 	}
 
 	if cmd.Use != "rebuild-cache" {

@@ -497,7 +497,7 @@ func TestNewKeywordSearcher(t *testing.T) {
 	searcher := NewKeywordSearcher(scorer)
 
 	if searcher == nil {
-		t.Error("NewKeywordSearcher() returned nil")
+		t.Fatal("NewKeywordSearcher() returned nil")
 	}
 
 	if searcher.scorer != scorer {
@@ -509,7 +509,7 @@ func TestNewDefaultScorer(t *testing.T) {
 	scorer := NewDefaultScorer()
 
 	if scorer == nil {
-		t.Error("NewDefaultScorer() returned nil")
+		t.Fatal("NewDefaultScorer() returned nil")
 	}
 
 	if scorer.titleWeight != 0.5 {

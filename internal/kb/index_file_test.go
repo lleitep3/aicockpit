@@ -470,7 +470,7 @@ func TestFileIndexProvider_LoadIndex_EmptyRoots(t *testing.T) {
 	}
 
 	if index == nil {
-		t.Error("LoadIndex() should return index even with empty roots")
+		t.Fatal("LoadIndex() should return index even with empty roots")
 	}
 
 	if len(index.Roots) != 0 {

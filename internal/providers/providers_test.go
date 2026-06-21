@@ -53,7 +53,7 @@ func TestLoadProvidersConfig(t *testing.T) {
 
 	provider := loaded.GetProvider("devin")
 	if provider == nil {
-		t.Error("Expected devin provider to exist")
+		t.Fatal("Expected devin provider to exist")
 	}
 
 	if !provider.Enabled {
@@ -290,7 +290,7 @@ func TestAddProvider(t *testing.T) {
 
 	provider := config.GetProvider("new-provider")
 	if provider == nil {
-		t.Error("Expected new-provider to exist")
+		t.Fatal("Expected new-provider to exist")
 	}
 
 	if !provider.Enabled {

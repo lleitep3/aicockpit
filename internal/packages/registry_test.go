@@ -404,7 +404,7 @@ func TestGetPackageByName(t *testing.T) {
 	pkg := index.GetPackageByName("test-package")
 
 	if pkg == nil {
-		t.Error("Expected to find package")
+		t.Fatal("Expected to find package")
 	}
 
 	if pkg.Name != "test-package" {

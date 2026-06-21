@@ -12,7 +12,7 @@ func TestNewPackageDownloader(t *testing.T) {
 	downloader := NewPackageDownloader()
 
 	if downloader == nil {
-		t.Error("Expected non-nil downloader")
+		t.Fatal("Expected non-nil downloader")
 	}
 
 	if downloader.httpClient == nil {
