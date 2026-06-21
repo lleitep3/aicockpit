@@ -26,7 +26,7 @@ aicockpit/
 │   └── uninstall.go       # Uninstall command
 ├── internal/              # Internal packages (not exported)
 │   ├── config/            # Configuration management
-│   ├── logger/            # Logging system
+│   ├── logging/           # Logging and metrics system
 │   └── i18n/              # Internationalization
 ├── main.go               # Entry point
 ├── Makefile              # Build automation
@@ -78,7 +78,7 @@ make uninstall       # Remove installed binary
 - [x] `cockpit info` command
 - [x] `cockpit doctor` command
 - [x] `cockpit uninstall` command
-- [x] Unit tests for config, logger, and i18n
+- [x] Unit tests for config, logging, and i18n
 - [x] Build automation with Makefile
 - [x] SDLC documentation
 
@@ -91,7 +91,7 @@ make uninstall       # Remove installed binary
 
 ## Key Design Decisions
 
-1. **Singleton Pattern**: Logger and Translator use singleton pattern for global access
+1. **Singleton/DI Pattern**: Translator uses singleton pattern for global access, while Logging Manager is injected as a dependency
 2. **Separation of Concerns**: Clear separation between CLI commands, config, and core logic
 3. **Internationalization**: Full i18n support from the start (en-us, pt-br)
 4. **Testing**: Unit tests for all core packages with >50% coverage target

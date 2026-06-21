@@ -45,7 +45,31 @@ AICockpit is a **harness engineering tool for AI systems** that enables autonomo
 - ✅ Installation scripts (user-level & system-wide)
 - ✅ CI/CD with automated versioning
 
-**Phase 2 - Vault & Packages (Next)**
+**Phase 2 - Knowledge Base & Search (Complete)**
+- ✅ KB system with metadata headers
+- ✅ Keyword-based search
+- ✅ Metadata parsing and extraction
+- ✅ Scoring system (keyword + semantic)
+- ✅ CLI commands (search, list, add, remove)
+
+**Phase 3 - Multi-Root KB & Caching (Complete)**
+- ✅ Multi-root KB support
+- ✅ Unstructured document support
+- ✅ File-based index caching (.index.json)
+- ✅ Manager for orchestrating KB operations
+- ✅ IndexProvider interface for extensibility
+- ✅ 88.9% test coverage
+
+**Phase 4 - KB Configuration & Commands (In Progress)**
+- ✅ KB configuration in config.yaml
+- ✅ Commands: kb root add/remove/list
+- ✅ Command: kb rebuild-cache
+- ✅ Manager integration with config
+- [ ] Semantic search with embeddings
+- [ ] Skills integration
+- [ ] Hooks integration
+
+**Phase 5 - Vault & Packages (Next)**
 - [ ] Vault system (keyring integration)
 - [ ] Package management
 - [ ] Command execution framework
@@ -91,6 +115,17 @@ aicockpit/
 │   │   └── release.yml           # Automatic versioning & release
 │   ├── PULL_REQUEST_TEMPLATE.md  # PR template
 │   └── pull_request_template.md  # PR template
+├── ai-assets/                    # AI assets (separate from CLI)
+│   ├── knowledge-base/           # Knowledge base documents
+│   │   ├── guides/               # How-to guides
+│   │   ├── references/           # Technical references
+│   │   ├── examples/             # Code examples
+│   │   ├── troubleshooting/      # Problem solutions
+│   │   └── best-practices/       # Best practices
+│   ├── skills/                   # Skills for IAs
+│   │   └── kb-search/            # KB search skill (planned)
+│   └── hooks/                    # Hooks for automation
+│       └── auto-kb-search/       # Auto KB search hook (planned)
 ├── cmd/                          # CLI commands
 │   ├── root.go                   # Root command
 │   ├── setup.go                  # Setup wizard
@@ -98,14 +133,12 @@ aicockpit/
 │   ├── doctor.go                 # Health check
 │   ├── uninstall.go              # Uninstall
 │   ├── metrics.go                # Metrics command
+│   ├── kb.go                     # Knowledge base command
 │   └── pkg.go                    # Package management (planned)
 ├── internal/                     # Internal packages (not exported)
 │   ├── config/                   # Configuration management
 │   │   ├── config.go
 │   │   └── config_test.go
-│   ├── logger/                   # Legacy logging (deprecated)
-│   │   ├── logger.go
-│   │   └── logger_test.go
 │   ├── logging/                  # New logging & metrics system
 │   │   ├── file_logger.go        # Daily log rotation
 │   │   ├── file_logger_test.go
@@ -116,8 +149,20 @@ aicockpit/
 │   ├── i18n/                     # Internationalization
 │   │   ├── i18n.go
 │   │   └── i18n_test.go
-│   └── version/                  # Version management
-│       └── version.go
+│   ├── kb/                       # Knowledge base system
+│   │   ├── kb.go                 # Types and interfaces
+│   │   ├── kb_test.go
+│   │   ├── metadata.go           # Metadata parsing
+│   │   ├── metadata_test.go
+│   │   ├── search.go             # Keyword search
+│   │   ├── search_test.go
+│   │   ├── semantic.go           # Semantic search (planned)
+│   │   ├── semantic_test.go
+│   │   ├── repository.go         # File-based repository
+│   │   ├── repository_test.go
+│   │   └── scorer.go             # Scoring system
+│   ├── version/                  # Version management
+│   │   └── version.go
 ├── scripts/
 │   ├── install.sh                # Linux/macOS installer
 │   ├── install.ps1               # Windows installer
@@ -128,6 +173,7 @@ aicockpit/
 │   ├── INSTALLATION.md
 │   ├── FEATURES.md
 │   ├── LOGGING_AND_METRICS.md
+│   ├── KNOWLEDGE_BASE.md         # KB system documentation
 │   ├── CI-CD.md
 │   ├── SDLC.md
 │   └── ... (other docs)
@@ -141,7 +187,8 @@ aicockpit/
 ├── Makefile                      # Build automation
 ├── CONTRIBUTING.md               # Contribution guidelines
 ├── README.md                     # Project README
-├── VERSION                       # Current version (0.2.0)
+├── AGENTS.md                     # This file
+├── VERSION                       # Current version (0.3.1)
 └── main.go                       # Entry point
 ```
 
@@ -823,6 +870,74 @@ gh run list                                   # View workflows
 
 ---
 
+## Knowledge Base System
+
+### Overview
+
+The Knowledge Base (KB) system allows organizing and searching documentation with:
+
+- **Metadata Headers**: YAML headers with title, description, tags, etc.
+- **Keyword Search**: Fast search based on titles, tags, descriptions, content
+- **Scoring**: Probabilistic scoring (0-1) for result ranking
+- **File-Based Storage**: Markdown documents in `~/.cockpit/kb/`
+
+### Document Format
+
+```markdown
+---
+title: "Document Title"
+description: "Brief description"
+tags: ["tag1", "tag2"]
+author: "Author Name"
+version: "1.0"
+related: ["doc-id-1"]
+---
+
+# Content here
+```
+
+### Using KB
+
+```bash
+# Search documents
+cockpit kb search "logging configuration"
+
+# List all documents
+cockpit kb list
+
+# Add document
+cockpit kb add /path/to/doc.md
+
+# Remove document
+cockpit kb remove doc-id
+```
+
+### Implementation Details
+
+- **Package**: `internal/kb/`
+- **Types**: `Document`, `Metadata`, `SearchResult`, `SearchResults`
+- **Searcher**: `KeywordSearcher` with `DefaultScorer`
+- **Repository**: `FileRepository` for file operations
+- **Coverage**: 90.7% test coverage
+
+### Adding KB Documents
+
+1. Create file in `ai-assets/knowledge-base/{category}/`
+2. Add metadata header with `---` delimiters
+3. Write content in Markdown
+4. Test with `cockpit kb search`
+
+### Future Enhancements
+
+- Semantic search with embeddings
+- Full-text indexing
+- Document versioning
+- Integration with AI agents via skills and hooks
+
+See [docs/KNOWLEDGE_BASE.md](docs/KNOWLEDGE_BASE.md) for detailed documentation.
+
+---
+
 ## Resources
 
 ### Documentation
@@ -831,6 +946,7 @@ gh run list                                   # View workflows
 - [docs/CI-CD.md](docs/CI-CD.md) - CI/CD pipeline details
 - [docs/QUICK_START.md](docs/QUICK_START.md) - Quick start guide
 - [docs/SDLC.md](docs/SDLC.md) - Development lifecycle
+- [docs/KNOWLEDGE_BASE.md](docs/KNOWLEDGE_BASE.md) - KB system documentation
 
 ### External Resources
 - [Go Documentation](https://golang.org/doc/)

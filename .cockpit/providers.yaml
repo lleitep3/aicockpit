@@ -1,0 +1,91 @@
+# AICockpit Providers Configuration
+# This file defines all available AI providers and their supported features
+
+version: "1.0"
+description: "AI Providers Configuration for AICockpit"
+
+providers:
+  # Antigravity - Autonomous AI agent by Google DeepMind
+  antigravity:
+    enabled: true
+    name: "Antigravity"
+    description: "Autonomous AI agent by Google DeepMind"
+    workspace: "~"
+    version: "1.0.0"
+    features:
+      skills:
+        enabled: true
+        path: ".gemini/config/skills"
+        description: "Reusable capabilities for agents"
+      rules:
+        enabled: true
+        path: ".gemini/config/rules"
+        description: "Codebase rules and guidelines"
+      hooks:
+        enabled: true
+        path: ".gemini/config/hooks"
+        description: "Lifecycle event hooks"
+      agents:
+        enabled: true
+        path: ".gemini/config/agents"
+        description: "Autonomous subagent templates"
+      workflows:
+        enabled: true
+        path: ".gemini/config/workflows"
+        description: "Workflow files and scripts"
+
+  # Devin - Autonomous AI agent by Cognition
+  devin:
+    enabled: true
+    name: "Devin"
+    description: "Autonomous AI software engineer by Cognition"
+    workspace: "."
+    version: "1.0.0"
+    features:
+      skills:
+        enabled: true
+        path: ".agents/skills"
+        description: "Reusable capabilities for Devin"
+      rules:
+        enabled: true
+        path: "AGENTS.md"
+        description: "Codebase rules and guidelines"
+      workflows:
+        enabled: true
+        path: ".devin/config.yaml"
+        description: "Devin custom tools and configuration"
+
+  # Goose - Open-source AI agent by Block
+  goose:
+    enabled: true
+    name: "Goose"
+    description: "Open-source AI agent by Block"
+    workspace: "."
+    version: "1.0.0"
+    features:
+      skills:
+        enabled: true
+        path: ".agents/skills"
+        description: "Reusable capabilities for Goose"
+      rules:
+        enabled: true
+        path: ".goosehints"
+        description: "Always-on rules and guidelines"
+
+# Feature definitions
+features:
+  agents:
+    description: "Autonomous AI agents for task execution"
+    example: "cockpit-builder agent"
+  skills:
+    description: "Reusable capabilities that agents can leverage"
+    example: "go-development skill"
+  rules:
+    description: "Always-on rules and guidelines"
+    example: "Project coding standards"
+  hooks:
+    description: "Lifecycle hooks for automation and policy enforcement"
+    example: "Command validation hook"
+  workflows:
+    description: "Workflow files and scripts"
+    example: "Continuous deployment steps"

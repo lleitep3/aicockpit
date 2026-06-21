@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/lleite/aicockpit/internal/config"
 	"github.com/lleite/aicockpit/internal/i18n"
 	"github.com/lleite/aicockpit/internal/logging"
@@ -20,10 +22,19 @@ func NewRootCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translator
 
 	// Add subcommands
 	rootCmd.AddCommand(NewSetupCommand(log, cfg, t))
+	rootCmd.AddCommand(NewDeployCommand(log, cfg, t))
 	rootCmd.AddCommand(NewInfoCommand(log, cfg, t))
 	rootCmd.AddCommand(NewDoctorCommand(log, cfg, t))
 	rootCmd.AddCommand(NewUninstallCommand(log, cfg, t))
 	rootCmd.AddCommand(NewMetricsCommand(log, cfg, t))
+	rootCmd.AddCommand(NewKBCommand(log, cfg, t))
+	rootCmd.AddCommand(NewPkgCommand())
+
+	// Load commands from installed packages
+	if err := LoadPackageCommands(rootCmd); err != nil {
+		// Log warning but don't fail
+		log.LogWarn(fmt.Sprintf("failed to load package commands: %v", err), nil)
+	}
 
 	// Add flags
 	rootCmd.PersistentFlags().StringVar(&cfg.Language, "language", cfg.Language, "Set language (en-us, pt-br)")

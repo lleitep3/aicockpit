@@ -5,16 +5,41 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/lleite/aicockpit/internal/packages"
 	"github.com/lleite/aicockpit/internal/version"
 	"gopkg.in/yaml.v3"
 )
 
 // Config represents the AICockpit configuration.
 type Config struct {
-	Version    string `yaml:"version"`
-	Language   string `yaml:"language"`
-	LogLevel   string `yaml:"log_level"`
-	AIProvider string `yaml:"ai_provider"`
+	Version           string                    `yaml:"version"`
+	Language          string                    `yaml:"language"`
+	LogLevel          string                    `yaml:"log_level"`
+	AIProvider        string                    `yaml:"ai_provider"`
+	AIProviders       ProvidersConfig           `yaml:"ai_providers"`
+	KB                KBConfig                  `yaml:"kb"`
+	PackageRegistries []packages.RegistryConfig `yaml:"package_registries"`
+}
+
+// ProvidersConfig represents configuration for multiple AI providers.
+type ProvidersConfig struct {
+	Enabled       []string        `yaml:"enabled"`
+	Devin         *ProviderConfig `yaml:"devin"`
+	Goose         *ProviderConfig `yaml:"goose"`
+	ClaudeCode    *ProviderConfig `yaml:"claude_code"`
+	GitHubCopilot *ProviderConfig `yaml:"github_copilot"`
+}
+
+// ProviderConfig represents configuration for a single AI provider.
+type ProviderConfig struct {
+	Enabled bool     `yaml:"enabled"`
+	Path    string   `yaml:"path"`
+	KB      KBConfig `yaml:"kb"`
+}
+
+// KBConfig represents the Knowledge Base configuration.
+type KBConfig struct {
+	Roots []string `yaml:"roots"`
 }
 
 var defaultConfig = Config{
@@ -22,6 +47,18 @@ var defaultConfig = Config{
 	Language:   "en-us",
 	LogLevel:   "info",
 	AIProvider: "claude",
+	KB: KBConfig{
+		Roots: []string{filepath.Join(GetCockpitDir(), "kb")},
+	},
+	PackageRegistries: []packages.RegistryConfig{
+		{
+			Name:     "official",
+			URL:      "https://github.com/lleitep3/cockpit-registry",
+			Branch:   "main",
+			Enabled:  true,
+			Priority: 1,
+		},
+	},
 }
 
 // GetCockpitDir returns the AICockpit home directory.
@@ -146,4 +183,133 @@ func (c *Config) Update(updates map[string]interface{}) error {
 	}
 
 	return Save(c)
+}
+
+// Save saves the configuration to disk.
+func (c *Config) Save() error {
+	return Save(c)
+}
+
+// EnableProvider enables an AI provider.
+func (c *Config) EnableProvider(provider string) error {
+	if c.AIProviders.Enabled == nil {
+		c.AIProviders.Enabled = []string{}
+	}
+
+	// Check if already enabled
+	for _, p := range c.AIProviders.Enabled {
+		if p == provider {
+			return nil // Already enabled
+		}
+	}
+
+	c.AIProviders.Enabled = append(c.AIProviders.Enabled, provider)
+	return Save(c)
+}
+
+// DisableProvider disables an AI provider.
+func (c *Config) DisableProvider(provider string) error {
+	if c.AIProviders.Enabled == nil {
+		return nil
+	}
+
+	var newEnabled []string
+	for _, p := range c.AIProviders.Enabled {
+		if p != provider {
+			newEnabled = append(newEnabled, p)
+		}
+	}
+
+	c.AIProviders.Enabled = newEnabled
+	return Save(c)
+}
+
+// IsProviderEnabled checks if a provider is enabled.
+func (c *Config) IsProviderEnabled(provider string) bool {
+	if c.AIProviders.Enabled == nil {
+		return false
+	}
+
+	for _, p := range c.AIProviders.Enabled {
+		if p == provider {
+			return true
+		}
+	}
+
+	return false
+}
+
+// GetEnabledProviders returns all enabled providers.
+func (c *Config) GetEnabledProviders() []string {
+	if c.AIProviders.Enabled == nil {
+		return []string{}
+	}
+	return c.AIProviders.Enabled
+}
+
+// SetProviderPath sets the path for a provider.
+func (c *Config) SetProviderPath(provider, path string) error {
+	if c.AIProviders.Devin == nil && provider == "devin" {
+		c.AIProviders.Devin = &ProviderConfig{}
+	}
+	if c.AIProviders.Goose == nil && provider == "goose" {
+		c.AIProviders.Goose = &ProviderConfig{}
+	}
+	if c.AIProviders.ClaudeCode == nil && provider == "claude-code" {
+		c.AIProviders.ClaudeCode = &ProviderConfig{}
+	}
+	if c.AIProviders.GitHubCopilot == nil && provider == "github-copilot" {
+		c.AIProviders.GitHubCopilot = &ProviderConfig{}
+	}
+
+	switch provider {
+	case "devin":
+		if c.AIProviders.Devin != nil {
+			c.AIProviders.Devin.Path = path
+		}
+	case "goose":
+		if c.AIProviders.Goose != nil {
+			c.AIProviders.Goose.Path = path
+		}
+	case "claude-code":
+		if c.AIProviders.ClaudeCode != nil {
+			c.AIProviders.ClaudeCode.Path = path
+		}
+	case "github-copilot":
+		if c.AIProviders.GitHubCopilot != nil {
+			c.AIProviders.GitHubCopilot.Path = path
+		}
+	default:
+		return fmt.Errorf("unknown provider: %s", provider)
+	}
+
+	return Save(c)
+}
+
+// GetProviderPath gets the path for a provider.
+func (c *Config) GetProviderPath(provider string) string {
+	switch provider {
+	case "devin":
+		if c.AIProviders.Devin != nil {
+			return c.AIProviders.Devin.Path
+		}
+		return filepath.Join(os.Getenv("HOME"), ".cockpit")
+	case "goose":
+		if c.AIProviders.Goose != nil {
+			return c.AIProviders.Goose.Path
+		}
+		return filepath.Join(os.Getenv("HOME"), ".goose")
+	case "claude-code":
+		if c.AIProviders.ClaudeCode != nil {
+			return c.AIProviders.ClaudeCode.Path
+		}
+		return filepath.Join(os.Getenv("HOME"), ".claude-code")
+	case "github-copilot":
+		if c.AIProviders.GitHubCopilot != nil {
+			return c.AIProviders.GitHubCopilot.Path
+		}
+		return filepath.Join(os.Getenv("HOME"), ".github-copilot")
+	default:
+		return ""
+	}
 }
