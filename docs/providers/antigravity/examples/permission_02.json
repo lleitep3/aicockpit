@@ -2,4 +2,4 @@
   "grantedPermissions": [
     {"Action": "read_file", "Target": "/home/user/workspace"}
   ]
-}\n
+}

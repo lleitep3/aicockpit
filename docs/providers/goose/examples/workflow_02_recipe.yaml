@@ -1,4 +1,4 @@
 name: "Deploy"
 description: "Deploy to fly.io"
 steps:
-  - run: "fly deploy"\n
+  - run: "fly deploy"
