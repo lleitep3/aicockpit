@@ -28,12 +28,15 @@ func NewDeployCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translat
 				return fmt.Errorf("failed to load providers configuration: %w", err)
 			}
 
-			aiProvider := cfg.AIProvider
-			if aiProvider == "" {
-				return fmt.Errorf("no AI provider configured. Run 'cockpit setup' first")
+			// Collect enabled providers: use ai_providers.enabled list when available,
+			// falling back to the legacy single ai_provider field.
+			enabledProviders := cfg.GetEnabledProviders()
+			if len(enabledProviders) == 0 && cfg.AIProvider != "" {
+				enabledProviders = []string{cfg.AIProvider}
 			}
-
-			fmt.Printf("Deploying assets for %s to workspace...\n", aiProvider)
+			if len(enabledProviders) == 0 {
+				return fmt.Errorf("no AI providers configured. Run 'cockpit setup' first")
+			}
 
 			pm := providers.NewProviderManager(providersConfig)
 			cwd, err := os.Getwd()
@@ -41,11 +44,28 @@ func NewDeployCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translat
 				return fmt.Errorf("failed to get current working directory: %w", err)
 			}
 
-			if err := pm.Deploy(aiProvider, cockpitDir, cwd); err != nil {
-				return fmt.Errorf("failed to deploy configuration: %w", err)
+			var deployErrors []string
+			for _, providerName := range enabledProviders {
+				fmt.Printf("Deploying assets for %s to workspace...\n", providerName)
+
+				if err := pm.Deploy(providerName, cockpitDir, cwd); err != nil {
+					deployErrors = append(deployErrors, fmt.Sprintf("  %s: %v", providerName, err))
+					fmt.Printf("  ⚠ Failed to deploy for %s: %v\n", providerName, err)
+					continue
+				}
+
+				fmt.Printf("  ✓ %s deployed\n", providerName)
 			}
 
-			fmt.Printf("✓ Configuration successfully compiled and deployed to %s\n", cwd)
+			if len(deployErrors) > 0 {
+				fmt.Printf("\n⚠ Deploy completed with %d error(s):\n", len(deployErrors))
+				for _, e := range deployErrors {
+					fmt.Println(e)
+				}
+				return fmt.Errorf("deploy partially failed (%d/%d providers)", len(deployErrors), len(enabledProviders))
+			}
+
+			fmt.Printf("\n✓ Configuration successfully compiled and deployed to %s\n", cwd)
 			return nil
 		},
 	}
