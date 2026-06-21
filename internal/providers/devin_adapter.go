@@ -8,6 +8,16 @@ import (
 	"strings"
 )
 
+// devinCockpitPermissions lists the minimum Exec permissions that cockpit
+// needs to operate inside Devin sessions.
+var devinCockpitPermissions = []string{
+	"Exec(cockpit)",
+	"Exec(make)",
+	"Exec(git)",
+	"Exec(go)",
+	"Exec(gh)",
+}
+
 // DevinAdapter compiles assets for the Devin provider.
 type DevinAdapter struct{}
 
@@ -21,7 +31,7 @@ func (d *DevinAdapter) Name() string {
 	return "devin"
 }
 
-// Compile compiles AGENTS.md, custom skills, and config.yaml.
+// Compile compiles AGENTS.md, custom skills, config.yaml, and optional permissions.
 func (d *DevinAdapter) Compile(cockpitHomeDir string, provider *Provider) (map[string]string, error) {
 	files := make(map[string]string)
 
@@ -79,11 +89,53 @@ func (d *DevinAdapter) Compile(cockpitHomeDir string, provider *Provider) (map[s
 	// 3. Build `.devin/config.yaml` (workflows feature)
 	wfConfig, hasWorkflows := provider.Features["workflows"]
 	if hasWorkflows && wfConfig.Enabled {
-		configYaml := buildDevinConfigYaml(skillDirs, skillsConfig.Path)
+		skillsPath := ""
+		if hasSkills && skillsConfig.Enabled {
+			skillsPath = skillsConfig.Path
+		}
+		configYaml := buildDevinConfigYaml(skillDirs, skillsPath)
 		files[wfConfig.Path] = configYaml
 	}
 
+	// 4. Apply permissions: merge cockpit Exec grants into ~/.devin/config.local.json
+	permConfig, hasPerms := provider.Features["permissions"]
+	if hasPerms && permConfig.Enabled {
+		if err := d.applyPermissions(permConfig.Path); err != nil {
+			return nil, fmt.Errorf("failed to apply devin permissions: %w", err)
+		}
+	}
+
 	return files, nil
+}
+
+// applyPermissions reads ~/.devin/config.local.json, merges cockpit Exec grants
+// (without removing existing ones), and writes it back.
+//
+// Structure:
+//
+//	{
+//	  "permissions": {
+//	    "allow": ["Exec(git)", ...]
+//	  }
+//	}
+func (d *DevinAdapter) applyPermissions(configPath string) error {
+	expanded, err := expandHome(configPath)
+	if err != nil {
+		return err
+	}
+
+	m, err := readJSONFile(expanded)
+	if err != nil {
+		return fmt.Errorf("failed to read %s: %w", expanded, err)
+	}
+
+	permissions := getNestedMap(m, "permissions")
+	existing := getStringSliceFromMap(permissions, "allow")
+	merged := mergeStringSlice(existing, devinCockpitPermissions)
+	setStringSliceInMap(permissions, "allow", merged)
+	m["permissions"] = permissions
+
+	return writeJSONFile(expanded, m)
 }
 
 func buildAgentsMd(cockpitHomeDir string) (string, error) {
@@ -137,8 +189,7 @@ func buildDevinConfigYaml(skillDirs []string, skillsPath string) string {
 	sort.Strings(skillDirs)
 	for _, skillDir := range skillDirs {
 		name := strings.ReplaceAll(skillDir, "-", "_")
-		//nolint:staticcheck // strings.Title is deprecated but acceptable for simple text transforms
-		readable := strings.Title(strings.ReplaceAll(skillDir, "-", " "))
+		readable := toTitleCase(strings.ReplaceAll(skillDir, "-", " "))
 		skillTools.WriteString(fmt.Sprintf(`  - name: %s
     command: "cat %s"
     description: "Follow the %s skill guide for this task."
@@ -158,4 +209,16 @@ func buildDevinConfigYaml(skillDirs []string, skillsPath string) string {
 %s`, skillTools.String())
 
 	return AddGeneratedHeader(content, "config.yaml")
+}
+
+// toTitleCase converts a space-separated string to Title Case without using
+// the deprecated strings.Title function.
+func toTitleCase(s string) string {
+	words := strings.Fields(s)
+	for i, w := range words {
+		if len(w) > 0 {
+			words[i] = strings.ToUpper(w[:1]) + w[1:]
+		}
+	}
+	return strings.Join(words, " ")
 }

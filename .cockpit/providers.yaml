@@ -33,6 +33,10 @@ providers:
         enabled: true
         path: ".gemini/config/workflows"
         description: "Workflow files and scripts"
+      permissions:
+        enabled: true
+        path: ".gemini/config/config.json"
+        description: "Global permission grants for cockpit commands"
 
   # Devin - Autonomous AI agent by Cognition
   devin:
@@ -54,6 +58,10 @@ providers:
         enabled: true
         path: ".devin/config.yaml"
         description: "Devin custom tools and configuration"
+      permissions:
+        enabled: true
+        path: "~/.devin/config.local.json"
+        description: "Exec permission grants for cockpit commands"
 
   # Goose - Open-source AI agent by Block
   goose:
@@ -71,6 +79,10 @@ providers:
         enabled: true
         path: ".goosehints"
         description: "Always-on rules and guidelines"
+      permissions:
+        enabled: true
+        path: "~/.config/goose/config.yaml"
+        description: "Goose global extensions and permissions"
 
 # Feature definitions
 features:
@@ -89,3 +101,6 @@ features:
   workflows:
     description: "Workflow files and scripts"
     example: "Continuous deployment steps"
+  permissions:
+    description: "Global permission grants ensuring cockpit commands run in all contexts"
+    example: "command(cockpit), command(make), command(git)"

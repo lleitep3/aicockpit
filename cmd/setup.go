@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -65,7 +67,7 @@ func runSetup(log *logging.Manager, cfg *config.Config, t *i18n.Translator) erro
 	providersDstPath := filepath.Join(cockpitDir, "providers.yaml")
 	configDstPath := filepath.Join(cockpitDir, "config.yaml")
 
-	// Step 3: Select AI provider from providers.yaml
+	// Step 3: Select AI providers (multiple allowed) from providers.yaml
 	fmt.Println()
 	fmt.Println(t.T("setup.ai"))
 
@@ -76,49 +78,60 @@ func runSetup(log *logging.Manager, cfg *config.Config, t *i18n.Translator) erro
 		return err
 	}
 
-	// Get enabled provider options
+	// Get all provider options (enabled in config)
 	providerOptions := providersConfig.GetProviderOptions()
 	if len(providerOptions) == 0 {
 		return fmt.Errorf("no providers available in configuration")
 	}
 
+	// Sort for deterministic display order
+	sort.Slice(providerOptions, func(i, j int) bool {
+		return providerOptions[i].Name < providerOptions[j].Name
+	})
+
 	// Display provider options
+	fmt.Println("Available AI providers (you can select multiple):")
 	for i, opt := range providerOptions {
-		fmt.Printf("%d. %s\n", i+1, opt.DisplayName)
+		fmt.Printf("  %d. %s\n", i+1, opt.DisplayName)
 	}
-	fmt.Print("Select (1-" + fmt.Sprintf("%d", len(providerOptions)) + "): ")
+	fmt.Printf("Enter numbers separated by commas (e.g. 1,3) or press Enter for [1]: ")
 
-	// Get provider names for selection
-	providerNames := make([]string, len(providerOptions))
-	for i, opt := range providerOptions {
-		providerNames[i] = opt.Name
+	selectedNames := selectMultiple(providerOptions)
+	if len(selectedNames) == 0 {
+		return fmt.Errorf("at least one provider must be selected")
 	}
 
-	aiProvider := selectOption(providerNames, "antigravity")
-	cfg.AIProvider = aiProvider
-	fmt.Printf("✓ AI provider selected: %s\n", aiProvider)
+	cfg.AIProvider = selectedNames[0] // first selection is the primary provider
+	fmt.Printf("✓ AI providers selected: %s\n", strings.Join(selectedNames, ", "))
 
-	// Update config with selected provider and language
-	if err := updateConfigWithProvider(configDstPath, aiProvider, language); err != nil {
+	// Update config with selected providers and language
+	if err := updateConfigWithProviders(configDstPath, selectedNames, language); err != nil {
 		fmt.Printf("✗ Failed to update config: %v\n", err)
 		return err
 	}
 
-	// Step 4: Run deploy for the selected provider using ProviderManager
-	fmt.Println()
-	fmt.Printf("Deploying assets for %s to workspace...\n", aiProvider)
-
+	// Step 4: Run deploy for ALL selected providers
 	pm := providers.NewProviderManager(providersConfig)
 	cwd, err := os.Getwd()
 	if err != nil {
 		return fmt.Errorf("failed to get current working directory: %w", err)
 	}
 
-	if err := pm.Deploy(aiProvider, cockpitDir, cwd); err != nil {
-		fmt.Printf("✗ Failed to deploy configuration: %v\n", err)
-		return err
+	fmt.Println()
+	deployErrors := 0
+	for _, providerName := range selectedNames {
+		fmt.Printf("Deploying assets for %s...\n", providerName)
+		if err := pm.Deploy(providerName, cockpitDir, cwd); err != nil {
+			fmt.Printf("  ✗ Failed to deploy %s: %v\n", providerName, err)
+			deployErrors++
+		} else {
+			fmt.Printf("  ✓ %s deployed successfully\n", providerName)
+		}
 	}
-	fmt.Printf("✓ Configuration successfully deployed to %s\n", cwd)
+
+	if deployErrors > 0 {
+		return fmt.Errorf("%d provider(s) failed to deploy", deployErrors)
+	}
 
 	fmt.Println()
 	fmt.Println(t.T("setup.complete"))
@@ -146,8 +159,45 @@ func selectOption(options []string, defaultOption string) string {
 	return options[index-1]
 }
 
-// updateConfigWithProvider updates the config file with the selected provider and language
-func updateConfigWithProvider(configPath, provider, language string) error {
+// selectMultiple reads a comma-separated list of option numbers from stdin and
+// returns the selected provider names. Falls back to the first option on invalid input.
+func selectMultiple(options []providers.ProviderOption) []string {
+	reader := bufio.NewReader(os.Stdin)
+	input, _ := reader.ReadString('\n')
+	input = strings.TrimSpace(input)
+
+	if input == "" {
+		if len(options) > 0 {
+			return []string{options[0].Name}
+		}
+		return nil
+	}
+
+	parts := strings.Split(input, ",")
+	seen := make(map[string]bool)
+	var selected []string
+
+	for _, part := range parts {
+		part = strings.TrimSpace(part)
+		idx, err := strconv.Atoi(part)
+		if err != nil || idx < 1 || idx > len(options) {
+			continue
+		}
+		name := options[idx-1].Name
+		if !seen[name] {
+			seen[name] = true
+			selected = append(selected, name)
+		}
+	}
+
+	if len(selected) == 0 && len(options) > 0 {
+		return []string{options[0].Name}
+	}
+	return selected
+}
+
+// updateConfigWithProviders updates the config file with the selected providers and language.
+func updateConfigWithProviders(configPath string, providerNames []string, language string) error {
 	// Read the config file
 	data, err := os.ReadFile(configPath)
 	if err != nil {
@@ -160,15 +210,19 @@ func updateConfigWithProvider(configPath, provider, language string) error {
 		return fmt.Errorf("failed to parse config: %w", err)
 	}
 
-	// Update ai_provider
-	configMap["ai_provider"] = provider
+	// Primary provider (first selected) for backward compatibility
+	configMap["ai_provider"] = providerNames[0]
 
-	// Update language
+	// Language
 	configMap["language"] = language
 
-	// Update ai_providers.enabled
+	// ai_providers section
 	if aiProviders, ok := configMap["ai_providers"].(map[string]interface{}); ok {
-		aiProviders["enabled"] = []string{provider}
+		aiProviders["enabled"] = providerNames
+	} else {
+		configMap["ai_providers"] = map[string]interface{}{
+			"enabled": providerNames,
+		}
 	}
 
 	// Marshal back to YAML
@@ -182,6 +236,6 @@ func updateConfigWithProvider(configPath, provider, language string) error {
 		return fmt.Errorf("failed to write config file: %w", err)
 	}
 
-	fmt.Println("✓ config.yaml updated with selected provider")
+	fmt.Println("✓ config.yaml updated with selected providers")
 	return nil
 }
