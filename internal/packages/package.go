@@ -112,6 +112,8 @@ type Installation struct {
 	Method             string              `yaml:"method"` // symlink or copy
 	PreInstall         []Hook              `yaml:"pre_install,omitempty"`
 	PostInstall        []Hook              `yaml:"post_install,omitempty"`
+	PreUninstall       []Hook              `yaml:"pre_uninstall,omitempty"`
+	PostUninstall      []Hook              `yaml:"post_uninstall,omitempty"`
 }
 
 // Hook represents an installation hook.
