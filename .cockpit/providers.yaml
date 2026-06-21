@@ -43,7 +43,7 @@ providers:
     enabled: true
     name: "Devin"
     description: "Autonomous AI software engineer by Cognition"
-    workspace: "~"
+    workspace: "."
     version: "1.0.0"
     features:
       skills:
