@@ -13,7 +13,8 @@ Antigravity (AGY) é um poderoso assistente e agente de codificação autônomo 
 - **Principal:** Uso interno / Documentação da Google DeepMind (Google Antigravity SDK).
 
 ## Features Suportadas Nativamente pelo Provider
-O Antigravity possui suporte a um vasto ecossistema de personalizações através das suas `customization roots`:
+O Antigravity (AGY), em sua arquitetura nativa, oferece suporte para:
+- **[Entrypoint / Rules](RULES.md) (AGENTS.md):** O arquivo primário de inicialização, que consolida as "Regras de Ouro" e atua como bootstrap para o comportamento inicial da IA.
 - **[Skills](SKILLS.md) (com Frontmatter YAML):** Diretórios contendo um arquivo `SKILL.md` cuja primeira seção deve obrigatoriamente ser um bloco de metadados YAML (`name` e `description`) para indexação semântica correta.
 - **[Rules](RULES.md) (AGENTS.md):** Um arquivo markdown que consolida as diretivas, restrições e diretrizes de estilo ou de projeto para o comportamento do agente.
 - **[Plugins & Subagents](AGENTS.md):** Agrupamentos lógicos que empacotam configurações (`plugin.json`), múltiplas skills e subagentes prontos para serem delegados assincronamente.

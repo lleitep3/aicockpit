@@ -13,6 +13,7 @@ Goose é um agente de software de IA open-source focado no desenvolvedor, criado
 
 ## Features Suportadas Nativamente pelo Provider
 O Goose, em sua arquitetura nativa, oferece suporte para:
+- **[Entrypoint / Hints](RULES.md) (.goosehints):** É o "IA Entrypoint" do Goose. Um arquivo de contexto injetado na inicialização de cada sessão, onde o AICockpit colocará as diretrizes de bootstrap e regras de ouro.
 - **[Extensions / Skills](SKILLS.md) (MCP):** Ferramentas modulares que seguem o padrão Model Context Protocol, permitindo que o Goose acesse utilitários de sistema e interaja com APIs e CLIs (configuradas no diretório global).
 - **[Subagents](AGENTS.md):** Instâncias independentes usadas para tarefas isoladas e preservação de contexto.
 - **[Workflows / Recipes](WORKFLOWS.md):** Templates instrucionais e roteiros passo-a-passo compartilháveis.

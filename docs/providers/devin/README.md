@@ -16,6 +16,7 @@ O Devin é um engenheiro de software de IA autônomo desenvolvido pela Cognition
 
 ## Features Suportadas Nativamente pelo Provider
 O Devin, em sua arquitetura nativa, oferece suporte para:
+- **[Entrypoint](RULES.md):** O `AGENTS.md` (localizado na raiz ou em `.devin/`). É o primeiro arquivo lido ("IA Entrypoint"), onde o AICockpit compilará as orientações iniciais e as "Regras de Ouro".
 - **[Skills](SKILLS.md):** Capacidades adicionais modulares que o agente pode invocar (localizadas no diretório do projeto ou via repositórios).
 - **[Rules](RULES.md) (Contexto de Projeto):** Regras locais injetadas no contexto, frequentemente via arquivos como `AGENTS.md` ou `README.md`.
 - **[Subagents](AGENTS.md):** Delegação de tarefas demoradas para subagentes independentes que rodam em background.

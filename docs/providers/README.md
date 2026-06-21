@@ -18,6 +18,7 @@ Abaixo mapeamos os 5 pilares de *Context Engineering* do AICockpit e como eles s
 
 | Feature (AICockpit) | Conceito Canônico | Devin | Goose | Antigravity |
 | --- | --- | --- | --- | --- |
+| **Entrypoint** | Arquivo principal (bootstrap) lido ao iniciar. Injeta as *Golden Rules* e contexto inicial do Cockpit. | `AGENTS.md` (Root) ou `.devin/rules/` | `.goosehints` | `AGENTS.md` (Global ou `.agents/`) |
 | **Skills** | Capacidades modulares e ferramentas locais com dependências determinísticas. | **Skills**: `[project]/.devin/skills/` com `SKILL.md` (YAML Frontmatter). | **Extensions / MCP**: `~/.config/goose/config.yaml` mapeando servidores MCP. | **Skills**: `~/.gemini/config/skills/` com `SKILL.md` (YAML Frontmatter). |
 | **Rules** | Diretrizes de comportamento, regras de projeto e restrições absolutas. | **Project Context**: `AGENTS.md` ou regras injetadas em repositório. | **Hints**: Compiladas para o arquivo de contexto `.goosehints`. | **Rules**: Arquivo unificado `AGENTS.md` em `~/.gemini/config/rules/`. |
 | **Permissions** | Restrições de segurança do sistema local (Shell, File System). | **Allowed/Blocked**: Grants inseridos em `.devin/config.local.json`. | **Extension Config**: Mapeamento seguro no `config.yaml`. | **Grants JSON**: Liberadas via `grantedPermissions` no `config.json`. |
