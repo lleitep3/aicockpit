@@ -32,14 +32,18 @@ skills/
 ```markdown
 ---
 name: web-scraper
-description: Extrai o conteúdo em texto de uma dada URL usando Python e BeautifulSoup. Use isso sempre que o usuário pedir para fazer scrape de um site ou resumir um artigo externo.
+description: Use esta skill sempre que o usuário solicitar extração de dados estruturados ou tabelas de uma página web pública.
+version: 1.0.0
 ---
 
 # Web Scraper Skill
 
-Sempre que o usuário solicitar o scrape de uma página web, siga estes passos exatamente:
-
-1. **Verify Environment:** Garanta que `beautifulsoup4` e `requests` estejam instalados. Caso contrário, instale-os usando `pip install beautifulsoup4 requests`.
-2. **Execution:** Use um script Python para buscar a URL, extrair o texto da tag `<article>` (ou `<body>` se não existir article) e remover todas as marcações HTML.
-3. **Output:** Retorne o texto puro para o usuário, prefixado com a frase: "Aqui está o conteúdo extraído:". Não retorne HTML puro.
+Você tem a capacidade de extrair dados de páginas web. Sempre siga estes passos:
+1. Analise o DOM da URL usando `curl` com `cheerio` ou via `puppeteer` se a página usar Javascript.
+2. Formate a saída final sempre em CSV ou JSON.
+3. Não sobrecarregue o servidor alvo (adicione pequenos `sleeps`).
 ```
+
+## Referências Oficiais
+- [Skills Overview](https://docs.devin.ai/cli/extensibility/skills/overview)
+- [Creating Skills](https://docs.devin.ai/cli/extensibility/skills/creating-skills)
