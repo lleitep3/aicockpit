@@ -71,9 +71,11 @@ type ExternalDeps struct {
 type Features struct {
 	Agents    []Feature   `yaml:"agents,omitempty"`
 	Skills    []Feature   `yaml:"skills,omitempty"`
+	Rules     []Feature   `yaml:"rules,omitempty"`
 	Modules   []Feature   `yaml:"modules,omitempty"`
 	KB        []KBFeature `yaml:"kb,omitempty"`
 	Workflows []Feature   `yaml:"workflows,omitempty"`
+	GoldRules []string    `yaml:"gold_rules,omitempty"`
 }
 
 // Feature represents a single feature.
