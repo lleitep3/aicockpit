@@ -1,9 +1,21 @@
 package providers
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 )
+
+// antigravityCockpitPermissions lists the minimum permission grants that cockpit
+// needs to operate inside Antigravity sessions.
+var antigravityCockpitPermissions = []string{
+	"command(cockpit)",
+	"command(make)",
+	"command(git)",
+	"command(go)",
+	"command(gh)",
+	"read_file(~/.cockpit)",
+}
 
 // AntigravityAdapter compiles assets for the Antigravity provider.
 type AntigravityAdapter struct{}
@@ -69,5 +81,50 @@ func (a *AntigravityAdapter) Compile(cockpitHomeDir string, provider *Provider) 
 		}
 	}
 
+	// Handle permissions feature: merge cockpit grants into ~/.gemini/config/config.json
+	permConfig, hasPerms := provider.Features["permissions"]
+	if hasPerms && permConfig.Enabled {
+		if err := a.applyPermissions(permConfig.Path); err != nil {
+			return nil, fmt.Errorf("failed to apply antigravity permissions: %w", err)
+		}
+	}
+
 	return files, nil
+}
+
+// applyPermissions reads the Antigravity global config.json, merges cockpit
+// permission grants (without removing existing ones), and writes it back.
+//
+// Structure:
+//
+//	{
+//	  "userSettings": {
+//	    "globalPermissionGrants": {
+//	      "allow": ["command(git)", ...]
+//	    }
+//	  }
+//	}
+func (a *AntigravityAdapter) applyPermissions(configPath string) error {
+	expanded, err := expandHome(configPath)
+	if err != nil {
+		return err
+	}
+
+	m, err := readJSONFile(expanded)
+	if err != nil {
+		return fmt.Errorf("failed to read %s: %w", expanded, err)
+	}
+
+	// Navigate / create: m["userSettings"]["globalPermissionGrants"]
+	userSettings := getNestedMap(m, "userSettings")
+	grants := getNestedMap(userSettings, "globalPermissionGrants")
+
+	existing := getStringSliceFromMap(grants, "allow")
+	merged := mergeStringSlice(existing, antigravityCockpitPermissions)
+	setStringSliceInMap(grants, "allow", merged)
+
+	userSettings["globalPermissionGrants"] = grants
+	m["userSettings"] = userSettings
+
+	return writeJSONFile(expanded, m)
 }
