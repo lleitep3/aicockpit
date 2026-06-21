@@ -3,6 +3,7 @@ package packages
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -556,5 +557,92 @@ func TestTriggerDeploy_FailingCommand(t *testing.T) {
 	err := pm.TriggerDeploy(script)
 	if err == nil {
 		t.Error("expected error when deploy command fails")
+	}
+}
+
+// ── GoldRules ────────────────────────────────────────────────────────────────
+
+func TestSyncPackageAssets_WritesGoldRules(t *testing.T) {
+	tmpDir := t.TempDir()
+	cockpitDir := filepath.Join(tmpDir, "cockpit")
+	pm := NewPackageManager(cockpitDir)
+
+	pkg := &Package{
+		Name: "rtk",
+		Features: Features{
+			GoldRules: []string{
+				"Always prefix terminal commands with rtk",
+				"Never run git without rtk prefix",
+			},
+		},
+	}
+
+	if err := pm.SyncPackageAssets(pkg, tmpDir); err != nil {
+		t.Fatalf("SyncPackageAssets failed: %v", err)
+	}
+
+	goldPath := filepath.Join(cockpitDir, "rules", "rtk-gold-rules.md")
+	data, err := os.ReadFile(goldPath)
+	if err != nil {
+		t.Fatalf("gold rules file not created: %v", err)
+	}
+
+	content := string(data)
+	if !strings.Contains(content, "Always prefix terminal commands with rtk") {
+		t.Errorf("expected gold rule in file, got:\n%s", content)
+	}
+	if !strings.Contains(content, "Never run git without rtk prefix") {
+		t.Errorf("expected second gold rule in file, got:\n%s", content)
+	}
+	if !strings.Contains(content, "# Gold Rules") {
+		t.Errorf("expected section header in gold rules file, got:\n%s", content)
+	}
+}
+
+func TestSyncPackageAssets_NoGoldRulesSkipped(t *testing.T) {
+	tmpDir := t.TempDir()
+	pm := NewPackageManager(tmpDir)
+
+	pkg := &Package{
+		Name:     "no-rules-pkg",
+		Features: Features{GoldRules: []string{}},
+	}
+
+	if err := pm.SyncPackageAssets(pkg, tmpDir); err != nil {
+		t.Errorf("expected no error with empty gold rules, got: %v", err)
+	}
+
+	goldPath := filepath.Join(tmpDir, "rules", "no-rules-pkg-gold-rules.md")
+	if _, err := os.Stat(goldPath); err == nil {
+		t.Error("expected no gold rules file to be created when none defined")
+	}
+}
+
+func TestRemovePackageAssets_RemovesGoldRules(t *testing.T) {
+	tmpDir := t.TempDir()
+	cockpitDir := filepath.Join(tmpDir, "cockpit")
+	pm := NewPackageManager(cockpitDir)
+
+	// Pre-create the gold rules file
+	rulesDir := filepath.Join(cockpitDir, "rules")
+	if err := os.MkdirAll(rulesDir, 0o755); err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+	goldPath := filepath.Join(rulesDir, "rtk-gold-rules.md")
+	if err := os.WriteFile(goldPath, []byte("# Gold Rules\n"), 0o644); err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+
+	pkg := &Package{
+		Name:     "rtk",
+		Features: Features{GoldRules: []string{"some rule"}},
+	}
+
+	if err := pm.RemovePackageAssets(pkg); err != nil {
+		t.Fatalf("RemovePackageAssets failed: %v", err)
+	}
+
+	if _, err := os.Stat(goldPath); !os.IsNotExist(err) {
+		t.Error("expected gold rules file to be removed after uninstall")
 	}
 }
