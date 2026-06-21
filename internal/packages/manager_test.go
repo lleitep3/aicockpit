@@ -264,3 +264,98 @@ func TestGetPackageInstallPath(t *testing.T) {
 		t.Errorf("Expected path %s, got %s", expectedPath, actualPath)
 	}
 }
+
+func TestRunPackageHooks_Success(t *testing.T) {
+	tmpDir := t.TempDir()
+	pm := NewPackageManager(tmpDir)
+
+	// Create a simple script that exits 0
+	scriptPath := filepath.Join(tmpDir, "scripts", "ok.sh")
+	if err := os.MkdirAll(filepath.Dir(scriptPath), 0o755); err != nil {
+		t.Fatalf("Failed to create scripts dir: %v", err)
+	}
+	if err := os.WriteFile(scriptPath, []byte("#!/bin/sh\necho 'hook ran'\n"), 0o755); err != nil {
+		t.Fatalf("Failed to create script: %v", err)
+	}
+
+	hooks := []Hook{
+		{Script: "scripts/ok.sh", Description: "Test hook"},
+	}
+
+	err := pm.RunPackageHooks(tmpDir, hooks)
+	if err != nil {
+		t.Errorf("RunPackageHooks failed unexpectedly: %v", err)
+	}
+}
+
+func TestRunPackageHooks_MissingScript(t *testing.T) {
+	tmpDir := t.TempDir()
+	pm := NewPackageManager(tmpDir)
+
+	// Hook pointing to a non-existent script — should be skipped, not error
+	hooks := []Hook{
+		{Script: "scripts/nonexistent.sh", Description: "Missing hook"},
+	}
+
+	err := pm.RunPackageHooks(tmpDir, hooks)
+	if err != nil {
+		t.Errorf("Expected missing script to be skipped, got error: %v", err)
+	}
+}
+
+func TestRunPackageHooks_ScriptFails(t *testing.T) {
+	tmpDir := t.TempDir()
+	pm := NewPackageManager(tmpDir)
+
+	// Create a script that exits non-zero
+	scriptPath := filepath.Join(tmpDir, "scripts", "fail.sh")
+	if err := os.MkdirAll(filepath.Dir(scriptPath), 0o755); err != nil {
+		t.Fatalf("Failed to create scripts dir: %v", err)
+	}
+	if err := os.WriteFile(scriptPath, []byte("#!/bin/sh\nexit 1\n"), 0o755); err != nil {
+		t.Fatalf("Failed to create script: %v", err)
+	}
+
+	hooks := []Hook{
+		{Script: "scripts/fail.sh", Description: "Failing hook"},
+	}
+
+	err := pm.RunPackageHooks(tmpDir, hooks)
+	if err == nil {
+		t.Error("Expected error when hook script fails, got nil")
+	}
+}
+
+func TestRunPackageHooks_EmptyHooks(t *testing.T) {
+	tmpDir := t.TempDir()
+	pm := NewPackageManager(tmpDir)
+
+	// Empty hook list — should be a no-op
+	err := pm.RunPackageHooks(tmpDir, []Hook{})
+	if err != nil {
+		t.Errorf("RunPackageHooks with empty list should not fail: %v", err)
+	}
+}
+
+func TestRunPackageHooks_NoDescription(t *testing.T) {
+	tmpDir := t.TempDir()
+	pm := NewPackageManager(tmpDir)
+
+	scriptPath := filepath.Join(tmpDir, "scripts", "nodesc.sh")
+	if err := os.MkdirAll(filepath.Dir(scriptPath), 0o755); err != nil {
+		t.Fatalf("Failed to create scripts dir: %v", err)
+	}
+	if err := os.WriteFile(scriptPath, []byte("#!/bin/sh\necho 'ok'\n"), 0o755); err != nil {
+		t.Fatalf("Failed to create script: %v", err)
+	}
+
+	// Hook with no description — uses script path as fallback
+	hooks := []Hook{
+		{Script: "scripts/nodesc.sh"},
+	}
+
+	err := pm.RunPackageHooks(tmpDir, hooks)
+	if err != nil {
+		t.Errorf("RunPackageHooks failed: %v", err)
+	}
+}

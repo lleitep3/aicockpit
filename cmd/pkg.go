@@ -231,6 +231,20 @@ func NewPkgInstallCommand() *cobra.Command {
 				return fmt.Errorf("failed to find package in cache: %w", err)
 			}
 
+			// Load manifest from cache to get hooks BEFORE copying
+			cachedPkg, err := packages.LoadPackage(packageCachePath)
+			if err != nil {
+				return fmt.Errorf("failed to load package manifest from cache: %w", err)
+			}
+
+			// Run pre_install hooks from cache directory
+			if len(cachedPkg.Installation.PreInstall) > 0 {
+				fmt.Printf("\nRunning pre-install hooks...\n")
+				if err := pm.RunPackageHooks(packageCachePath, cachedPkg.Installation.PreInstall); err != nil {
+					return fmt.Errorf("pre-install hook failed: %w", err)
+				}
+			}
+
 			// Copy package to installation directory
 			installPath := pm.GetPackageInstallPath(packageName)
 			if err := copyDirectory(packageCachePath, installPath); err != nil {
@@ -255,6 +269,14 @@ func NewPkgInstallCommand() *cobra.Command {
 
 			fmt.Printf("✓ Package installed successfully\n")
 			fmt.Printf("  Location: %s\n", installPath)
+
+			// Run post_install hooks from the installation directory
+			if len(downloadedPkg.Installation.PostInstall) > 0 {
+				fmt.Printf("\nRunning post-install hooks...\n")
+				if err := pm.RunPackageHooks(installPath, downloadedPkg.Installation.PostInstall); err != nil {
+					return fmt.Errorf("post-install hook failed: %w", err)
+				}
+			}
 
 			// Install dependencies if requested
 			if withDependencies && len(downloadedPkg.Dependencies) > 0 {

@@ -3,6 +3,7 @@ package packages
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"time"
 )
@@ -216,4 +217,40 @@ func (pm *PackageManager) GetPackagesDir() string {
 // GetCockpitDir returns the cockpit directory.
 func (pm *PackageManager) GetCockpitDir() string {
 	return pm.cockpitDir
+}
+
+// RunPackageHooks executes a list of hooks from the given package directory.
+// Each hook's Script path is relative to packageDir.
+// If a hook script does not exist it is skipped with a warning.
+func (pm *PackageManager) RunPackageHooks(packageDir string, hooks []Hook) error {
+	for _, hook := range hooks {
+		scriptPath := filepath.Join(packageDir, hook.Script)
+
+		// Skip missing scripts with a warning instead of hard-failing.
+		if _, err := os.Stat(scriptPath); os.IsNotExist(err) {
+			fmt.Printf("  ⚠ Hook script not found (skipping): %s\n", hook.Script)
+			continue
+		}
+
+		desc := hook.Description
+		if desc == "" {
+			desc = hook.Script
+		}
+		fmt.Printf("  → Running hook: %s\n", desc)
+
+		// Make the script executable.
+		if err := os.Chmod(scriptPath, 0o755); err != nil {
+			return fmt.Errorf("failed to chmod hook script %s: %w", hook.Script, err)
+		}
+
+		cmd := exec.Command("sh", scriptPath) //nolint:gosec // script path comes from verified package manifest
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		cmd.Dir = packageDir
+
+		if err := cmd.Run(); err != nil {
+			return fmt.Errorf("hook script %s failed: %w", hook.Script, err)
+		}
+	}
+	return nil
 }
