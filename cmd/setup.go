@@ -145,9 +145,6 @@ func selectOption(options []string, defaultOption string) string {
 
 	return options[index-1]
 }
-func copyConfigFile(src, dst string) error {
-	return copyFile(src, dst)
-}
 
 // updateConfigWithProvider updates the config file with the selected provider and language
 func updateConfigWithProvider(configPath, provider, language string) error {

@@ -137,6 +137,7 @@ func buildDevinConfigYaml(skillDirs []string, skillsPath string) string {
 	sort.Strings(skillDirs)
 	for _, skillDir := range skillDirs {
 		name := strings.ReplaceAll(skillDir, "-", "_")
+		//nolint:staticcheck // strings.Title is deprecated but acceptable for simple text transforms
 		readable := strings.Title(strings.ReplaceAll(skillDir, "-", " "))
 		skillTools.WriteString(fmt.Sprintf(`  - name: %s
     command: "cat %s"

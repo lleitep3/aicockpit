@@ -63,20 +63,7 @@ func (pm *ProviderManager) Deploy(providerName string, cockpitHomeDir string, pr
 
 	// 3. Write compiled files to their relative target paths
 	for relPath, content := range files {
-		// Clean the relative path to prevent directory traversal
-		cleanRel := filepath.Clean(relPath)
-		if filepath.IsAbs(cleanRel) || strings.HasPrefix(cleanRel, "..") {
-			// Resolve relative to home if it tries to escape or looks like absolute
-			// But usually config workspace paths are relative to baseDir
-			// Let's handle absolute paths if the provider path starts with ~ or /
-			if strings.HasPrefix(relPath, "~") {
-				home, err := os.UserHomeDir()
-				if err != nil {
-					return fmt.Errorf("failed to get user home directory: %w", err)
-				}
-				cleanRel = filepath.Join(home, relPath[1:])
-			}
-		}
+		relPath = filepath.Clean(relPath)
 
 		// Check if the path starts with ~ or home
 		var destPath string

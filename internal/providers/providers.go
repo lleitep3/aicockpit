@@ -9,6 +9,8 @@ import (
 )
 
 // ProvidersConfig represents the providers configuration from YAML.
+//
+//nolint:revive // stutter is allowed for config compatibility
 type ProvidersConfig struct {
 	Version     string               `yaml:"version"`
 	Description string               `yaml:"description"`
@@ -272,7 +274,7 @@ func (p *Provider) Validate() error {
 		return fmt.Errorf("provider workspace is required")
 	}
 
-	if p.Features == nil || len(p.Features) == 0 {
+	if len(p.Features) == 0 {
 		return fmt.Errorf("provider must have at least one feature")
 	}
 
@@ -285,7 +287,7 @@ func (c *ProvidersConfig) ValidateConfig() error {
 		return fmt.Errorf("config version is required")
 	}
 
-	if c.Providers == nil || len(c.Providers) == 0 {
+	if len(c.Providers) == 0 {
 		return fmt.Errorf("at least one provider must be configured")
 	}
 

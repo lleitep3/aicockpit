@@ -23,7 +23,7 @@ func TestNewKBCommand(t *testing.T) {
 	cmd := NewKBCommand(log, cfg, translator)
 
 	if cmd == nil {
-		t.Error("NewKBCommand() returned nil")
+		t.Fatal("NewKBCommand() returned nil")
 	}
 
 	if cmd.Use != "kb" {
@@ -48,7 +48,7 @@ func TestNewKBSearchCommand(t *testing.T) {
 	cmd := NewKBSearchCommand(log, cfg, translator)
 
 	if cmd == nil {
-		t.Error("NewKBSearchCommand() returned nil")
+		t.Fatal("NewKBSearchCommand() returned nil")
 	}
 
 	if cmd.Use != "search <query>" {
@@ -67,7 +67,7 @@ func TestNewKBListCommand(t *testing.T) {
 	cmd := NewKBListCommand(log, cfg, translator)
 
 	if cmd == nil {
-		t.Error("NewKBListCommand() returned nil")
+		t.Fatal("NewKBListCommand() returned nil")
 	}
 
 	if cmd.Use != "list" {

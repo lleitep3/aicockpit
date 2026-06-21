@@ -24,6 +24,8 @@ type IndexProvider interface {
 }
 
 // KBIndex represents the complete knowledge base index.
+//
+//nolint:revive // stutter is allowed for compatibility
 type KBIndex struct {
 	Version     string      `json:"version"`
 	LastUpdated time.Time   `json:"last_updated"`

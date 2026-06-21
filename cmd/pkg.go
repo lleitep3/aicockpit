@@ -432,67 +432,6 @@ func NewPkgListCommand() *cobra.Command {
 	return cmd
 }
 
-// parseGitHubURL parses a repository URL and extracts owner, repo, and branch.
-// Expected format: https://github.com/{owner}/{repo} or http://localhost:8888
-func parseGitHubURL(url string) (owner, repo, branch string, err error) {
-	originalURL := url
-
-	// Remove https:// or http:// prefix
-	if strings.HasPrefix(url, "https://") {
-		url = strings.TrimPrefix(url, "https://")
-	} else if strings.HasPrefix(url, "http://") {
-		url = strings.TrimPrefix(url, "http://")
-	}
-
-	// Remove github.com/ prefix if present
-	if strings.HasPrefix(url, "github.com/") {
-		url = strings.TrimPrefix(url, "github.com/")
-	}
-
-	// Split by /
-	parts := strings.Split(url, "/")
-
-	// For GitHub URLs, we need at least owner/repo
-	// For other URLs (like localhost:8888), we use the original URL as owner
-	if len(parts) >= 2 && !strings.Contains(parts[0], ":") {
-		// GitHub-style URL (owner/repo)
-		owner = parts[0]
-		repo = strings.TrimSuffix(parts[1], ".git")
-		branch = "main" // Default branch
-		return owner, repo, branch, nil
-	}
-
-	// For non-GitHub URLs (like localhost:8888), return the original URL as-is
-	// This will be used directly in constructRawGitHubURL
-	return originalURL, "", "main", nil
-}
-
-// extractBranchFromURL extracts the branch name from a GitHub URL.
-// Expected format: https://github.com/{owner}/{repo}/tree/{branch}/{path}
-func extractBranchFromURL(url string) string {
-	// Look for /tree/ in the URL
-	if !strings.Contains(url, "/tree/") {
-		return ""
-	}
-
-	// Split by /tree/
-	parts := strings.Split(url, "/tree/")
-	if len(parts) < 2 {
-		return ""
-	}
-
-	// Get the part after /tree/
-	remainder := parts[1]
-
-	// Split by / to get the branch
-	branchParts := strings.Split(remainder, "/")
-	if len(branchParts) > 0 {
-		return branchParts[0]
-	}
-
-	return ""
-}
-
 // copyDirectory copies a directory recursively
 func copyDirectory(src, dst string) error {
 	// Create destination directory
