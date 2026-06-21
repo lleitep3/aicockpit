@@ -43,16 +43,16 @@ providers:
     enabled: true
     name: "Devin"
     description: "Autonomous AI software engineer by Cognition"
-    workspace: "."
+    workspace: "~"
     version: "1.0.0"
     features:
       skills:
         enabled: true
-        path: ".agents/skills"
+        path: ".devin/skills"
         description: "Reusable capabilities for Devin"
       rules:
         enabled: true
-        path: "AGENTS.md"
+        path: ".devin/AGENTS.md"
         description: "Codebase rules and guidelines"
       workflows:
         enabled: true
