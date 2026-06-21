@@ -7,16 +7,6 @@ import (
 	"strings"
 )
 
-// Adapter defines the strategy that each AI provider adapter must implement.
-type Adapter interface {
-	// Name returns the unique identifier for the adapter (e.g. "devin", "goose").
-	Name() string
-
-	// Compile reads canonical configuration files from cockpitHomeDir
-	// and returns a map of relative target file paths to their generated file contents.
-	Compile(cockpitHomeDir string, provider *Provider) (map[string]string, error)
-}
-
 // StripFrontmatter parses YAML-style frontmatter from a markdown file's content.
 // It returns a map of parsed key-value pairs and the body content without frontmatter.
 // Frontmatter must be delimited by "---" on its own line.

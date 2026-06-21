@@ -49,7 +49,7 @@ providers:
     features:
       rules:
         enabled: true
-        path: ".gemini/rules"
+        path: ".gemini/rules/rule.md"
 `
 	err = os.WriteFile(filepath.Join(cockpitHome, "providers.yaml"), []byte(providersYaml), 0644)
 	if err != nil {
