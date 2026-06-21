@@ -7,6 +7,13 @@ O Devin é um engenheiro de software de IA autônomo desenvolvido pela Cognition
 - **Principal:** [https://docs.devin.ai/](https://docs.devin.ai/)
 - **Guia de Skills:** [https://docs.devin.ai/product-guides/skills](https://docs.devin.ai/product-guides/skills)
 
+## Reference Repositories
+- **Exemplos Práticos:** Explore a pasta `examples/` neste diretório para ver exemplos reais de Skills, AGENTS.md, Rules, Permissions, Subagents e Workflows aplicados ao Devin.
+- **Repositório Oficial de Skills:** [DevinAI/skills na comunidade ou repositórios abertos baseados no padrão SKILL.md](https://github.com/search?q=filename%3ASKILL.md+devin&type=code)
+- [Documentação Oficial do Devin](https://docs.devin.ai/)
+- [Visão Geral de Skills no Devin](https://docs.devin.ai/cli/extensibility/skills/overview)
+- [Subagentes no Devin](https://docs.devin.ai/cli/subagents)
+
 ## Features Suportadas Nativamente pelo Provider
 O Devin, em sua arquitetura nativa, oferece suporte para:
 - **[Skills](SKILLS.md):** Capacidades adicionais modulares que o agente pode invocar (localizadas no diretório do projeto ou via repositórios).

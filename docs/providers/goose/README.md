@@ -3,9 +3,13 @@
 ## Introdução
 Goose é um agente de software de IA open-source focado no desenvolvedor, criado pelo Block. Ele opera via linha de comando, estendendo capacidades locais por meio de um sistema de extensões baseado no protocolo MCP (Model Context Protocol). O AICockpit interage com o Goose configurando regras globais de comportamento e orquestrando suas permissões e extensões de forma autônoma.
 
-## Documentação Oficial
-- **Principal:** [https://goose-docs.ai/](https://goose-docs.ai/)
-- **Guia de Contexto/Skills:** [https://goose-docs.ai/docs/guides/context-engineering/using-skills/](https://goose-docs.ai/docs/guides/context-engineering/using-skills/)
+## Links e Referências
+- **Exemplos Práticos:** Explore a pasta `examples/` neste diretório para ver exemplos reais do `config.yaml` com MCPs, recipes complexas para bancos de dados, e hints práticos.
+- **Repositório Oficial:** [aaif-goose/goose (Agentic AI Foundation)](https://github.com/aaif-goose/goose)
+- **Cookbook de Recipes:** Veja a pasta `recipes/` no repositório oficial ou o [Goose Recipes Cookbook](https://goose-docs.ai/docs/guides/recipes/)
+- [Documentação Oficial do Goose](https://goose-docs.ai/)
+- [Guia de Extensões (Skills)](https://goose-docs.ai/docs/guides/context-engineering/using-skills/)
+- [Subagentes no Goose](https://goose-docs.ai/docs/guides/context-engineering/subagents)
 
 ## Features Suportadas Nativamente pelo Provider
 O Goose, em sua arquitetura nativa, oferece suporte para:

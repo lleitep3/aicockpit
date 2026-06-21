@@ -3,6 +3,12 @@
 ## Introdução
 Antigravity (AGY) é um poderoso assistente e agente de codificação autônomo desenvolvido pela equipe do Google DeepMind. Ele foi projetado para atuar tanto globalmente (na máquina do desenvolvedor) quanto em escopos de workspace específicos. O AICockpit se integra ao Antigravity para fornecer subagentes, skills especializadas com parsing rigoroso de frontmatter YAML e regras dinâmicas que alteram o comportamento do modelo.
 
+## Links e Referências
+- **Exemplos Práticos:** Explore a pasta `examples/` neste diretório para ver exemplos exatos utilizados pelo SDK interno do Google (ex: caveman mode, rule definitions, grants rigorosos de CLI).
+- **Repositório Oficial:** Repositórios e customizações internas do Antigravity (frequentemente configurados sob `~/.gemini/config/`).
+- [Documentação do Antigravity](https://antigravity.google/)
+- [Subagentes na CLI](https://antigravity.google/docs/cli-subagents)
+
 ## Documentação Oficial
 - **Principal:** Uso interno / Documentação da Google DeepMind (Google Antigravity SDK).
 
