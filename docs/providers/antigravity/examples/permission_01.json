@@ -1,0 +1,5 @@
+{
+  "grantedPermissions": [
+    {"Action": "command", "Target": "git"}
+  ]
+}\n

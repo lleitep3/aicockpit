@@ -1,0 +1,4 @@
+name: "Fix Lint"
+description: "Runs linter and fixes issues"
+steps:
+  - run: "golangci-lint run"\n
