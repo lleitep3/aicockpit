@@ -460,3 +460,108 @@ func TestDisabledRegistry(t *testing.T) {
 		t.Errorf("Expected 0 results for disabled registry, got %d", len(results))
 	}
 }
+
+// TestListPackages_DisabledRegistry ensures disabled registries are skipped by ListPackages.
+func TestListPackages_DisabledRegistry(t *testing.T) {
+	tmpDir := t.TempDir()
+	createTestRegistry(t, tmpDir)
+
+	rm := NewRegistryManager(tmpDir)
+	registries := []RegistryConfig{
+		{
+			Name:     "test-registry",
+			URL:      "https://github.com/test/packages",
+			Branch:   "main",
+			Enabled:  false, // Disabled — must be skipped
+			Priority: 1,
+		},
+	}
+
+	packages, err := rm.ListPackages(registries)
+	if err != nil {
+		t.Fatalf("ListPackages failed: %v", err)
+	}
+
+	if len(packages) != 0 {
+		t.Errorf("Expected 0 packages for disabled registry, got %d", len(packages))
+	}
+}
+
+// TestListPackages_EmptyCache ensures ListPackages does not error when EnsureRegistry
+// fails (e.g. no network) and the cache is empty — it simply returns an empty list.
+func TestListPackages_EmptyCache(t *testing.T) {
+	tmpDir := t.TempDir() // fresh dir — no cache, no git repo
+
+	rm := NewRegistryManager(tmpDir)
+	registries := []RegistryConfig{
+		{
+			Name:    "nonexistent-registry",
+			URL:     "https://github.com/does-not-exist/repo",
+			Branch:  "main",
+			Enabled: true,
+		},
+	}
+
+	// EnsureRegistry will fail (no network / no repo), LoadPackageIndexFromCache
+	// will also fail — ListPackages must return empty list without error.
+	packages, err := rm.ListPackages(registries)
+	if err != nil {
+		t.Errorf("ListPackages should not error on empty cache, got: %v", err)
+	}
+
+	if len(packages) != 0 {
+		t.Errorf("Expected 0 packages for empty cache, got %d", len(packages))
+	}
+}
+
+// TestListPackages_SyncsCache verifies that ListPackages uses the synced cache
+// (LoadPackageIndexFromCache) instead of the stale-only LoadPackageIndex path.
+// It populates the cache in the exact location EnsureRegistry would write to
+// and confirms ListPackages picks it up.
+func TestListPackages_SyncsCache(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Manually write the cache where EnsureRegistry / LoadPackageIndexFromCache expects it.
+	// This mirrors what the real EnsureRegistry does after cloning.
+	cacheDir := filepath.Join(tmpDir, "cache", "registries", "my-registry")
+	if err := os.MkdirAll(cacheDir, 0o755); err != nil {
+		t.Fatalf("Failed to create cache dir: %v", err)
+	}
+
+	index := &PackageIndex{
+		Version:     "1.0",
+		Name:        "My Registry",
+		Description: "Registry populated by EnsureRegistry",
+		URL:         "https://github.com/test/packages",
+		Maintainer:  "Test",
+		Email:       "test@example.com",
+		Metadata:    RegistryMetadata{TotalPackages: 1, Categories: []string{"tools"}},
+		Packages: []PackageIndexEntry{
+			{Name: "synced-pkg", Version: "2.0.0", Description: "Synced package",
+				Author: "Test", License: "MIT", Category: "tools", Status: "stable"},
+		},
+	}
+
+	rm := NewRegistryManager(tmpDir)
+	if err := rm.SavePackageIndex("my-registry", index); err != nil {
+		t.Fatalf("SavePackageIndex failed: %v", err)
+	}
+
+	registries := []RegistryConfig{
+		{Name: "my-registry", URL: "https://github.com/test/packages",
+			Branch: "main", Enabled: true, Priority: 1},
+	}
+
+	packages, err := rm.ListPackages(registries)
+	if err != nil {
+		t.Fatalf("ListPackages failed: %v", err)
+	}
+
+	if len(packages) != 1 {
+		t.Errorf("Expected 1 package from cache, got %d", len(packages))
+	}
+
+	if packages[0].Name != "synced-pkg" {
+		t.Errorf("Expected 'synced-pkg', got '%s'", packages[0].Name)
+	}
+}

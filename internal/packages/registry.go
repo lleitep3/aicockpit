@@ -214,6 +214,7 @@ func (rm *RegistryManager) GetPackageFromRegistry(packageName string, registryNa
 }
 
 // ListPackages lists all packages in registries.
+// It syncs each registry before listing to ensure fresh data.
 func (rm *RegistryManager) ListPackages(registries []RegistryConfig) ([]PackageIndexEntry, error) {
 	var results []PackageIndexEntry
 
@@ -222,8 +223,14 @@ func (rm *RegistryManager) ListPackages(registries []RegistryConfig) ([]PackageI
 			continue
 		}
 
-		index, err := rm.LoadPackageIndex(registry.Name)
+		// Sync registry cache before listing (same as SearchPackages / GetPackage).
+		if err := rm.cache.EnsureRegistry(registry); err != nil {
+			fmt.Printf("Warning: failed to sync registry %s: %v\n", registry.Name, err)
+		}
+
+		index, err := rm.cache.LoadPackageIndexFromCache(registry.Name)
 		if err != nil {
+			fmt.Printf("Warning: failed to load package index from %s: %v\n", registry.Name, err)
 			continue
 		}
 
