@@ -28,6 +28,11 @@ func (ks *KeywordSearcher) Search(query string, documents []*Document) (*SearchR
 		}, nil
 	}
 
+	// If scorer supports BM25, initialize it with the full corpus for proper IDF calculation.
+	if bm25, ok := ks.scorer.(*BM25Scorer); ok {
+		bm25.Initialize(query, documents)
+	}
+
 	results := make([]SearchResult, 0)
 
 	for _, doc := range documents {

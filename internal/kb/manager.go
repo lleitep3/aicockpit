@@ -27,8 +27,8 @@ func NewManager(roots []string, indexPath string) *Manager {
 
 	return &Manager{
 		repo:      NewFileRepository(basePath),
-		searcher:  NewKeywordSearcher(NewDefaultScorer()),
-		scorer:    NewDefaultScorer(),
+		searcher:  NewKeywordSearcher(NewBM25Scorer()),
+		scorer:    NewBM25Scorer(),
 		indexer:   NewFileIndexProvider(indexPath),
 		roots:     roots,
 		indexPath: indexPath,
