@@ -8,7 +8,6 @@ import (
 	"testing"
 )
 
-
 func TestGoosePermissions(t *testing.T) {
 	// Let's test the specific ensureGooseExtensionsEnabled function or Goose permissions logic
 	compiler := NewGooseCompiler()

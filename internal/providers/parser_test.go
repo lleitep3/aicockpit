@@ -71,7 +71,6 @@ Step 2`
 	return dir
 }
 
-
 func TestParseCanonical_EmptyDir(t *testing.T) {
 	emptyDir := t.TempDir()
 

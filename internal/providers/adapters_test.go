@@ -38,7 +38,6 @@ func TestAdapters(t *testing.T) {
 	dc.CompileWorkflows([]CanonicalWorkflow{{Name: "flow1"}}, &Provider{})
 }
 
-
 func TestReadCanonicalFile_Invalid(t *testing.T) {
 	tmpDir := t.TempDir()
 	_, err := ReadCanonicalFile(filepath.Join(tmpDir, "missing.txt"))
@@ -46,7 +45,6 @@ func TestReadCanonicalFile_Invalid(t *testing.T) {
 		t.Error("expected error")
 	}
 }
-
 
 func TestAdapters_CompileErrors(t *testing.T) {
 	tmpDir := t.TempDir()
