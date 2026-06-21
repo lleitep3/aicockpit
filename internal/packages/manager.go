@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -293,6 +294,29 @@ func (pm *PackageManager) SyncPackageAssets(pkg *Package, installPath string) er
 		}
 	}
 
+	// Write gold_rules to ~/.cockpit/rules/<pkg>-gold-rules.md
+	// Adapters read all *.md from the rules dir when compiling AGENTS.md / .goosehints,
+	// so this injects gold rules into every provider on the next `cockpit deploy`.
+	if len(pkg.Features.GoldRules) > 0 {
+		rulesDir := filepath.Join(pm.cockpitDir, "rules")
+		if err := os.MkdirAll(rulesDir, 0o755); err != nil {
+			return fmt.Errorf("failed to create rules dir: %w", err)
+		}
+
+		var sb strings.Builder
+		sb.WriteString(fmt.Sprintf("# Gold Rules — %s\n\n", pkg.Name))
+		sb.WriteString("> These rules were injected by the `" + pkg.Name + "` package.\n\n")
+		for _, rule := range pkg.Features.GoldRules {
+			sb.WriteString("- " + rule + "\n")
+		}
+
+		goldRulesPath := filepath.Join(rulesDir, pkg.Name+"-gold-rules.md")
+		if err := os.WriteFile(goldRulesPath, []byte(sb.String()), 0o644); err != nil {
+			return fmt.Errorf("failed to write gold rules for %s: %w", pkg.Name, err)
+		}
+		fmt.Printf("  ✓ gold_rules written to rules/%s-gold-rules.md\n", pkg.Name)
+	}
+
 	return nil
 }
 
@@ -324,6 +348,15 @@ func (pm *PackageManager) RemovePackageAssets(pkg *Package) error {
 
 			fmt.Printf("  ✓ %s/%s removed from canonical dir\n", group.dir, f.Name)
 		}
+	}
+
+	// Remove gold_rules file if it exists
+	goldRulesPath := filepath.Join(pm.cockpitDir, "rules", pkg.Name+"-gold-rules.md")
+	if _, err := os.Stat(goldRulesPath); err == nil {
+		if err := os.Remove(goldRulesPath); err != nil {
+			return fmt.Errorf("failed to remove gold rules for %s: %w", pkg.Name, err)
+		}
+		fmt.Printf("  ✓ gold_rules removed from rules/%s-gold-rules.md\n", pkg.Name)
 	}
 
 	return nil
