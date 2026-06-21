@@ -353,6 +353,18 @@ func NewPkgUninstallCommand() *cobra.Command {
 			fmt.Printf("Author: %s\n", pkg.Author)
 			fmt.Printf("Description: %s\n", pkg.Description)
 
+			// Run pre_uninstall hooks from the install dir (before files are removed)
+			installPath := pm.GetPackageInstallPath(packageName)
+			if len(pkg.Installation.PreUninstall) > 0 {
+				fmt.Printf("\nRunning pre-uninstall hooks...\n")
+				if err := pm.RunPackageHooks(installPath, pkg.Installation.PreUninstall); err != nil {
+					if !force {
+						return fmt.Errorf("pre-uninstall hook failed: %w", err)
+					}
+					fmt.Printf("  Warning: pre-uninstall hook failed (--force): %v\n", err)
+				}
+			}
+
 			// Uninstall package
 			fmt.Printf("\nUninstalling package: %s\n", packageName)
 			err = pm.UninstallPackage(packageName)
@@ -361,7 +373,16 @@ func NewPkgUninstallCommand() *cobra.Command {
 			}
 
 			fmt.Printf("✓ Package uninstalled successfully\n")
-			fmt.Printf("  Backup created at: %s.backup\n", pm.GetPackageInstallPath(packageName))
+
+			// Run post_uninstall hooks — note: package files are gone, so scripts
+			// must be self-contained or rely only on system-level paths.
+			if len(pkg.Installation.PostUninstall) > 0 {
+				fmt.Printf("\nRunning post-uninstall hooks...\n")
+				// PostUninstall scripts were already removed with the package files.
+				// We warn the user rather than fail silently.
+				fmt.Printf("  ⚠ post_uninstall hooks defined but package files were already removed.\n")
+				fmt.Printf("  Tip: use pre_uninstall for cleanup that needs the package files.\n")
+			}
 
 			return nil
 		},

@@ -408,3 +408,107 @@ func TestSavePackage(t *testing.T) {
 		t.Errorf("Expected version '%s', got '%s'", pkg.Version, loaded.Version)
 	}
 }
+
+// TestLoadPackageWithUninstallHooks verifies that pre_uninstall and post_uninstall
+// fields are correctly parsed from a package manifest.
+func TestLoadPackageWithUninstallHooks(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	manifestContent := `
+name: "hook-package"
+version: "1.0.0"
+description: "Package with uninstall hooks"
+author: "Test"
+license: "MIT"
+type: "utility"
+
+installation:
+  supported_providers:
+    - antigravity
+  method: "copy"
+  pre_install:
+    - script: "scripts/pre-install.sh"
+      description: "Pre-install setup"
+  post_install:
+    - script: "scripts/post-install.sh"
+      description: "Post-install configuration"
+  pre_uninstall:
+    - script: "scripts/pre-uninstall.sh"
+      description: "Cleanup before removal"
+  post_uninstall:
+    - script: "scripts/post-uninstall.sh"
+      description: "Final cleanup after removal"
+`
+	manifestPath := filepath.Join(tmpDir, "cockpit-package.yml")
+	if err := os.WriteFile(manifestPath, []byte(manifestContent), 0o644); err != nil {
+		t.Fatalf("Failed to write manifest: %v", err)
+	}
+
+	pkg, err := LoadPackage(tmpDir)
+	if err != nil {
+		t.Fatalf("LoadPackage failed: %v", err)
+	}
+
+	// Verify install hooks
+	if len(pkg.Installation.PreInstall) != 1 {
+		t.Errorf("Expected 1 pre_install hook, got %d", len(pkg.Installation.PreInstall))
+	}
+	if len(pkg.Installation.PostInstall) != 1 {
+		t.Errorf("Expected 1 post_install hook, got %d", len(pkg.Installation.PostInstall))
+	}
+
+	// Verify uninstall hooks
+	if len(pkg.Installation.PreUninstall) != 1 {
+		t.Errorf("Expected 1 pre_uninstall hook, got %d", len(pkg.Installation.PreUninstall))
+	}
+	if pkg.Installation.PreUninstall[0].Script != "scripts/pre-uninstall.sh" {
+		t.Errorf("Expected script 'scripts/pre-uninstall.sh', got '%s'", pkg.Installation.PreUninstall[0].Script)
+	}
+	if pkg.Installation.PreUninstall[0].Description != "Cleanup before removal" {
+		t.Errorf("Unexpected pre_uninstall description: %s", pkg.Installation.PreUninstall[0].Description)
+	}
+
+	if len(pkg.Installation.PostUninstall) != 1 {
+		t.Errorf("Expected 1 post_uninstall hook, got %d", len(pkg.Installation.PostUninstall))
+	}
+	if pkg.Installation.PostUninstall[0].Script != "scripts/post-uninstall.sh" {
+		t.Errorf("Expected script 'scripts/post-uninstall.sh', got '%s'", pkg.Installation.PostUninstall[0].Script)
+	}
+}
+
+// TestLoadPackageNoUninstallHooks verifies that a manifest without uninstall hooks
+// produces empty slices (not nil panics) for PreUninstall and PostUninstall.
+func TestLoadPackageNoUninstallHooks(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	manifestContent := `
+name: "simple-package"
+version: "1.0.0"
+description: "Package without uninstall hooks"
+author: "Test"
+license: "MIT"
+type: "utility"
+
+installation:
+  supported_providers:
+    - antigravity
+  method: "copy"
+`
+	manifestPath := filepath.Join(tmpDir, "cockpit-package.yml")
+	if err := os.WriteFile(manifestPath, []byte(manifestContent), 0o644); err != nil {
+		t.Fatalf("Failed to write manifest: %v", err)
+	}
+
+	pkg, err := LoadPackage(tmpDir)
+	if err != nil {
+		t.Fatalf("LoadPackage failed: %v", err)
+	}
+
+	// len() on nil slice is 0 — no panics expected
+	if len(pkg.Installation.PreUninstall) != 0 {
+		t.Errorf("Expected 0 pre_uninstall hooks, got %d", len(pkg.Installation.PreUninstall))
+	}
+	if len(pkg.Installation.PostUninstall) != 0 {
+		t.Errorf("Expected 0 post_uninstall hooks, got %d", len(pkg.Installation.PostUninstall))
+	}
+}
