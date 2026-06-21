@@ -212,6 +212,9 @@ func (p *Provider) GetFeaturePath(feature string) string {
 
 	// Expand workspace path
 	expandedWorkspace := os.ExpandEnv(p.Workspace)
+	if len(expandedWorkspace) == 0 {
+		return ""
+	}
 	if expandedWorkspace[0] == '~' {
 		homeDir, err := os.UserHomeDir()
 		if err != nil {
@@ -226,6 +229,9 @@ func (p *Provider) GetFeaturePath(feature string) string {
 // GetWorkspacePath returns the expanded workspace path for a provider.
 func (p *Provider) GetWorkspacePath() string {
 	expandedWorkspace := os.ExpandEnv(p.Workspace)
+	if len(expandedWorkspace) == 0 {
+		return ""
+	}
 	if expandedWorkspace[0] == '~' {
 		homeDir, err := os.UserHomeDir()
 		if err != nil {
