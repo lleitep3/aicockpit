@@ -13,7 +13,7 @@ O Devin, em sua arquitetura nativa, oferece suporte para:
 - **[Rules](RULES.md) (Contexto de Projeto):** Regras locais injetadas no contexto, frequentemente via arquivos como `AGENTS.md` ou `README.md`.
 - **Global Memory / Gold Rules:** Memória global entre projetos e regras universais através de arquivos globais como `~/.codeium/windsurf/memories/global_rules.md`.
 - **Workflows & Custom Tools:** Configurações de ferramentas customizadas e fluxos definidos localmente via `.devin/config.yaml`.
-- **Local Permissions:** Sistema de permissões locais para limitar ou autorizar quais comandos o agente pode executar no ambiente (ex: `.devin/config.local.json`).
+- **Local [Permissions](PERMISSIONS.md):** Sistema de permissões locais para limitar ou autorizar quais comandos o agente pode executar no ambiente (ex: `.devin/config.local.json`).
 
 ## Integrações Atuais no AICockpit Adapter
 O adapter do Devin atualmente compila e propaga os seguintes artefatos canônicos:

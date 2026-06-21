@@ -12,7 +12,7 @@ O Antigravity possui suporte a um vasto ecossistema de personalizações atravé
 - **[Rules](RULES.md) (AGENTS.md):** Um arquivo markdown que consolida as diretivas, restrições e diretrizes de estilo ou de projeto para o comportamento do agente.
 - **Plugins & Subagentes:** Agrupamentos lógicos que empacotam configurações (`plugin.json`), múltiplas skills e subagentes prontos para serem delegados.
 - **Global Config / Workspace Config:** O agente carrega suas personalizações de um caminho global (como `~/.gemini/config`) ou local (`.agents`).
-- **Permissions:** O sistema tem capacidades de leitura, escrita e execução restritas por permissões que podem ser cedidas previamente num `config.json`.
+- **[Permissions](PERMISSIONS.md):** O sistema tem capacidades de leitura, escrita e execução restritas por permissões que podem ser cedidas previamente num `config.json`.
 
 ## Integrações Atuais no AICockpit Adapter
 O adapter do Antigravity no AICockpit foca numa abordagem de injeção **global** na máquina do usuário, compilando para `~/.gemini/config/`:
