@@ -15,7 +15,11 @@ import (
 func makeOpts(names ...string) []providers.ProviderOption {
 	opts := make([]providers.ProviderOption, len(names))
 	for i, n := range names {
-		opts[i] = providers.ProviderOption{Name: n, DisplayName: strings.Title(n)}
+		displayName := n
+		if len(n) > 0 {
+			displayName = strings.ToUpper(n[:1]) + n[1:]
+		}
+		opts[i] = providers.ProviderOption{Name: n, DisplayName: displayName}
 	}
 	return opts
 }

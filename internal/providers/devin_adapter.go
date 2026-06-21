@@ -189,8 +189,7 @@ func buildDevinConfigYaml(skillDirs []string, skillsPath string) string {
 	sort.Strings(skillDirs)
 	for _, skillDir := range skillDirs {
 		name := strings.ReplaceAll(skillDir, "-", "_")
-		//nolint:staticcheck // strings.Title is deprecated but acceptable for simple text transforms
-		readable := strings.Title(strings.ReplaceAll(skillDir, "-", " "))
+		readable := toTitleCase(strings.ReplaceAll(skillDir, "-", " "))
 		skillTools.WriteString(fmt.Sprintf(`  - name: %s
     command: "cat %s"
     description: "Follow the %s skill guide for this task."
@@ -210,4 +209,16 @@ func buildDevinConfigYaml(skillDirs []string, skillsPath string) string {
 %s`, skillTools.String())
 
 	return AddGeneratedHeader(content, "config.yaml")
+}
+
+// toTitleCase converts a space-separated string to Title Case without using
+// the deprecated strings.Title function.
+func toTitleCase(s string) string {
+	words := strings.Fields(s)
+	for i, w := range words {
+		if len(w) > 0 {
+			words[i] = strings.ToUpper(w[:1]) + w[1:]
+		}
+	}
+	return strings.Join(words, " ")
 }
