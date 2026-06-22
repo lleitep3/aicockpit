@@ -62,7 +62,7 @@ func TestPermissionsHelpers_Failures(t *testing.T) {
 
 	m := map[string]interface{}{"a": "not a map"}
 	nested := getNestedMap(m, "a")
-	if nested != nil && len(nested) > 0 {
+	if len(nested) > 0 {
 		t.Error("expected nil or empty")
 	}
 
@@ -83,13 +83,13 @@ func TestParser_Failures(t *testing.T) {
 
 	entry, err := parseEntrypoint(tmpDir)
 	if err != nil {
-		// coverage
+		t.Log(err)
 	}
 	_ = entry
 
 	flows, err := parseWorkflows(tmpDir)
 	if err != nil || len(flows) != 0 {
-		// coverage
+		t.Log(err)
 	}
 }
 
@@ -104,13 +104,13 @@ func TestGooseAdapter_Failures(t *testing.T) {
 	prov := &Provider{Features: map[string]*FeatureConfig{"skills": {Enabled: true, Path: ""}}}
 	_, err = gc.CompileSkills([]CanonicalSkill{{Name: "test"}}, prov)
 	if err != nil {
-		// coverage
+		t.Log(err)
 	}
 }
 
 func TestIsRequired(t *testing.T) {
 	if isRequired("test", []string{"test"}) {
-		// do nothing
+		t.Log("required")
 	}
 }
 
@@ -231,7 +231,7 @@ func TestParseEntrypoint_ReadError(t *testing.T) {
 
 	entry, _ := parseEntrypoint(tmpDir)
 	if len(entry.GoldenRules) != 0 {
-		// passed
+		t.Log("passed")
 	}
 }
 
