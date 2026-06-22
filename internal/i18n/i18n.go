@@ -94,12 +94,20 @@ func initMessages() map[string]map[string]string {
 			"setup.saved":    "Configuration saved to %s",
 
 			// Info
-			"info.title":       "AICockpit Information",
-			"info.dir":         "Cockpit Directory",
-			"info.config":      "Config File",
-			"info.log":         "Log File",
-			"info.packages":    "Installed Packages",
-			"info.no_packages": "No packages installed",
+			"info.title":  "AICockpit Information",
+			"info.dir":    "Cockpit Directory",
+			"info.config": "Config File",
+			"info.log":    "Log File",
+
+			// Caveman
+			"caveman.enabled":          "Caveman mode enabled globally. Deploying changes...",
+			"caveman.disabled":         "Caveman mode disabled. Deploying changes...",
+			"caveman.already_disabled": "Caveman mode is already disabled.",
+			"caveman.on":               "Caveman mode: ON",
+			"caveman.off":              "Caveman mode: OFF",
+			"caveman.invalid":          "invalid action: %s. Use on, off, or status",
+			"info.packages":            "Installed Packages",
+			"info.no_packages":         "No packages installed",
 
 			// Doctor
 			"doctor.title":      "AICockpit Health Check",
@@ -145,6 +153,14 @@ func initMessages() map[string]map[string]string {
 			"info.log":         "Arquivo de Log",
 			"info.packages":    "Pacotes Instalados",
 			"info.no_packages": "Nenhum pacote instalado",
+
+			// Caveman
+			"caveman.enabled":          "Modo Caveman ativado globalmente. Atualizando providers...",
+			"caveman.disabled":         "Modo Caveman desativado. Atualizando providers...",
+			"caveman.already_disabled": "Modo Caveman já está desativado.",
+			"caveman.on":               "Modo Caveman: ON",
+			"caveman.off":              "Modo Caveman: OFF",
+			"caveman.invalid":          "ação inválida: %s. Use on, off, ou status",
 
 			// Doctor
 			"doctor.title":      "Verificação de Saúde do AICockpit",
