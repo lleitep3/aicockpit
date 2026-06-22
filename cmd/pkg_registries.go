@@ -3,8 +3,8 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/lleite/aicockpit/internal/config"
-	"github.com/lleite/aicockpit/internal/packages"
+	"github.com/lleitep3/aicockpit/internal/config"
+	"github.com/lleitep3/aicockpit/internal/packages"
 	"github.com/spf13/cobra"
 )
 
