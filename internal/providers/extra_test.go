@@ -222,12 +222,12 @@ func TestManager_Deploy_Failures(t *testing.T) {
 
 func TestParseEntrypoint_ReadError(t *testing.T) {
 	tmpDir := t.TempDir()
-	os.WriteFile(filepath.Join(tmpDir, "identity.md"), []byte("proj"), 0000)
+	os.MkdirAll(filepath.Join(tmpDir, "identity.md"), 0755)
 
 	rulesDir := filepath.Join(tmpDir, "rules")
 	os.MkdirAll(rulesDir, 0755)
 	f := filepath.Join(rulesDir, "bad-gold-rules.md")
-	os.WriteFile(f, []byte("rules"), 0000)
+	os.MkdirAll(f, 0755)
 
 	entry, _ := parseEntrypoint(tmpDir)
 	if len(entry.GoldenRules) != 0 {
@@ -305,7 +305,7 @@ func TestParser_ParseRules(t *testing.T) {
 	d := filepath.Join(tmpDir, "rules")
 	os.MkdirAll(d, 0755)
 	os.WriteFile(filepath.Join(d, "rule1.md"), []byte("rule1"), 0644)
-	os.WriteFile(filepath.Join(d, "bad"), []byte("bad"), 0000)
+	os.MkdirAll(filepath.Join(d, "bad"), 0755)
 	_, _ = parseRules(tmpDir)
 }
 
