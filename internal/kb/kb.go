@@ -67,10 +67,27 @@ type Searcher interface {
 	Search(query string, documents []*Document) (*SearchResults, error)
 }
 
-// SemanticSearcher defines the interface for semantic search operations.
-type SemanticSearcher interface {
-	// SemanticSearch performs a semantic search on documents
-	SemanticSearch(query string, documents []*Document) (*SearchResults, error)
+// GraphNode represents a node in the knowledge graph.
+type GraphNode struct {
+	Document *Document
+	Distance int
+}
+
+// GraphResult represents the result of a graph search.
+type GraphResult struct {
+	RootID    string
+	Nodes     []GraphNode
+	MaxDepth  int
+	TotalDocs int
+}
+
+// GraphSearcher defines the interface for graph search operations.
+type GraphSearcher interface {
+	// BuildGraph constructs the graph from a set of documents
+	BuildGraph(documents []*Document) error
+
+	// SearchGraph performs a BFS search starting from rootID up to maxDepth
+	SearchGraph(rootID string, maxDepth int) (*GraphResult, error)
 }
 
 // Scorer defines the interface for scoring search results.
