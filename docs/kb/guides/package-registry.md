@@ -24,7 +24,7 @@ cockpit-packages/
 │   ├── cockpit-package.yml     # Package manifest
 │   ├── README.md               # Package documentation
 │   ├── agents/
-│   ├── skills/
+│   ├── .cockpit/skills/
 │   ├── modules/
 │   ├── kb/
 │   └── workflows/

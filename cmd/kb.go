@@ -22,6 +22,7 @@ func NewKBCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translator) 
 
 	// Add subcommands
 	kbCmd.AddCommand(NewKBSearchCommand(log, cfg, t))
+	kbCmd.AddCommand(NewKBGraphCommand(log, cfg, t))
 	kbCmd.AddCommand(NewKBListCommand(log, cfg, t))
 	kbCmd.AddCommand(NewKBAddCommand(log, cfg, t))
 	kbCmd.AddCommand(NewKBRemoveCommand(log, cfg, t))
@@ -477,4 +478,65 @@ func outputDocumentsTable(documents []*kb.Document) error {
 	}
 
 	return nil
+}
+
+// NewKBGraphCommand creates the kb graph subcommand.
+func NewKBGraphCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translator) *cobra.Command {
+	var depth int
+
+	graphCmd := &cobra.Command{
+		Use:   "graph <doc-id>",
+		Short: "Perform a graph search starting from a document",
+		Long:  "Perform a breadth-first search on the knowledge base graph starting from the given document ID.",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			docID := args[0]
+			roots := cfg.KB.Roots
+			if len(roots) == 0 {
+				fmt.Println("No knowledge base roots configured")
+				return nil
+			}
+
+			indexPath := filepath.Join(config.GetCockpitDir(), ".kb-index.json")
+			manager := kb.NewManager(roots, indexPath)
+
+			docs, err := manager.ListDocuments()
+			if err != nil {
+				return fmt.Errorf("failed to list documents: %w", err)
+			}
+
+			searcher := kb.NewGraphSearcher()
+			if err := searcher.BuildGraph(docs); err != nil {
+				return fmt.Errorf("failed to build graph: %w", err)
+			}
+
+			res, err := searcher.SearchGraph(docID, depth)
+			if err != nil {
+				return fmt.Errorf("graph search failed: %w", err)
+			}
+
+			fmt.Printf("Graph Search Results for: %q (Depth: %d)\\n", res.RootID, res.MaxDepth)
+			fmt.Printf("Found: %d related documents\\n\\n", res.TotalDocs)
+
+			fmt.Printf("%-30s | %-20s | %-8s\\n", "Title", "ID", "Distance")
+			fmt.Println(string(make([]byte, 65)))
+
+			for _, node := range res.Nodes {
+				title := node.Document.Metadata.Title
+				if len(title) > 30 {
+					title = title[:27] + "..."
+				}
+				id := node.Document.ID
+				if len(id) > 20 {
+					id = id[:17] + "..."
+				}
+				fmt.Printf("%-30s | %-20s | %d\\n", title, id, node.Distance)
+			}
+
+			return nil
+		},
+	}
+
+	graphCmd.Flags().IntVarP(&depth, "depth", "d", 1, "Maximum depth for graph traversal")
+	return graphCmd
 }

@@ -65,7 +65,7 @@ AICockpit is a **harness engineering tool for AI systems** that enables autonomo
 - ✅ Commands: kb root add/remove/list
 - ✅ Command: kb rebuild-cache
 - ✅ Manager integration with config
-- [ ] Semantic search with embeddings
+- ✅ Graph-based Search
 - [ ] Skills integration
 - [ ] Hooks integration
 
