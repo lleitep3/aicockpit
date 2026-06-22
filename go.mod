@@ -1,4 +1,4 @@
-module github.com/lleite/aicockpit
+module github.com/lleitep3/aicockpit
 
 go 1.26
 

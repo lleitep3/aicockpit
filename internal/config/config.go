@@ -5,8 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/lleite/aicockpit/internal/packages"
-	"github.com/lleite/aicockpit/internal/version"
+	"github.com/lleitep3/aicockpit/internal/packages"
+	"github.com/lleitep3/aicockpit/internal/version"
 	"gopkg.in/yaml.v3"
 )
 
