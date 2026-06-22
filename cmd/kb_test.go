@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/lleite/aicockpit/internal/config"
-	"github.com/lleite/aicockpit/internal/i18n"
-	"github.com/lleite/aicockpit/internal/kb"
-	"github.com/lleite/aicockpit/internal/logging"
+	"github.com/lleitep3/aicockpit/internal/config"
+	"github.com/lleitep3/aicockpit/internal/i18n"
+	"github.com/lleitep3/aicockpit/internal/kb"
+	"github.com/lleitep3/aicockpit/internal/logging"
 )
 
 func TestNewKBCommand(t *testing.T) {

@@ -68,8 +68,8 @@ version: "1.0.0"
 description: "Builds HTML documentation from knowledge base articles"
 author: "AICockpit Team"
 license: "MIT"
-homepage: "https://github.com/lleite/aicockpit"
-repository: "https://github.com/lleite/aicockpit"
+homepage: "https://github.com/lleitep3/aicockpit"
+repository: "https://github.com/lleitep3/aicockpit"
 
 # Package type and category
 type: "utility"  # utility, agent, skill, module, workflow, library
@@ -232,8 +232,8 @@ metadata:
   
   # Support information
   support:
-    issues: "https://github.com/lleite/aicockpit/issues"
-    discussions: "https://github.com/lleite/aicockpit/discussions"
+    issues: "https://github.com/lleitep3/aicockpit/issues"
+    discussions: "https://github.com/lleitep3/aicockpit/discussions"
     documentation: "https://docs.aicockpit.dev"
 ```
 

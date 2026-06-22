@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/lleite/aicockpit/internal/config"
-	"github.com/lleite/aicockpit/internal/i18n"
-	"github.com/lleite/aicockpit/internal/logging"
+	"github.com/lleitep3/aicockpit/internal/config"
+	"github.com/lleitep3/aicockpit/internal/i18n"
+	"github.com/lleitep3/aicockpit/internal/logging"
 	"github.com/zalando/go-keyring"
 )
 

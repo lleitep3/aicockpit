@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/lleite/aicockpit/internal/providers"
+	"github.com/lleitep3/aicockpit/internal/providers"
 	"gopkg.in/yaml.v3"
 )
 

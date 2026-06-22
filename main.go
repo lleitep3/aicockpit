@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/lleite/aicockpit/cmd"
-	"github.com/lleite/aicockpit/internal/config"
-	"github.com/lleite/aicockpit/internal/i18n"
-	"github.com/lleite/aicockpit/internal/logging"
+	"github.com/lleitep3/aicockpit/cmd"
+	"github.com/lleitep3/aicockpit/internal/config"
+	"github.com/lleitep3/aicockpit/internal/i18n"
+	"github.com/lleitep3/aicockpit/internal/logging"
 )
 
 func main() {
