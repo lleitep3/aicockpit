@@ -57,8 +57,7 @@ jobs:
         name: codecov-umbrella
         fail_ci_if_error: false
 
-  Code-quality:
-    name: Code quality
+  lint:
     runs-on: ubuntu-latest
     
     steps:
