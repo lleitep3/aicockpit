@@ -69,9 +69,9 @@ AICockpit is a **harness engineering tool for AI systems** that enables autonomo
 - [ ] Skills integration
 - [ ] Hooks integration
 
-**Phase 5 - Vault & Packages (Next)**
+**Phase 5 - Vault & Packages (In Progress)**
 - [ ] Vault system (keyring integration)
-- [ ] Package management
+- ✅ Package management
 - [ ] Command execution framework
 - [ ] Extended commands
 
@@ -134,7 +134,7 @@ aicockpit/
 │   ├── uninstall.go              # Uninstall
 │   ├── metrics.go                # Metrics command
 │   ├── kb.go                     # Knowledge base command
-│   └── pkg.go                    # Package management (planned)
+│   └── pkg.go                    # Package management
 ├── internal/                     # Internal packages (not exported)
 │   ├── config/                   # Configuration management
 │   │   ├── config.go
