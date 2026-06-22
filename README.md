@@ -169,9 +169,15 @@ For more details, see [Quick Start Guide](docs/QUICK_START.md).
   - View logs for specific date
   - Check log file details
 
+### Package Management
+
+- **`cockpit pkg search <term>`** - Search packages in registry
+- **`cockpit pkg list`** - List available and installed packages
+- **`cockpit pkg install <pkg>`** - Install a package and sync its assets
+- **`cockpit pkg uninstall <pkg>`** - Uninstall package and run cleanup hooks
+
 ### Planned Commands
 
-- **`cockpit pkg`** - Package management
 - **`cockpit vault`** - Secret management
 - **`cockpit agents`** - Manage AI agents
 - **`cockpit skills`** - Manage skills

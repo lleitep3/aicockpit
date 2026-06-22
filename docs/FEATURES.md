@@ -114,11 +114,11 @@
 - [ ] Secure credential storage
 
 ### 📦 Package Management
-- [ ] Package manifest system (cockpit-package.yaml)
-- [ ] Package installation/removal
-- [ ] Package discovery
-- [ ] Dependency management
-- [ ] Package versioning
+- [x] Package manifest system (cockpit-package.yaml)
+- [x] Package installation/removal
+- [x] Package discovery (list/search)
+- [x] Asset syncing (skills, rules, agents, workflows)
+- [x] Uninstall hooks (pre/post install & uninstall)
 
 ### ⚡ Command Execution
 - [ ] Execute shell commands with logging
@@ -128,7 +128,7 @@
 - [ ] Error handling and reporting
 
 ### 🎯 Extended Commands
-- [ ] `cockpit pkg` - Package management
+- [x] `cockpit pkg` - Package management
 - [ ] `cockpit vault` - Secret management
 - [ ] `cockpit agents` - Agent management
 - [ ] `cockpit skills` - Skills management
@@ -263,7 +263,7 @@ make uninstall  # Remove binary
 
 ### Phase 2 (In Progress)
 - [ ] Vault system
-- [ ] Package management
+- [x] Package management
 - [ ] Command execution
 - [ ] Extended commands
 
