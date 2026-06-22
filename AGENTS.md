@@ -985,3 +985,8 @@ See [docs/KNOWLEDGE_BASE.md](docs/KNOWLEDGE_BASE.md) for detailed documentation.
 **Last Updated**: June 20, 2026  
 **Version**: 0.2.0  
 **Status**: Production Ready
+
+---
+
+## RTK Usage
+**MANDATORY**: You MUST always use the `rtk` command wrapper when executing commands (e.g., `rtk go test`, `rtk ls`, `rtk grep`). RTK filters and summarizes system outputs to save tokens and improve context limits.

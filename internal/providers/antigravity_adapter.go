@@ -2,8 +2,8 @@ package providers
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
+	"strings"
 )
 
 // antigravityCockpitPermissions lists the minimum permission grants that cockpit
@@ -17,114 +17,144 @@ var antigravityCockpitPermissions = []string{
 	"read_file(~/.cockpit)",
 }
 
-// AntigravityAdapter compiles assets for the Antigravity provider.
-type AntigravityAdapter struct{}
+// AntigravityCompiler compiles assets for the Antigravity provider.
+type AntigravityCompiler struct{}
 
-// NewAntigravityAdapter creates a new AntigravityAdapter.
-func NewAntigravityAdapter() *AntigravityAdapter {
-	return &AntigravityAdapter{}
+// NewAntigravityCompiler creates a new AntigravityCompiler.
+func NewAntigravityCompiler() *AntigravityCompiler {
+	return &AntigravityCompiler{}
 }
 
 // Name returns the provider name.
-func (a *AntigravityAdapter) Name() string {
+func (a *AntigravityCompiler) Name() string {
 	return "antigravity"
 }
 
-// Compile walks through enabled features and maps files from ~/.cockpit/ to their target locations.
-func (a *AntigravityAdapter) Compile(cockpitHomeDir string, provider *Provider) (map[string]string, error) {
+// CompileEntrypoint writes the AGENTS.md file
+func (a *AntigravityCompiler) CompileEntrypoint(entrypoint *CanonicalEntrypoint, provider *Provider) (map[string]string, error) {
 	files := make(map[string]string)
+	rulesConfig, hasRules := provider.Features["rules"]
 
-	features := []string{"skills", "rules", "hooks", "agents", "workflows"}
+	if hasRules && rulesConfig.Enabled {
+		var builder strings.Builder
+		builder.WriteString(AddGeneratedHeader("", "antigravity"))
 
-	for _, feat := range features {
-		featConfig, exists := provider.Features[feat]
-		if !exists || !featConfig.Enabled {
-			continue
+		if entrypoint.ProjectContext != "" {
+			builder.WriteString(entrypoint.ProjectContext)
+			builder.WriteString("\n\n---\n\n")
 		}
 
-		srcDir := filepath.Join(cockpitHomeDir, feat)
-		if _, err := os.Stat(srcDir); os.IsNotExist(err) {
-			continue
+		if len(entrypoint.GoldenRules) > 0 {
+			builder.WriteString("## 🏅 Gold Rules & Project Guidelines\n\n")
+			for _, gr := range entrypoint.GoldenRules {
+				builder.WriteString(gr)
+				builder.WriteString("\n\n")
+			}
 		}
 
-		err := filepath.Walk(srcDir, func(path string, info os.FileInfo, err error) error {
-			if err != nil {
-				return err
+		files[rulesConfig.Path] = builder.String()
+	}
+	return files, nil
+}
+
+// CompileRules appends rules to the AGENTS.md file
+func (a *AntigravityCompiler) CompileRules(rules []CanonicalRule, provider *Provider) (map[string]string, error) {
+	files := make(map[string]string)
+	rulesConfig, hasRules := provider.Features["rules"]
+
+	if hasRules && rulesConfig.Enabled && len(rules) > 0 {
+		var builder strings.Builder
+		for i, r := range rules {
+			builder.WriteString(r.Content)
+			if i < len(rules)-1 {
+				builder.WriteString("\n\n---\n\n")
 			}
-			if info.IsDir() {
-				return nil
+		}
+		files[rulesConfig.Path] = builder.String()
+	}
+	return files, nil
+}
+
+// CompileSkills writes skills using YAML frontmatter in SKILL.md
+func (a *AntigravityCompiler) CompileSkills(skills []CanonicalSkill, provider *Provider) (map[string]string, error) {
+	files := make(map[string]string)
+	skillsConfig, hasSkills := provider.Features["skills"]
+
+	if hasSkills && skillsConfig.Enabled {
+		for _, skill := range skills {
+			content := fmt.Sprintf("---\nname: %s\ndescription: %s\n---\n%s", skill.Name, skill.Description, skill.Content)
+			files[filepath.Join(skillsConfig.Path, skill.Name, "SKILL.md")] = AddGeneratedHeader(content, "antigravity")
+
+			for relPath, scriptContent := range skill.ScriptFiles {
+				files[filepath.Join(skillsConfig.Path, skill.Name, relPath)] = scriptContent
+			}
+		}
+	}
+	return files, nil
+}
+
+// CompileWorkflows translates workflows into Antigravity skills.
+func (a *AntigravityCompiler) CompileWorkflows(workflows []CanonicalWorkflow, provider *Provider) (map[string]string, error) {
+	files := make(map[string]string)
+	wfConfig, hasWorkflows := provider.Features["workflows"] // Actually, for Antigravity, workflows just become skills or subagents
+
+	if hasWorkflows && wfConfig.Enabled {
+		for _, wf := range workflows {
+			var content strings.Builder
+			content.WriteString(fmt.Sprintf("# Workflow: %s\n\n%s\n\n## Steps\n", wf.Name, wf.Description))
+			for i, step := range wf.Steps {
+				content.WriteString(fmt.Sprintf("%d. %s\n", i+1, step))
 			}
 
-			relPath, err := filepath.Rel(srcDir, path)
-			if err != nil {
-				return err
+			fileContent := fmt.Sprintf("---\nname: %s\ndescription: %s\n---\n%s", wf.Name, wf.Description, content.String())
+			files[filepath.Join(wfConfig.Path, wf.Name, "SKILL.md")] = AddGeneratedHeader(fileContent, "antigravity")
+		}
+	}
+	return files, nil
+}
+
+// CompilePermissions reads the config.json and merges it
+func (a *AntigravityCompiler) CompilePermissions(perms *CanonicalPermissions, provider *Provider) (map[string]string, error) {
+	files := make(map[string]string)
+	permConfig, hasPerms := provider.Features["permissions"]
+
+	if hasPerms && permConfig.Enabled {
+		expanded, err := expandHome(permConfig.Path)
+		if err != nil {
+			return nil, err
+		}
+
+		m, err := readJSONFile(expanded)
+		if err != nil {
+			m = make(map[string]interface{})
+		}
+
+		userSettings := getNestedMap(m, "userSettings")
+		grants := getNestedMap(userSettings, "globalPermissionGrants")
+
+		existing := getStringSliceFromMap(grants, "allow")
+		merged := mergeStringSlice(existing, antigravityCockpitPermissions)
+		if perms != nil {
+			// Convert CanonicalPermissions to Antigravity format: "command(x)", "read_file(x)", etc
+			for _, cmd := range perms.AllowedCommands {
+				merged = mergeStringSlice(merged, []string{fmt.Sprintf("command(%s)", cmd)})
 			}
-
-			content, err := os.ReadFile(path)
-			if err != nil {
-				return err
+			for _, dir := range perms.AllowedDirs {
+				merged = mergeStringSlice(merged, []string{fmt.Sprintf("read_file(%s)", dir)})
+				merged = mergeStringSlice(merged, []string{fmt.Sprintf("write_file(%s)", dir)})
 			}
+		}
 
-			// Prepends generated header for markdown files
-			fileContent := string(content)
-			if filepath.Ext(path) == ".md" {
-				fileContent = AddGeneratedHeader(fileContent, "antigravity")
-			}
+		setStringSliceInMap(grants, "allow", merged)
 
-			targetPath := filepath.Join(featConfig.Path, relPath)
-			files[targetPath] = fileContent
+		userSettings["globalPermissionGrants"] = grants
+		m["userSettings"] = userSettings
 
-			return nil
-		})
+		err = writeJSONFile(expanded, m)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	// Handle permissions feature: merge cockpit grants into ~/.gemini/config/config.json
-	permConfig, hasPerms := provider.Features["permissions"]
-	if hasPerms && permConfig.Enabled {
-		if err := a.applyPermissions(permConfig.Path); err != nil {
-			return nil, fmt.Errorf("failed to apply antigravity permissions: %w", err)
-		}
-	}
-
 	return files, nil
-}
-
-// applyPermissions reads the Antigravity global config.json, merges cockpit
-// permission grants (without removing existing ones), and writes it back.
-//
-// Structure:
-//
-//	{
-//	  "userSettings": {
-//	    "globalPermissionGrants": {
-//	      "allow": ["command(git)", ...]
-//	    }
-//	  }
-//	}
-func (a *AntigravityAdapter) applyPermissions(configPath string) error {
-	expanded, err := expandHome(configPath)
-	if err != nil {
-		return err
-	}
-
-	m, err := readJSONFile(expanded)
-	if err != nil {
-		return fmt.Errorf("failed to read %s: %w", expanded, err)
-	}
-
-	// Navigate / create: m["userSettings"]["globalPermissionGrants"]
-	userSettings := getNestedMap(m, "userSettings")
-	grants := getNestedMap(userSettings, "globalPermissionGrants")
-
-	existing := getStringSliceFromMap(grants, "allow")
-	merged := mergeStringSlice(existing, antigravityCockpitPermissions)
-	setStringSliceInMap(grants, "allow", merged)
-
-	userSettings["globalPermissionGrants"] = grants
-	m["userSettings"] = userSettings
-
-	return writeJSONFile(expanded, m)
 }

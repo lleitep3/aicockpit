@@ -1,0 +1,47 @@
+{
+  "permissions": {
+    "allow": [
+      "Exec(cockpit)",
+      "Exec(make)",
+      "Exec(git)",
+      "Exec(go)",
+      "Exec(gh)"
+    ]
+  },
+  "userSettings": {
+    "globalPermissionGrants": {
+      "allow": [
+        "command(cockpit)",
+        "command(make)",
+        "command(git)",
+        "command(go)",
+        "command(gh)",
+        "read_file(~/.cockpit)"
+      ]
+    }
+  }
+}
+extensions:
+  developer:
+    enabled: true
+    type: platform
+    name: developer
+    description: 'Required by AICockpit'
+    bundled: true
+    available_tools: []
+extensions:
+  skills:
+    enabled: true
+    type: platform
+    name: skills
+    description: 'Required by AICockpit'
+    bundled: true
+    available_tools: []
+extensions:
+  summon:
+    enabled: true
+    type: platform
+    name: summon
+    description: 'Required by AICockpit'
+    bundled: true
+    available_tools: []

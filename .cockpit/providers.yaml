@@ -15,16 +15,12 @@ providers:
     features:
       skills:
         enabled: true
-        path: ".gemini/config/skills"
+        path: "~/.gemini/config/skills"
         description: "Reusable capabilities for agents"
       rules:
         enabled: true
-        path: ".gemini/config/rules"
+        path: "~/.gemini/GEMINI.md"
         description: "Codebase rules and guidelines"
-      hooks:
-        enabled: true
-        path: ".gemini/config/hooks"
-        description: "Lifecycle event hooks"
       agents:
         enabled: true
         path: ".gemini/config/agents"
@@ -43,16 +39,20 @@ providers:
     enabled: true
     name: "Devin"
     description: "Autonomous AI software engineer by Cognition"
-    workspace: "."
+    workspace: "~"
     version: "1.0.0"
     features:
+      entrypoint:
+        enabled: true
+        path: "~/.devin/AGENTS.md"
+        description: "Devin's main agent entrypoint"
       skills:
         enabled: true
-        path: ".devin/skills"
+        path: "~/.devin/skills"
         description: "Reusable capabilities for Devin"
       rules:
         enabled: true
-        path: ".devin/AGENTS.md"
+        path: "~/.codeium/windsurf/memories/global_rules.md"
         description: "Project-level rules and context for Devin"
       gold_rules:
         enabled: true
@@ -60,7 +60,7 @@ providers:
         description: "Global gold rules injected into Devin's memory system"
       workflows:
         enabled: true
-        path: ".devin/config.yaml"
+        path: "~/.codeium/windsurf/global_workflows/"
         description: "Devin custom tools and configuration"
       permissions:
         enabled: true
@@ -77,7 +77,7 @@ providers:
     features:
       skills:
         enabled: true
-        path: ".config/goose/skills"
+        path: "~/.agents/skills/"
         description: "Reusable capabilities for Goose"
       rules:
         enabled: true

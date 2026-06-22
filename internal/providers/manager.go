@@ -9,28 +9,27 @@ import (
 
 // ProviderManager orchestrates compilation and deployment of adapter files.
 type ProviderManager struct {
-	adapters map[string]Adapter
-	config   *ProvidersConfig
+	compilers map[string]Compiler
+	config    *ProvidersConfig
 }
 
-// NewProviderManager creates a new ProviderManager and registers default adapters.
+// NewProviderManager creates a new ProviderManager and registers default compilers.
 func NewProviderManager(config *ProvidersConfig) *ProviderManager {
 	pm := &ProviderManager{
-		adapters: make(map[string]Adapter),
-		config:   config,
+		compilers: make(map[string]Compiler),
+		config:    config,
 	}
 
-	// Register default strategies
-	pm.Register(NewAntigravityAdapter())
-	pm.Register(NewDevinAdapter())
-	pm.Register(NewGooseAdapter())
+	pm.Register(NewAntigravityCompiler())
+	pm.Register(NewDevinCompiler())
+	pm.Register(NewGooseCompiler())
 
 	return pm
 }
 
-// Register registers a new adapter strategy.
-func (pm *ProviderManager) Register(adapter Adapter) {
-	pm.adapters[adapter.Name()] = adapter
+// Register registers a new compiler strategy.
+func (pm *ProviderManager) Register(compiler Compiler) {
+	pm.compilers[compiler.Name()] = compiler
 }
 
 // Deploy compiles rules/skills for a provider and deploys them to target locations.
@@ -40,18 +39,51 @@ func (pm *ProviderManager) Deploy(providerName string, cockpitHomeDir string, pr
 		return fmt.Errorf("provider not configured: %s", providerName)
 	}
 
-	adapter, exists := pm.adapters[providerName]
+	compiler, exists := pm.compilers[providerName]
 	if !exists {
-		return fmt.Errorf("no adapter registered for: %s", providerName)
+		return fmt.Errorf("no compiler registered for: %s", providerName)
 	}
 
-	// 1. Compile files using the adapter strategy
-	files, err := adapter.Compile(cockpitHomeDir, provider)
+	// 1. Parse canonical structure from ~/.cockpit
+	entrypoint, skills, rules, workflows, perms, err := ParseCanonical(cockpitHomeDir)
 	if err != nil {
-		return fmt.Errorf("failed to compile rules for provider %s: %w", providerName, err)
+		return fmt.Errorf("failed to parse canonical structures: %w", err)
 	}
 
-	// 2. Determine target base directory
+	// 2. Compile files using the adapter strategy
+	allFiles := make(map[string]string)
+
+	if files, err := compiler.CompileEntrypoint(entrypoint, provider); err == nil {
+		mergeMap(allFiles, files)
+	} else {
+		return fmt.Errorf("failed to compile entrypoint: %w", err)
+	}
+
+	if files, err := compiler.CompileSkills(skills, provider); err == nil {
+		mergeMap(allFiles, files)
+	} else {
+		return fmt.Errorf("failed to compile skills: %w", err)
+	}
+
+	if files, err := compiler.CompileRules(rules, provider); err == nil {
+		mergeMap(allFiles, files)
+	} else {
+		return fmt.Errorf("failed to compile rules: %w", err)
+	}
+
+	if files, err := compiler.CompileWorkflows(workflows, provider); err == nil {
+		mergeMap(allFiles, files)
+	} else {
+		return fmt.Errorf("failed to compile workflows: %w", err)
+	}
+
+	if files, err := compiler.CompilePermissions(perms, provider); err == nil {
+		mergeMap(allFiles, files)
+	} else {
+		return fmt.Errorf("failed to compile permissions: %w", err)
+	}
+
+	// 3. Determine target base directory
 	baseDir := projectDir
 	if provider.Workspace == "~" {
 		home, err := os.UserHomeDir()
@@ -61,11 +93,10 @@ func (pm *ProviderManager) Deploy(providerName string, cockpitHomeDir string, pr
 		baseDir = home
 	}
 
-	// 3. Write compiled files to their relative target paths
-	for relPath, content := range files {
+	// 4. Write compiled files to their relative target paths
+	for relPath, content := range allFiles {
 		relPath = filepath.Clean(relPath)
 
-		// Check if the path starts with ~ or home
 		var destPath string
 		if strings.HasPrefix(relPath, "~") {
 			home, err := os.UserHomeDir()
@@ -79,16 +110,25 @@ func (pm *ProviderManager) Deploy(providerName string, cockpitHomeDir string, pr
 			destPath = filepath.Join(baseDir, relPath)
 		}
 
-		// Ensure directory exists
 		if err := os.MkdirAll(filepath.Dir(destPath), 0o755); err != nil {
 			return fmt.Errorf("failed to create directory for %s: %w", destPath, err)
 		}
 
-		// Write file
 		if err := os.WriteFile(destPath, []byte(content), 0o644); err != nil {
 			return fmt.Errorf("failed to write compiled file %s: %w", destPath, err)
 		}
 	}
 
 	return nil
+}
+
+func mergeMap(dest map[string]string, src map[string]string) {
+	for k, v := range src {
+		if existing, ok := dest[k]; ok {
+			// If both write to the same file (e.g. AGENTS.md), append them
+			dest[k] = existing + "\n\n" + v
+		} else {
+			dest[k] = v
+		}
+	}
 }

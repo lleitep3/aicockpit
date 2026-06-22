@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Exec(cockpit)",
+      "Exec(make)",
+      "Exec(git)",
+      "Exec(go)",
+      "Exec(gh)"
+    ]
+  }
+}
