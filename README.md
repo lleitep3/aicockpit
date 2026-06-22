@@ -74,8 +74,7 @@ cockpit pkg install go-expert-rules
 ```
 *(Make sure `$(go env GOPATH)/bin` is in your system's PATH)*
 
-<!-- TODO: Add quickstart.gif demonstrating the CLI setup -->
-<!-- ![AICockpit Quick Start Demonstration](https://raw.githubusercontent.com/lleitep3/aicockpit/main/docs/assets/quickstart.gif) -->
+![AICockpit Quick Start Demonstration](https://raw.githubusercontent.com/lleitep3/aicockpit/main/docs/assets/quickstart.gif)
 
 ### Developer Installation (From Source)
 
