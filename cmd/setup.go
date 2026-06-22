@@ -10,10 +10,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/lleite/aicockpit/internal/config"
-	"github.com/lleite/aicockpit/internal/i18n"
-	"github.com/lleite/aicockpit/internal/logging"
-	"github.com/lleite/aicockpit/internal/providers"
+	"github.com/lleitep3/aicockpit/internal/config"
+	"github.com/lleitep3/aicockpit/internal/i18n"
+	"github.com/lleitep3/aicockpit/internal/logging"
+	"github.com/lleitep3/aicockpit/internal/providers"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )
