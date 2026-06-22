@@ -55,7 +55,28 @@ AICockpit is designed to be the "cockpit" for your AI systems - a comprehensive 
 - Linux, macOS, or Windows
 - Git
 
-### Installation
+### Quick Installation (CLI Users)
+
+If you just want to install the **AICockpit CLI** and start using its AI-assisted tools on your machine:
+
+```bash
+# 1. Install the CLI using Go
+go install github.com/lleitep3/aicockpit@latest
+
+# 2. Run Initial Setup
+cockpit setup
+
+# 3. Add the Package Registry
+cockpit pkg registry add default https://github.com/lleitep3/cockpit-registry
+
+# 4. Install Your First AI Package
+cockpit pkg install go-expert-rules
+```
+*(Make sure `$(go env GOPATH)/bin` is in your system's PATH)*
+
+![AICockpit Quick Start Demonstration](https://raw.githubusercontent.com/lleitep3/aicockpit/main/docs/assets/quickstart.gif)
+
+### Developer Installation (From Source)
 
 #### Linux/macOS
 
