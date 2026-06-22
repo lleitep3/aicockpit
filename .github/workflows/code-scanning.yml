@@ -7,8 +7,8 @@ on:
     branches: [ main, develop ]
 
 jobs:
-  Code-scanning:
-    name: Code scanning
+  vulnerabilities:
+    name: vulnerabilities
     runs-on: ubuntu-latest
     
     steps:
