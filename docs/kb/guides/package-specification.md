@@ -29,7 +29,7 @@ my-package/
 ├── agents/                      # Optional: Agent implementations
 │   ├── my-agent.go
 │   └── my-agent_test.go
-├── skills/                      # Optional: Skill implementations
+├── .cockpit/skills/                      # Optional: Skill implementations
 │   ├── my-skill.go
 │   └── my-skill_test.go
 ├── modules/                     # Optional: CLI modules
@@ -108,10 +108,10 @@ features:
       description: "Builds HTML documentation"
   
   skills:
-    - path: "skills/html-generator.go"
+    - path: ".cockpit/skills/html-generator.go"
       name: "html-generator"
       description: "Generates HTML from markdown"
-    - path: "skills/template-engine.go"
+    - path: ".cockpit/skills/template-engine.go"
       name: "template-engine"
       description: "Processes HTML templates"
   
@@ -295,7 +295,7 @@ agents:
 **Skills**:
 ```yaml
 skills:
-  - path: "skills/skill-name.go"
+  - path: ".cockpit/skills/skill-name.go"
     name: "skill-name"
     description: "Skill description"
 ```
@@ -402,8 +402,8 @@ packages:
         type: "symlink"  # or "copy"
         checksum: "sha256:abc123..."
       
-      - source: "skills/html-generator.go"
-        destination: "~/.cockpit/skills/html-generator.go"
+      - source: ".cockpit/skills/html-generator.go"
+        destination: "~/.cockpit/.cockpit/skills/html-generator.go"
         type: "symlink"
         checksum: "sha256:def456..."
     
@@ -515,7 +515,7 @@ Include tests for all components:
 
 ```
 agents/agent_test.go
-skills/skill_test.go
+.cockpit/skills/skill_test.go
 modules/cmd_test.go
 ```
 
@@ -535,10 +535,10 @@ requirements:
 
 features:
   skills:
-    - path: "skills/text-cleaner.go"
+    - path: ".cockpit/skills/text-cleaner.go"
       name: "text-cleaner"
       description: "Cleans and normalizes text"
-    - path: "skills/text-analyzer.go"
+    - path: ".cockpit/skills/text-analyzer.go"
       name: "text-analyzer"
       description: "Analyzes text properties"
 
@@ -588,7 +588,7 @@ features:
       name: "html-builder"
   
   skills:
-    - path: "skills/html-generator.go"
+    - path: ".cockpit/skills/html-generator.go"
       name: "html-generator"
   
   modules:

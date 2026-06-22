@@ -38,7 +38,7 @@ AICockpit is designed to be the "cockpit" for your AI systems - a comprehensive 
 - **[Contributing Guide](CONTRIBUTING.md)** - How to contribute to AICockpit
 - **[AI Agent Guidelines](AGENTS.md)** - Comprehensive guide for AI agents developing on AICockpit
 - **[CI/CD Pipeline](docs/CI-CD.md)** - CI/CD workflow and automation details
-- **[SDLC Guidelines](docs/SDLC.md)** - Software Development Lifecycle standards
+- **[SDLC Guidelines](docs/architecture/canonical-compiler.md)** - Software Development Lifecycle standards
 
 ### Project Information
 
@@ -397,8 +397,8 @@ For issues, questions, or suggestions:
 ### For Developers
 
 - [Contributing Guide](CONTRIBUTING.md) - How to contribute
-- [SDLC Guidelines](docs/SDLC.md) - Development standards
-- [AI Agent Guidelines](docs/AGENTS.md) - For AI agents working with AICockpit
+- [SDLC Guidelines](docs/architecture/canonical-compiler.md) - Development standards
+- [AI Agent Guidelines](AGENTS.md) - For AI agents working with AICockpit
 
 ### For Project Managers
 
@@ -423,3 +423,8 @@ AICockpit is built with:
 ---
 
 **Made with ❤️ for AI systems everywhere**
+
+### Knowledge Base (KB)
+- [KB Guides](docs/kb/guides) - Explore all available AICockpit CLI guides
+- [Package Manager Guide](docs/kb/guides/package-manager.md)
+- [Canonical Compiler Architecture](docs/architecture/canonical-compiler.md)
