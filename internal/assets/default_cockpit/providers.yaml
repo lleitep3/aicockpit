@@ -1,0 +1,113 @@
+# AICockpit Providers Configuration
+# This file defines all available AI providers and their supported features
+
+version: "1.0"
+description: "AI Providers Configuration for AICockpit"
+
+providers:
+  # Antigravity - Autonomous AI agent by Google DeepMind
+  antigravity:
+    enabled: true
+    name: "Antigravity"
+    description: "Autonomous AI agent by Google DeepMind"
+    workspace: "~"
+    version: "1.0.0"
+    features:
+      skills:
+        enabled: true
+        path: "~/.gemini/config/skills"
+        description: "Reusable capabilities for agents"
+      rules:
+        enabled: true
+        path: "~/.gemini/GEMINI.md"
+        description: "Codebase rules and guidelines"
+      agents:
+        enabled: true
+        path: ".gemini/config/agents"
+        description: "Autonomous subagent templates"
+      workflows:
+        enabled: true
+        path: ".gemini/config/workflows"
+        description: "Workflow files and scripts"
+      permissions:
+        enabled: true
+        path: ".gemini/config/config.json"
+        description: "Global permission grants for cockpit commands"
+
+  # Devin - Autonomous AI agent by Cognition
+  devin:
+    enabled: true
+    name: "Devin"
+    description: "Autonomous AI software engineer by Cognition"
+    workspace: "~"
+    version: "1.0.0"
+    features:
+      entrypoint:
+        enabled: true
+        path: "~/.devin/AGENTS.md"
+        description: "Devin's main agent entrypoint"
+      skills:
+        enabled: true
+        path: "~/.devin/skills"
+        description: "Reusable capabilities for Devin"
+      rules:
+        enabled: true
+        path: "~/.codeium/windsurf/memories/global_rules.md"
+        description: "Project-level rules and context for Devin"
+      gold_rules:
+        enabled: true
+        path: "~/.codeium/windsurf/memories/global_rules.md"
+        description: "Global gold rules injected into Devin's memory system"
+      workflows:
+        enabled: true
+        path: "~/.codeium/windsurf/global_workflows/"
+        description: "Devin custom tools and configuration"
+      permissions:
+        enabled: true
+        path: "~/.devin/config.local.json"
+        description: "Exec permission grants for cockpit commands"
+
+  # Goose - Open-source AI agent by Block
+  goose:
+    enabled: true
+    name: "Goose"
+    description: "Open-source AI agent by Block"
+    workspace: "~"
+    version: "1.0.0"
+    features:
+      skills:
+        enabled: true
+        path: "~/.agents/skills/"
+        description: "Reusable capabilities for Goose"
+      rules:
+        enabled: true
+        path: ".config/goose/rtk-hints.md"
+        description: "Always-on rules and guidelines (.goosehints equivalent)"
+      permissions:
+        enabled: true
+        path: ".config/goose/config.yaml"
+        description: "Goose global extensions and permissions"
+
+# Feature definitions
+features:
+  agents:
+    description: "Autonomous AI agents for task execution"
+    example: "cockpit-builder agent"
+  skills:
+    description: "Reusable capabilities that agents can leverage"
+    example: "go-development skill"
+  rules:
+    description: "Always-on rules and guidelines"
+    example: "Project coding standards"
+  gold_rules:
+    description: "High-priority rules injected into provider global memory"
+    example: "Always use rtk prefix for terminal commands"
+  hooks:
+    description: "Lifecycle hooks for automation and policy enforcement"
+    example: "Command validation hook"
+  workflows:
+    description: "Workflow files and scripts"
+    example: "Continuous deployment steps"
+  permissions:
+    description: "Global permission grants ensuring cockpit commands run in all contexts"
+    example: "command(cockpit), command(make), command(git)"
