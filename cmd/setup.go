@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/lleitep3/aicockpit/internal/assets"
 	"github.com/lleitep3/aicockpit/internal/config"
 	"github.com/lleitep3/aicockpit/internal/i18n"
 	"github.com/lleitep3/aicockpit/internal/logging"
@@ -52,13 +53,7 @@ func runSetup(log *logging.Manager, cfg *config.Config, t *i18n.Translator) erro
 
 	cockpitDir := config.GetCockpitDir()
 
-	// Determine repository .cockpit source path
-	cockpitRepoPath := filepath.Join(filepath.Dir(os.Args[0]), "..", ".cockpit")
-	if _, err := os.Stat(cockpitRepoPath); err != nil {
-		cockpitRepoPath = filepath.Join(os.Getenv("HOME"), "projects", "aicockpit", ".cockpit")
-	}
-
-	if err := copyDirectory(cockpitRepoPath, cockpitDir); err != nil {
+	if err := assets.RestoreAssets(cockpitDir); err != nil {
 		fmt.Printf("✗ Failed to setup ~/.cockpit directory: %v\n", err)
 		return err
 	}
