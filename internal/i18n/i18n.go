@@ -106,8 +106,18 @@ func initMessages() map[string]map[string]string {
 			"caveman.on":               "Caveman mode: ON",
 			"caveman.off":              "Caveman mode: OFF",
 			"caveman.invalid":          "invalid action: %s. Use on, off, or status",
-			"info.packages":            "Installed Packages",
-			"info.no_packages":         "No packages installed",
+
+			// RTK
+			"rtk.enabled":           "RTK prefix rule enabled globally. Deploying changes...",
+			"rtk.disabled":          "RTK prefix rule disabled. Deploying changes...",
+			"rtk.already_disabled":  "RTK prefix rule is already disabled.",
+			"rtk.on":                "RTK mode: ON",
+			"rtk.off":               "RTK mode: OFF",
+			"rtk.invalid":           "invalid action: %s. Use on, off, or status",
+			"rtk.not_found_warning": "Warning: 'rtk' executable not found in $PATH. The rule will be applied, but ensure it is installed.",
+
+			"info.packages":    "Installed Packages",
+			"info.no_packages": "No packages installed",
 
 			// Doctor
 			"doctor.title":      "AICockpit Health Check",
@@ -161,6 +171,15 @@ func initMessages() map[string]map[string]string {
 			"caveman.on":               "Modo Caveman: ON",
 			"caveman.off":              "Modo Caveman: OFF",
 			"caveman.invalid":          "ação inválida: %s. Use on, off, ou status",
+
+			// RTK
+			"rtk.enabled":           "Regra global do prefixo RTK ativada. Atualizando providers...",
+			"rtk.disabled":          "Regra global do prefixo RTK desativada. Atualizando providers...",
+			"rtk.already_disabled":  "A regra global do RTK já está desativada.",
+			"rtk.on":                "Modo RTK: ON",
+			"rtk.off":               "Modo RTK: OFF",
+			"rtk.invalid":           "ação inválida: %s. Use on, off, ou status",
+			"rtk.not_found_warning": "Aviso: O executável 'rtk' não foi encontrado no $PATH. A regra será aplicada, mas certifique-se de instalá-lo.",
 
 			// Doctor
 			"doctor.title":      "Verificação de Saúde do AICockpit",
