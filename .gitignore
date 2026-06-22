@@ -1,15 +1,24 @@
 # Binaries
 bin/
+cockpit
 
 # Test coverage profiles
 *.out
+coverage.html
+
+# Local test artifacts
+*.gif
+*.frames.txt
+test_*.txt
+test_*.gif
 
 # Local logs
 cmd/logs/
 
-# Local/Generated IA files and directories
+# Local/Generated AI files and directories (provider-specific, auto-generated)
 .agents/
 .goosehints
+docs/CLAUDE.md
 
 # Local Gemini environment data
 .gemini/
