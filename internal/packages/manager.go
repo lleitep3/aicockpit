@@ -376,6 +376,38 @@ func (pm *PackageManager) SyncPackageAssets(pkg *Package, installPath string) er
 		}
 	}
 
+	// Sync KB features
+	for _, kb := range pkg.Features.KB {
+		src := filepath.Join(installPath, kb.Path)
+		dst := filepath.Join(pm.cockpitDir, "kb", "packages", pkg.Name, filepath.Base(kb.Path))
+
+		if _, err := os.Stat(src); os.IsNotExist(err) {
+			fmt.Printf("  ⚠ KB Asset not found, skipping: %s\n", kb.Path)
+			continue
+		}
+
+		if err := os.MkdirAll(filepath.Dir(dst), 0o755); err != nil {
+			return fmt.Errorf("failed to create kb asset dir %s: %w", filepath.Dir(dst), err)
+		}
+
+		// kb.Path can be a file or a directory. copyDir/copyFile based on stat
+		info, err := os.Stat(src)
+		if err != nil {
+			return fmt.Errorf("failed to stat kb asset %s: %w", src, err)
+		}
+		if info.IsDir() {
+			if err := pm.copyDir(src, dst); err != nil {
+				return fmt.Errorf("failed to sync kb asset %s: %w", kb.Path, err)
+			}
+		} else {
+			if err := copyFile(src, dst); err != nil {
+				return fmt.Errorf("failed to sync kb asset %s: %w", kb.Path, err)
+			}
+		}
+
+		fmt.Printf("  ✓ kb/packages/%s/%s synced to canonical dir\n", pkg.Name, filepath.Base(kb.Path))
+	}
+
 	// Inject gold_rules into ~/.cockpit/COCKPIT.md
 	if len(pkg.Features.GoldRules) > 0 {
 		cockpitMDPath := filepath.Join(pm.cockpitDir, "COCKPIT.md")
@@ -446,6 +478,17 @@ func (pm *PackageManager) RemovePackageAssets(pkg *Package) error {
 			}
 
 			fmt.Printf("  ✓ %s/%s removed from canonical dir\n", group.dir, f.Name)
+		}
+	}
+
+	// Remove KB features directory for this package
+	if len(pkg.Features.KB) > 0 {
+		dst := filepath.Join(pm.cockpitDir, "kb", "packages", pkg.Name)
+		if _, err := os.Stat(dst); !os.IsNotExist(err) {
+			if err := os.RemoveAll(dst); err != nil {
+				return fmt.Errorf("failed to remove kb package dir %s: %w", dst, err)
+			}
+			fmt.Printf("  ✓ kb/packages/%s removed from canonical dir\n", pkg.Name)
 		}
 	}
 
@@ -533,4 +576,17 @@ func (pm *PackageManager) copyDir(src, dst string) error {
 	}
 
 	return nil
+}
+
+// copyFile copies a single file from src to dst.
+func copyFile(src, dst string) error {
+	data, err := os.ReadFile(src)
+	if err != nil {
+		return err
+	}
+	info, err := os.Stat(src)
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(dst, data, info.Mode())
 }

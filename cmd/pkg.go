@@ -283,7 +283,8 @@ func NewPkgInstallCommand() *cobra.Command {
 			hasAssets := len(downloadedPkg.Features.Skills) > 0 ||
 				len(downloadedPkg.Features.Rules) > 0 ||
 				len(downloadedPkg.Features.Agents) > 0 ||
-				len(downloadedPkg.Features.Workflows) > 0
+				len(downloadedPkg.Features.Workflows) > 0 ||
+				len(downloadedPkg.Features.KB) > 0
 			if hasAssets {
 				fmt.Printf("\nSyncing assets to canonical dirs...\n")
 				if err := pm.SyncPackageAssets(downloadedPkg, installPath); err != nil {
@@ -387,7 +388,8 @@ func NewPkgUninstallCommand() *cobra.Command {
 			hasAssets := len(pkg.Features.Skills) > 0 ||
 				len(pkg.Features.Rules) > 0 ||
 				len(pkg.Features.Agents) > 0 ||
-				len(pkg.Features.Workflows) > 0
+				len(pkg.Features.Workflows) > 0 ||
+				len(pkg.Features.KB) > 0
 			if hasAssets {
 				fmt.Printf("\nRemoving assets from canonical dirs...\n")
 				if err := pm.RemovePackageAssets(pkg); err != nil {
