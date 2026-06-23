@@ -105,6 +105,88 @@ func (pm *PackageManager) GetInstalledPackage(packageName string) (*Package, err
 	return LoadPackage(installedPath)
 }
 
+// UpgradePackage upgrades an installed package from a new source directory.
+func (pm *PackageManager) UpgradePackage(packageName string, sourcePath string) error {
+	// Check if package exists
+	if !pm.PackageExists(packageName) {
+		return fmt.Errorf("package not found: %s", packageName)
+	}
+
+	// Get old package info
+	oldPkg, err := pm.GetInstalledPackage(packageName)
+	if err != nil {
+		return fmt.Errorf("failed to get old package info: %w", err)
+	}
+
+	installPath := pm.GetPackageInstallPath(packageName)
+
+	// Run pre_uninstall hooks
+	if len(oldPkg.Installation.PreUninstall) > 0 {
+		if err := pm.RunPackageHooks(installPath, oldPkg.Installation.PreUninstall); err != nil {
+			return fmt.Errorf("pre-uninstall hook failed during upgrade: %w", err)
+		}
+	}
+
+	// Remove old assets
+	if err := pm.RemovePackageAssets(oldPkg); err != nil {
+		return fmt.Errorf("failed to remove old assets: %w", err)
+	}
+
+	// Create backup
+	backupPath := filepath.Join(pm.cockpitDir, "backups", fmt.Sprintf("%s_%s_%s",
+		oldPkg.Name, oldPkg.Version, time.Now().Format("2006-01-02T15:04:05Z")))
+	if err := pm.backupPackage(installPath, backupPath); err != nil {
+		return fmt.Errorf("failed to create backup: %w", err)
+	}
+
+	// Remove old package directory
+	if err := os.RemoveAll(installPath); err != nil {
+		return fmt.Errorf("failed to remove old package directory: %w", err)
+	}
+
+	// Load new package manifest
+	newPkg, err := LoadPackage(sourcePath)
+	if err != nil {
+		return fmt.Errorf("failed to load new package manifest: %w", err)
+	}
+
+	// Run pre_install hooks from source
+	if len(newPkg.Installation.PreInstall) > 0 {
+		if err := pm.RunPackageHooks(sourcePath, newPkg.Installation.PreInstall); err != nil {
+			return fmt.Errorf("pre-install hook failed during upgrade: %w", err)
+		}
+	}
+
+	// Create install directory
+	if err := os.MkdirAll(installPath, 0o755); err != nil {
+		return fmt.Errorf("failed to create install directory: %w", err)
+	}
+
+	// Copy new files
+	if err := pm.copyPackageFiles(sourcePath, installPath); err != nil {
+		return fmt.Errorf("failed to copy new package files: %w", err)
+	}
+
+	// Save new manifest
+	if err := SavePackage(installPath, newPkg); err != nil {
+		return fmt.Errorf("failed to save new manifest: %w", err)
+	}
+
+	// Run post_install hooks from install path
+	if len(newPkg.Installation.PostInstall) > 0 {
+		if err := pm.RunPackageHooks(installPath, newPkg.Installation.PostInstall); err != nil {
+			return fmt.Errorf("post-install hook failed during upgrade: %w", err)
+		}
+	}
+
+	// Sync new assets
+	if err := pm.SyncPackageAssets(newPkg, installPath); err != nil {
+		return fmt.Errorf("failed to sync new assets: %w", err)
+	}
+
+	return nil
+}
+
 // ListInstalledPackages returns all installed packages.
 func (pm *PackageManager) ListInstalledPackages() ([]*Package, error) {
 	// Create packages directory if it doesn't exist
@@ -294,27 +376,44 @@ func (pm *PackageManager) SyncPackageAssets(pkg *Package, installPath string) er
 		}
 	}
 
-	// Write gold_rules to ~/.cockpit/rules/<pkg>-gold-rules.md
-	// Adapters read all *.md from the rules dir when compiling AGENTS.md / .goosehints,
-	// so this injects gold rules into every provider on the next `cockpit deploy`.
+	// Inject gold_rules into ~/.cockpit/COCKPIT.md
 	if len(pkg.Features.GoldRules) > 0 {
-		rulesDir := filepath.Join(pm.cockpitDir, "rules")
-		if err := os.MkdirAll(rulesDir, 0o755); err != nil {
-			return fmt.Errorf("failed to create rules dir: %w", err)
+		cockpitMDPath := filepath.Join(pm.cockpitDir, "COCKPIT.md")
+
+		// Create COCKPIT.md if it doesn't exist
+		if _, err := os.Stat(cockpitMDPath); os.IsNotExist(err) {
+			if err := os.MkdirAll(pm.cockpitDir, 0o755); err != nil {
+				return fmt.Errorf("failed to create cockpit dir: %w", err)
+			}
+			baseContent := "# AICockpit — AI Agent Configuration\n\nYou are an AI agent operating with the AICockpit harness.\nAlways use cockpit commands when available.\n\n## Gold Rules\n\nRules injected by installed packages — always follow these:\n\n"
+			if err := os.WriteFile(cockpitMDPath, []byte(baseContent), 0o644); err != nil {
+				return fmt.Errorf("failed to create base COCKPIT.md: %w", err)
+			}
 		}
 
-		var sb strings.Builder
-		sb.WriteString(fmt.Sprintf("# Gold Rules — %s\n\n", pkg.Name))
-		sb.WriteString("> These rules were injected by the `" + pkg.Name + "` package.\n\n")
-		for _, rule := range pkg.Features.GoldRules {
-			sb.WriteString("- " + rule + "\n")
+		data, err := os.ReadFile(cockpitMDPath)
+		if err != nil {
+			return fmt.Errorf("failed to read COCKPIT.md: %w", err)
 		}
 
-		goldRulesPath := filepath.Join(rulesDir, pkg.Name+"-gold-rules.md")
-		if err := os.WriteFile(goldRulesPath, []byte(sb.String()), 0o644); err != nil {
-			return fmt.Errorf("failed to write gold rules for %s: %w", pkg.Name, err)
+		content := string(data)
+		startMarker := fmt.Sprintf("<!-- gold-rule:%s -->", pkg.Name)
+		endMarker := fmt.Sprintf("<!-- /gold-rule:%s -->", pkg.Name)
+
+		if !strings.Contains(content, startMarker) {
+			var sb strings.Builder
+			sb.WriteString(startMarker + "\n")
+			for _, rule := range pkg.Features.GoldRules {
+				sb.WriteString(rule + "\n")
+			}
+			sb.WriteString(endMarker + "\n")
+
+			content += "\n" + sb.String()
+			if err := os.WriteFile(cockpitMDPath, []byte(content), 0o644); err != nil {
+				return fmt.Errorf("failed to write gold rules to COCKPIT.md: %w", err)
+			}
+			fmt.Printf("  ✓ gold_rules injected into COCKPIT.md\n")
 		}
-		fmt.Printf("  ✓ gold_rules written to rules/%s-gold-rules.md\n", pkg.Name)
 	}
 
 	return nil
@@ -350,13 +449,32 @@ func (pm *PackageManager) RemovePackageAssets(pkg *Package) error {
 		}
 	}
 
-	// Remove gold_rules file if it exists
-	goldRulesPath := filepath.Join(pm.cockpitDir, "rules", pkg.Name+"-gold-rules.md")
-	if _, err := os.Stat(goldRulesPath); err == nil {
-		if err := os.Remove(goldRulesPath); err != nil {
-			return fmt.Errorf("failed to remove gold rules for %s: %w", pkg.Name, err)
+	// Remove gold_rules from COCKPIT.md
+	cockpitMDPath := filepath.Join(pm.cockpitDir, "COCKPIT.md")
+	if data, err := os.ReadFile(cockpitMDPath); err == nil {
+		content := string(data)
+		startMarker := fmt.Sprintf("<!-- gold-rule:%s -->", pkg.Name)
+		endMarker := fmt.Sprintf("<!-- /gold-rule:%s -->", pkg.Name)
+
+		startIdx := strings.Index(content, startMarker)
+		endIdx := strings.Index(content, endMarker)
+
+		if startIdx != -1 && endIdx != -1 {
+			// Include the newline before and after if possible
+			endIdx += len(endMarker)
+			if endIdx < len(content) && content[endIdx] == '\n' {
+				endIdx++
+			}
+			if startIdx > 0 && content[startIdx-1] == '\n' {
+				startIdx--
+			}
+
+			newContent := content[:startIdx] + content[endIdx:]
+			if err := os.WriteFile(cockpitMDPath, []byte(newContent), 0o644); err != nil {
+				return fmt.Errorf("failed to remove gold rules from COCKPIT.md: %w", err)
+			}
+			fmt.Printf("  ✓ gold_rules removed from COCKPIT.md\n")
 		}
-		fmt.Printf("  ✓ gold_rules removed from rules/%s-gold-rules.md\n", pkg.Name)
 	}
 
 	return nil

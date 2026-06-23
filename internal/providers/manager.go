@@ -114,7 +114,38 @@ func (pm *ProviderManager) Deploy(providerName string, cockpitHomeDir string, pr
 			return fmt.Errorf("failed to create directory for %s: %w", destPath, err)
 		}
 
-		if err := os.WriteFile(destPath, []byte(content), 0o644); err != nil {
+		// Read existing file if it exists
+		existingContent := ""
+		if data, err := os.ReadFile(destPath); err == nil {
+			existingContent = string(data)
+		}
+
+		finalContent := content
+		baseName := filepath.Base(destPath)
+
+		// Only use markers for global entrypoint files to preserve user edits
+		if baseName == "AGENTS.md" || baseName == ".goosehints" {
+			startMarker := "<!-- cockpit:global -->"
+			endMarker := "<!-- /cockpit:global -->"
+
+			if existingContent != "" {
+				startIdx := strings.Index(existingContent, startMarker)
+				endIdx := strings.Index(existingContent, endMarker)
+
+				if startIdx != -1 && endIdx != -1 {
+					// Replace the block
+					finalContent = existingContent[:startIdx] + startMarker + "\n" + content + "\n" + endMarker + existingContent[endIdx+len(endMarker):]
+				} else {
+					// Append with markers
+					finalContent = existingContent + "\n\n" + startMarker + "\n" + content + "\n" + endMarker + "\n"
+				}
+			} else {
+				// Write new file with markers
+				finalContent = startMarker + "\n" + content + "\n" + endMarker + "\n"
+			}
+		}
+
+		if err := os.WriteFile(destPath, []byte(finalContent), 0o644); err != nil {
 			return fmt.Errorf("failed to write compiled file %s: %w", destPath, err)
 		}
 	}

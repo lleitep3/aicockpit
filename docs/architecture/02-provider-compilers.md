@@ -51,7 +51,7 @@ graph TD
 
 Todo provedor suportado implementa a interface `Compiler` (veja `compiler.go`). 
 
-1. **`CompileEntrypoint()`**: Injeta instruções globais invioláveis (ex: obrigatoriedade do uso do `rtk`).
+1. **`CompileEntrypoint()`**: Injeta instruções globais invioláveis oriundas do `COCKPIT.md`. A injeção é **segura**: utiliza marcadores HTML (`<!-- cockpit:global -->`) para anexar ou atualizar as regras sem sobrescrever configurações manuais feitas pelo usuário no arquivo de destino do provedor.
 2. **`CompileRules()`**: Faz o append das regras locais às regras globais da IA.
 3. **`CompileSkills()`**: Copia, faz _symlink_ ou adapta os skills canônicos.
 4. **`CompilePermissions()`**: Sincroniza configurações de segurança ou *sandboxing*.

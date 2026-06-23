@@ -94,10 +94,11 @@ func initMessages() map[string]map[string]string {
 			"setup.saved":    "Configuration saved to %s",
 
 			// Info
-			"info.title":       "AICockpit Information",
-			"info.dir":         "Cockpit Directory",
-			"info.config":      "Config File",
-			"info.log":         "Log File",
+			"info.title":  "AICockpit Information",
+			"info.dir":    "Cockpit Directory",
+			"info.config": "Config File",
+			"info.log":    "Log File",
+
 			"info.packages":    "Installed Packages",
 			"info.no_packages": "No packages installed",
 

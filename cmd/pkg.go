@@ -28,6 +28,7 @@ func NewPkgCommand() *cobra.Command {
 	cmd.AddCommand(NewPkgUninstallCommand())
 	cmd.AddCommand(NewPkgListCommand())
 	cmd.AddCommand(NewPkgRegistriesCommand())
+	cmd.AddCommand(NewPkgUpgradeCommand())
 
 	return cmd
 }
@@ -426,6 +427,116 @@ func NewPkgUninstallCommand() *cobra.Command {
 	}
 
 	cmd.Flags().BoolVar(&force, "force", false, "Force uninstallation")
+
+	return cmd
+}
+
+// NewPkgUpgradeCommand creates the pkg upgrade command.
+func NewPkgUpgradeCommand() *cobra.Command {
+	var (
+		source string
+		force  bool
+	)
+
+	cmd := &cobra.Command{
+		Use:   "upgrade <package>[@version]",
+		Short: "Upgrade a package",
+		Long:  "Upgrade a package to a specific version or the latest available version",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			packageSpec := args[0]
+
+			// Parse package name and version
+			parts := strings.Split(packageSpec, "@")
+			packageName := parts[0]
+			version := ""
+			if len(parts) > 1 {
+				version = parts[1]
+			}
+
+			// Load config
+			cfg, err := config.Load()
+			if err != nil {
+				return fmt.Errorf("failed to load config: %w", err)
+			}
+
+			cockpitDir := config.GetCockpitDir()
+			pm := packages.NewPackageManager(cockpitDir)
+
+			if !pm.PackageExists(packageName) {
+				return fmt.Errorf("package not installed: %s", packageName)
+			}
+
+			oldPkg, err := pm.GetInstalledPackage(packageName)
+			if err != nil {
+				return fmt.Errorf("failed to load installed package: %w", err)
+			}
+
+			fmt.Printf("Current version: %s\n", oldPkg.Version)
+
+			// Create registry manager
+			rm := packages.NewRegistryManager(cockpitDir)
+
+			// Get registries to search
+			var registriesToSearch []packages.RegistryConfig
+			if source != "" {
+				found := false
+				for _, reg := range cfg.PackageRegistries {
+					if reg.Name == source {
+						registriesToSearch = append(registriesToSearch, reg)
+						found = true
+						break
+					}
+				}
+				if !found {
+					return fmt.Errorf("registry not found: %s", source)
+				}
+			} else {
+				registriesToSearch = cfg.PackageRegistries
+			}
+
+			fmt.Printf("Searching for package: %s\n", packageName)
+			pkgEntry, registryName, err := rm.GetPackage(packageName, registriesToSearch)
+			if err != nil {
+				return fmt.Errorf("package not found in registry: %s", packageName)
+			}
+
+			if version != "" && pkgEntry.Version != version {
+				return fmt.Errorf("package version %s not found (available: %s)", version, pkgEntry.Version)
+			}
+
+			if pkgEntry.Version == oldPkg.Version && !force {
+				fmt.Printf("Package %s is already up to date (%s)\n", packageName, oldPkg.Version)
+				return nil
+			}
+
+			fmt.Printf("Upgrading to version: %s\n", pkgEntry.Version)
+
+			cache := packages.NewRegistryCache(config.GetCockpitDir())
+			packageCachePath, err := cache.GetPackageFromCache(registryName, packageName)
+			if err != nil {
+				return fmt.Errorf("failed to find package in cache: %w", err)
+			}
+
+			fmt.Printf("\nPerforming upgrade...\n")
+			if err := pm.UpgradePackage(packageName, packageCachePath); err != nil {
+				return fmt.Errorf("failed to upgrade package: %w", err)
+			}
+
+			fmt.Printf("✓ Package %s upgraded successfully to %s\n", packageName, pkgEntry.Version)
+
+			// Redeploy to active providers
+			fmt.Printf("\nRedeploying to active providers...\n")
+			if err := pm.TriggerDeploy(""); err != nil {
+				fmt.Printf("  ⚠ Deploy warning: %v\n", err)
+			}
+
+			return nil
+		},
+	}
+
+	cmd.Flags().StringVar(&source, "source", "", "Upgrade from specific registry")
+	cmd.Flags().BoolVar(&force, "force", false, "Force upgrade even if versions match")
 
 	return cmd
 }

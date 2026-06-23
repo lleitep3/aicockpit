@@ -581,7 +581,7 @@ func TestSyncPackageAssets_WritesGoldRules(t *testing.T) {
 		t.Fatalf("SyncPackageAssets failed: %v", err)
 	}
 
-	goldPath := filepath.Join(cockpitDir, "rules", "rtk-gold-rules.md")
+	goldPath := filepath.Join(cockpitDir, "COCKPIT.md")
 	data, err := os.ReadFile(goldPath)
 	if err != nil {
 		t.Fatalf("gold rules file not created: %v", err)
@@ -594,8 +594,8 @@ func TestSyncPackageAssets_WritesGoldRules(t *testing.T) {
 	if !strings.Contains(content, "Never run git without rtk prefix") {
 		t.Errorf("expected second gold rule in file, got:\n%s", content)
 	}
-	if !strings.Contains(content, "# Gold Rules") {
-		t.Errorf("expected section header in gold rules file, got:\n%s", content)
+	if !strings.Contains(content, "<!-- gold-rule:rtk -->") {
+		t.Errorf("expected marker in gold rules file, got:\n%s", content)
 	}
 }
 
@@ -642,7 +642,12 @@ func TestRemovePackageAssets_RemovesGoldRules(t *testing.T) {
 		t.Fatalf("RemovePackageAssets failed: %v", err)
 	}
 
-	if _, err := os.Stat(goldPath); !os.IsNotExist(err) {
-		t.Error("expected gold rules file to be removed after uninstall")
+	goldPath = filepath.Join(cockpitDir, "COCKPIT.md")
+	data, err := os.ReadFile(goldPath)
+	if err == nil {
+		content := string(data)
+		if strings.Contains(content, "Always prefix terminal commands with rtk") {
+			t.Errorf("expected gold rule to be removed, but still present")
+		}
 	}
 }
