@@ -48,13 +48,23 @@ sequenceDiagram
 ### 1. Download e Resolução
 O Gerenciador de Pacotes busca o pacote através dos **Registries** configurados (discutidos na etapa 04).
 
-### 2. Validação Canônica
-Os arquivos contidos no pacote são extraídos e movidos para o cache e a estrutura central do repositório `.cockpit/` (se for um pacote local).
+### 2. Validação Canônica e Gold Rules
+Os arquivos contidos no pacote são extraídos e movidos para o cache e a estrutura central do repositório `.cockpit/` (se for um pacote local). Caso o pacote exporte regras essenciais inegociáveis, o gerenciador as injeta na seção `## Gold Rules` do arquivo global `COCKPIT.md`, limitadas por demarcadores `<!-- gold-rule:pacote -->` (garantindo remoções limpas no futuro).
 
 ### 3. Acionamento de Hooks
-Pacotes podem trazer _scripts_ que executam ações antes ou depois da instalação (ex: instanciar um banco de dados de teste ou baixar um utilitário CLI extra que a IA precisará).
+Pacotes podem trazer _scripts_ que executam ações antes ou depois da instalação (`pre_install`, `post_install`), desinstalação ou atualização (ex: instanciar um banco de dados de teste ou baixar um utilitário CLI extra que a IA precisará).
 
 ### 4. Compilação Ativa
 Após validado, o `PackageManager` notifica o `ProviderManager` para forçar o re-deploy das rotinas de compilação. Isso garante que a IA reconheça a nova *Skill* (como o RTK) imediatamente após o comando terminar.
+
+## Atualizações de Pacotes (Upgrade)
+
+O ciclo de atualização (`cockpit pkg upgrade <nome>`) orquestra um fluxo robusto para garantir a estabilidade do ecosistema:
+1. Executa hooks de `pre_uninstall` da versão vigente.
+2. Limpa assests e Gold Rules antigos.
+3. Faz o download e extração da nova versão.
+4. Roda hooks `pre_install` da nova versão antes de alocar os arquivos.
+5. Injeta os novos assets, novas Gold Rules e executa `post_install`.
+6. Força a recompilação global via `ProviderManager`.
 
 > **Próximo Passo:** Agora que sabemos como pacotes instalam skills no sistema, como o Cockpit encontra e baixa esses pacotes? Continue para [04. Registros de Pacotes (Registries)](04-package-registries.md).

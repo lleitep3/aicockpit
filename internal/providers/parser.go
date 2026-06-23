@@ -41,9 +41,14 @@ func ParseCanonical(cockpitHomeDir string) (*CanonicalEntrypoint, []CanonicalSki
 func parseEntrypoint(homeDir string) (*CanonicalEntrypoint, error) {
 	entrypoint := &CanonicalEntrypoint{}
 
-	identityPath := filepath.Join(homeDir, "identity.md")
-	if data, err := os.ReadFile(identityPath); err == nil {
+	cockpitMDPath := filepath.Join(homeDir, "COCKPIT.md")
+	if data, err := os.ReadFile(cockpitMDPath); err == nil {
 		entrypoint.ProjectContext = strings.TrimSpace(string(data))
+	} else {
+		identityPath := filepath.Join(homeDir, "identity.md")
+		if data, err := os.ReadFile(identityPath); err == nil {
+			entrypoint.ProjectContext = strings.TrimSpace(string(data))
+		}
 	}
 
 	rulesDir := filepath.Join(homeDir, "rules")
