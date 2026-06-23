@@ -200,3 +200,73 @@ func TestDeploy_CompileErrors(t *testing.T) {
 	m.Deploy("antigravity", tmpDir, "")
 	m.Deploy("goose", tmpDir, "")
 }
+
+func TestDeploy_WithGlobalMarkers(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create canonical struct
+	os.MkdirAll(filepath.Join(tmpDir, "skills"), 0755)
+
+	readonlyDir := filepath.Join(tmpDir, "project")
+	os.MkdirAll(readonlyDir, 0755)
+
+	agentsPath := filepath.Join(readonlyDir, "AGENTS.md")
+	os.WriteFile(agentsPath, []byte("Existing Content\n"), 0644)
+
+	features := map[string]*FeatureConfig{
+		"entrypoint": {Path: "entry.md", Enabled: true},
+	}
+
+	cfg := &ProvidersConfig{
+		Providers: map[string]*Provider{
+			"mock": {Name: "mock", Enabled: true, Workspace: readonlyDir, Features: features},
+		},
+	}
+
+	pm := &ProviderManager{
+		config:    cfg,
+		compilers: make(map[string]Compiler),
+	}
+
+	// mock compiler
+	pm.compilers["mock"] = &mockCompiler{
+		name: "mock",
+		compileEntrypoint: func(ep *CanonicalEntrypoint, p *Provider) (map[string]string, error) {
+			return map[string]string{
+				"AGENTS.md": "New Global Content",
+			}, nil
+		},
+		compileSkills: func(skills []CanonicalSkill, p *Provider) (map[string]string, error) {
+			return nil, nil
+		},
+		compileRules: func(rules []CanonicalRule, p *Provider) (map[string]string, error) {
+			return nil, nil
+		},
+		compileWorkflows: func(workflows []CanonicalWorkflow, p *Provider) (map[string]string, error) {
+			return nil, nil
+		},
+		compilePermissions: func(perms *CanonicalPermissions, p *Provider) (map[string]string, error) {
+			return nil, nil
+		},
+	}
+
+	err := pm.Deploy("mock", tmpDir, readonlyDir)
+	if err != nil {
+		t.Fatalf("Deploy failed: %v", err)
+	}
+
+	content, err := os.ReadFile(agentsPath)
+	if err != nil {
+		t.Fatalf("failed to read agents: %v", err)
+	}
+
+	if !strings.Contains(string(content), "<!-- cockpit:global -->") {
+		t.Errorf("missing start marker in: %s", string(content))
+	}
+	if !strings.Contains(string(content), "New Global Content") {
+		t.Errorf("missing new content in: %s", string(content))
+	}
+	if !strings.Contains(string(content), "Existing Content") {
+		t.Errorf("missing existing content in: %s", string(content))
+	}
+}
