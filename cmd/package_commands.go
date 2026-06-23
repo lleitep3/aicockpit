@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -72,8 +73,20 @@ func createPackageCommand(pkg *packages.Package, packageName, packagePath string
 		Short: pkg.Description,
 		Long:  pkg.Description,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			// Silence usage so cobra doesn't print usage on package script failure
+			cmd.SilenceUsage = true
+
 			// Try to execute package command
-			return executePackageCommand(packageName, packagePath, args)
+			err := executePackageCommand(packageName, packagePath, args)
+			if err != nil {
+				var exitErr *exec.ExitError
+				if errors.As(err, &exitErr) {
+					// Propagate the original script's exit code transparently
+					os.Exit(exitErr.ExitCode())
+				}
+				return err
+			}
+			return nil
 		},
 	}
 }
@@ -139,6 +152,9 @@ func CreateDynamicCommand(commandName string) *cobra.Command {
 		Use:   commandName,
 		Short: fmt.Sprintf("Execute %s command from installed package", commandName),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			// Silence usage so cobra doesn't print usage on package script failure
+			cmd.SilenceUsage = true
+
 			// Find which package provides this command
 			cockpitDir := config.GetCockpitDir()
 			packagesDir := filepath.Join(cockpitDir, "packages")
@@ -158,7 +174,16 @@ func CreateDynamicCommand(commandName string) *cobra.Command {
 
 				// Check if this package has the command
 				if hasCommand(packagePath, commandName) {
-					return executePackageCommand(packageName, packagePath, args)
+					err := executePackageCommand(packageName, packagePath, args)
+					if err != nil {
+						var exitErr *exec.ExitError
+						if errors.As(err, &exitErr) {
+							// Propagate the original script's exit code transparently
+							os.Exit(exitErr.ExitCode())
+						}
+						return err
+					}
+					return nil
 				}
 			}
 
