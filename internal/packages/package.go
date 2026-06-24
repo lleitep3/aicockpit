@@ -42,6 +42,9 @@ type Package struct {
 	// Permissions
 	Permissions []string `yaml:"permissions,omitempty"`
 
+	// Extensions
+	Extensions map[string]map[string]string `yaml:"extensions,omitempty"`
+
 	// Metadata
 	Metadata Metadata `yaml:"metadata,omitempty"`
 }

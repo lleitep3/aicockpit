@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"path/filepath"
@@ -9,6 +10,7 @@ import (
 	"github.com/lleitep3/aicockpit/internal/i18n"
 	"github.com/lleitep3/aicockpit/internal/kb"
 	"github.com/lleitep3/aicockpit/internal/logging"
+	"github.com/lleitep3/aicockpit/internal/packages"
 	"github.com/spf13/cobra"
 )
 
@@ -36,6 +38,8 @@ func NewKBCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translator) 
 func NewKBSearchCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translator) *cobra.Command {
 	var format string
 	var limit int
+	var useGraphify bool
+	var forceBM25 bool
 
 	searchCmd := &cobra.Command{
 		Use:   "search <query>",
@@ -44,6 +48,19 @@ func NewKBSearchCommand(log *logging.Manager, cfg *config.Config, t *i18n.Transl
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			query := args[0]
+
+			pm := packages.NewPackageManager(config.GetCockpitDir())
+			if !forceBM25 {
+				ctx := cmd.Context()
+				if ctx == nil {
+					ctx = context.Background()
+				}
+				res, err := kb.RunSearchExtensions(ctx, pm, query)
+				if err == nil {
+					fmt.Println(res)
+					return nil
+				}
+			}
 
 			// Get KB roots from config
 			roots := cfg.KB.Roots
@@ -89,6 +106,8 @@ func NewKBSearchCommand(log *logging.Manager, cfg *config.Config, t *i18n.Transl
 
 	searchCmd.Flags().StringVar(&format, "format", "default", "Output format (default, json, table)")
 	searchCmd.Flags().IntVar(&limit, "limit", 10, "Maximum number of results")
+	searchCmd.Flags().BoolVar(&useGraphify, "graphify", false, "Use Graphify for semantic search (default if installed)")
+	searchCmd.Flags().BoolVar(&forceBM25, "bm25", false, "Force BM25 search (disable Graphify even if installed)")
 
 	return searchCmd
 }
@@ -240,6 +259,20 @@ func NewKBRootAddCommand(log *logging.Manager, cfg *config.Config, t *i18n.Trans
 			}
 
 			fmt.Printf("Added knowledge base root: %s\n", rootPath)
+
+			fmt.Println("Rebuilding index automatically...")
+			err = manager.RebuildIndex()
+			if err != nil {
+				fmt.Printf("Warning: failed to rebuild BM25 index: %v\n", err)
+			}
+
+			pm := packages.NewPackageManager(config.GetCockpitDir())
+			ctx := cmd.Context()
+			if ctx == nil {
+				ctx = context.Background()
+			}
+			_ = kb.RunIndexExtensions(ctx, pm, cfg.KB.Roots, false)
+
 			return nil
 		},
 	}
@@ -310,10 +343,13 @@ func NewKBRootListCommand(log *logging.Manager, cfg *config.Config, t *i18n.Tran
 
 // NewKBRebuildCacheCommand creates the kb rebuild-cache subcommand.
 func NewKBRebuildCacheCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translator) *cobra.Command {
+	var runExtensions bool
+	var fastExtensions bool
 	rebuildCmd := &cobra.Command{
-		Use:   "rebuild-cache",
-		Short: "Rebuild the knowledge base index cache",
-		Long:  "Rebuild the knowledge base index cache from all configured roots",
+		Use:     "rebuild-cache",
+		Aliases: []string{"index"},
+		Short:   "Rebuild the knowledge base index cache",
+		Long:    "Rebuild the knowledge base index cache from all configured roots",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Get KB roots from config
 			roots := cfg.KB.Roots
@@ -344,9 +380,21 @@ func NewKBRebuildCacheCommand(log *logging.Manager, cfg *config.Config, t *i18n.
 			fmt.Println("Knowledge base index rebuilt successfully")
 			fmt.Printf("Last updated: %s\n", lastUpdate.Format("2006-01-02 15:04:05"))
 
+			if runExtensions {
+				pm := packages.NewPackageManager(config.GetCockpitDir())
+				ctx := cmd.Context()
+				if ctx == nil {
+					ctx = context.Background()
+				}
+				_ = kb.RunIndexExtensions(ctx, pm, roots, fastExtensions)
+			}
+
 			return nil
 		},
 	}
+
+	rebuildCmd.Flags().BoolVar(&runExtensions, "extensions", true, "Run external package index extensions")
+	rebuildCmd.Flags().BoolVar(&fastExtensions, "fast", false, "Run index extensions in fast mode")
 
 	return rebuildCmd
 }

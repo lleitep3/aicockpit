@@ -1,0 +1,41 @@
+name: video
+version: 0.1.0
+description: "Video processing utilities for token optimization"
+author: "AICockpit"
+license: "MIT"
+type: plugin
+
+requirements:
+  cockpit: ">=0.1.0"
+
+features:
+  modules:
+    - path: bin/video
+      name: video
+      description: "Commands to process and slice video files"
+  skills:
+    - path: skills/video-slice
+      name: video-slice
+      description: "Slices video files into images for cost-effective analysis"
+  rules:
+    - path: rules/video-processing.md
+      name: video-processing
+      description: "Rule enforcing video slicing for token savings"
+
+installation:
+  type: local
+  method: copy
+  supported_providers:
+    - antigravity
+    - devin
+    - goose
+  provider_features:
+    antigravity:
+      - skills/video-slice
+      - rules/video-processing
+    devin:
+      - skills/video-slice
+      - rules/video-processing
+    goose:
+      - skills/video-slice
+      - rules/video-processing

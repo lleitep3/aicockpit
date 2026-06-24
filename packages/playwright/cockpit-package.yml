@@ -1,0 +1,22 @@
+name: pkg-playwright
+version: 0.1.0
+description: "Native Playwright integration for AICockpit"
+author: "AICockpit"
+license: "MIT"
+type: plugin
+
+requirements:
+  cockpit: ">=0.1.0"
+  node: ">=18.0.0"
+
+features:
+  modules:
+    - path: bin/playwright
+      name: playwright
+      description: "Playwright Automation Server"
+
+installation:
+  type: local
+  method: copy
+  hooks:
+    post-install: "npm install"

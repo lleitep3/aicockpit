@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -29,6 +30,8 @@ func NewPkgCommand() *cobra.Command {
 	cmd.AddCommand(NewPkgListCommand())
 	cmd.AddCommand(NewPkgRegistriesCommand())
 	cmd.AddCommand(NewPkgUpgradeCommand())
+	cmd.AddCommand(NewPkgConfigureCommand())
+	cmd.AddCommand(NewPkgValidateCommand())
 
 	return cmd
 }
@@ -679,4 +682,87 @@ func copyFile(src, dst string) error {
 	}
 
 	return nil
+}
+
+// NewPkgConfigureCommand creates the pkg configure command.
+func NewPkgConfigureCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "configure <package>",
+		Short: "Configure an installed package",
+		Long:  "Run the configuration script for an installed package.",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			packageName := args[0]
+			cockpitDir := config.GetCockpitDir()
+			pm := packages.NewPackageManager(cockpitDir)
+
+			if !pm.PackageExists(packageName) {
+				return fmt.Errorf("package not installed: %s", packageName)
+			}
+
+			// Path to configure script
+			scriptPath := filepath.Join(pm.GetPackageInstallPath(packageName), "bin", "configure")
+			if _, err := os.Stat(scriptPath); os.IsNotExist(err) {
+				return fmt.Errorf("package %s does not implement a 'configure' script", packageName)
+			}
+
+			fmt.Printf("Configuring package: %s\n", packageName)
+
+			// Execute script interactively
+			execCmd := exec.Command(scriptPath)
+			execCmd.Stdin = os.Stdin
+			execCmd.Stdout = os.Stdout
+			execCmd.Stderr = os.Stderr
+
+			if err := execCmd.Run(); err != nil {
+				return fmt.Errorf("configuration failed: %w", err)
+			}
+
+			fmt.Println("Configuration complete.")
+			return nil
+		},
+	}
+
+	return cmd
+}
+
+// NewPkgValidateCommand creates the pkg validate command.
+func NewPkgValidateCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "validate <package>",
+		Short: "Validate an installed package configuration",
+		Long:  "Run the validation script for an installed package to ensure it is correctly configured.",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			packageName := args[0]
+			cockpitDir := config.GetCockpitDir()
+			pm := packages.NewPackageManager(cockpitDir)
+
+			if !pm.PackageExists(packageName) {
+				return fmt.Errorf("package not installed: %s", packageName)
+			}
+
+			// Path to validate script
+			scriptPath := filepath.Join(pm.GetPackageInstallPath(packageName), "bin", "validate")
+			if _, err := os.Stat(scriptPath); os.IsNotExist(err) {
+				return fmt.Errorf("package %s does not implement a 'validate' script", packageName)
+			}
+
+			fmt.Printf("Validating package: %s\n", packageName)
+
+			// Execute script
+			execCmd := exec.Command(scriptPath)
+			execCmd.Stdout = os.Stdout
+			execCmd.Stderr = os.Stderr
+
+			if err := execCmd.Run(); err != nil {
+				return fmt.Errorf("validation failed: %w", err)
+			}
+
+			fmt.Println("Validation successful.")
+			return nil
+		},
+	}
+
+	return cmd
 }

@@ -1,0 +1,13 @@
+{
+  "name": "pkg-playwright",
+  "version": "0.1.0",
+  "description": "Native Playwright integration for AICockpit",
+  "main": "bin/playwright",
+  "scripts": {
+    "start": "node bin/playwright start"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "playwright": "^1.50.1"
+  }
+}

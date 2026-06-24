@@ -1,0 +1,25 @@
+name: kb-graphify
+version: 0.1.0
+description: "Knowledge Base Integration with Graphify (Local LLM semantic graphs)"
+author: "AICockpit"
+license: "MIT"
+type: plugin
+
+requirements:
+  cockpit: ">=0.1.0"
+
+installation:
+  type: local
+  method: copy
+  post_install:
+    - script: "uv tool install \"graphifyy[all]\" --force"
+      description: "Install the graphifyy python package globally using uv"
+
+features:
+  modules:
+    - path: "bin/configure"
+      name: "configure"
+      description: "Interactive setup for provider and tokens"
+    - path: "bin/validate"
+      name: "validate"
+      description: "Verifies configuration"

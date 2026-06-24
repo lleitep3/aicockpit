@@ -55,7 +55,9 @@
       "Exec(go tool)",
       "Exec(git checkout)",
       "Exec(go build)",
-      "Exec(cp)"
+      "Exec(cp)",
+      "Exec(git remote)",
+      "Exec(rtk gh)"
     ]
   }
 }
