@@ -70,11 +70,13 @@ uninstall:
 	@echo "✓ Uninstalled from $(INSTALL_PATH)"
 
 install-hooks:
-	@echo "Installing git pre-commit hooks..."
+	@echo "Installing git hooks..."
 	@mkdir -p .git/hooks
 	@cp scripts/pre-commit .git/hooks/pre-commit
 	@chmod +x .git/hooks/pre-commit
-	@echo "✓ Pre-commit hook installed"
-	@echo "Hooks will run on every commit to validate code quality"
+	@cp scripts/pre-push .git/hooks/pre-push
+	@chmod +x .git/hooks/pre-push
+	@echo "✓ Git hooks installed"
+	@echo "Commit hooks will run on every commit. Push hooks will validate security before pushing."
 
 .DEFAULT_GOAL := help
