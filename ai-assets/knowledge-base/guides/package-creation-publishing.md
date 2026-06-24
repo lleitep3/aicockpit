@@ -100,18 +100,27 @@ esac
 
 ---
 
-## 3. Desenvolvimento e Testes Locais (Análise de Falhas)
+## 3. Desenvolvimento e Testes Locais (Local Registry Staging)
+
+### Onde desenvolver novos pacotes?
+Sempre que for criar ou desenvolver um pacote novo para o Cockpit, você **DEVE** criá-lo dentro da pasta padrão de staging do local registry:
+`~/.cockpit/local-registry/<nome-do-pacote>/`
+
+Esta pasta centraliza todo o desenvolvimento de novas extensões.
 
 ### Por que `cockpit pkg install` local falha?
-O comando `cockpit pkg install` busca o pacote no índice cache da registry remota (GitHub). Ele **não** resolve caminhos locais de pacotes em desenvolvimento diretamente, a menos que o pacote já esteja indexado e atualizado na registry remota.
+O comando `cockpit pkg install` busca o pacote no índice cache de registries registradas (como o GitHub). Ele **não** resolve caminhos locais diretamente para instalação direta, por isso desenvolvemos no `local-registry`.
 
 ### Protocolo de Teste Local:
-Para desenvolver e testar um pacote localmente sem publicá-lo:
-1. Copie a pasta do pacote diretamente para o diretório de pacotes instalados:
-   `cp -r packages/nome-do-pacote ~/.cockpit/packages/`
-2. Copie manualmente os assets do pacote (skills, rules) para as pastas canônicas correspondentes para simular o comportamento de instalação:
-   `cp -r packages/nome-do-pacote/skills/* ~/.cockpit/skills/`
-   `cp packages/nome-do-pacote/rules/* ~/.cockpit/rules/`
+Para desenvolver, testar e rodar o pacote localmente antes da publicação:
+1. Crie e edite os arquivos do seu pacote diretamente em:
+   `~/.cockpit/local-registry/nome-do-pacote/`
+2. Para que o Cockpit carregue o pacote no CLI local e sincronize seus assets:
+   * Copie a pasta para o diretório de pacotes instalados:
+     `cp -r ~/.cockpit/local-registry/nome-do-pacote ~/.cockpit/packages/`
+   * Copie os assets (skills/rules) para as pastas canônicas correspondentes:
+     `cp -r ~/.cockpit/local-registry/nome-do-pacote/skills/* ~/.cockpit/skills/`
+     `cp ~/.cockpit/local-registry/nome-do-pacote/rules/* ~/.cockpit/rules/`
 3. Execute o comando de compilação dos provedores para atualizar as regras nos workspaces locais:
    `cockpit deploy`
 4. Teste a execução do comando CLI (ex: `cockpit video slice`).
@@ -120,11 +129,13 @@ Para desenvolver e testar um pacote localmente sem publicá-lo:
 
 ## 4. Publicação no Registry
 
-A registry oficial do cockpit fica em `/home/lleite/projects/cockpit-registry`. O processo de publicação segue o seguinte fluxo:
+Todo pacote desenvolvido no `local-registry` (`~/.cockpit/local-registry/`) pode ser publicado na registry de sua preferência. No nosso caso, publicamos no repositório oficial `cockpit-registry` (localizado em `/home/lleite/projects/cockpit-registry`).
+
+O processo de publicação a partir do `local-registry` segue o seguinte fluxo:
 
 1. **Nova Feature Branch**: Nunca envie commits diretamente para a branch `main`. Crie uma branch de trabalho no repositório `cockpit-registry`:
    `git checkout -b feature/pkg-nome-do-pacote`
-2. **Copiar os arquivos**: Copie o diretório do seu pacote para a raiz do repositório da registry.
+2. **Copiar os arquivos**: Copie o diretório do seu pacote de `~/.cockpit/local-registry/nome-do-pacote` para a raiz do repositório da registry.
 3. **Atualizar o Índice (`package-index.yaml`)**: Insira a entrada de metadados do seu pacote no final da lista:
    ```yaml
      - name: "video"

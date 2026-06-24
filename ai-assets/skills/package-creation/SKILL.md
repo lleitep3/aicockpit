@@ -17,7 +17,7 @@ Ative esta habilidade sempre que o desenvolvedor solicitar:
 ## Passo a Passo para Desenvolvimento
 
 1. **Desenhar a Estrutura**:
-   * Crie a pasta do pacote em `packages/<nome-do-pacote>`.
+   * Crie a pasta do pacote em `~/.cockpit/local-registry/<nome-do-pacote>`. **MANDATÓRIO**: Todo desenvolvimento e staging local de novos pacotes deve ser iniciado lá.
    * Crie o manifesto `cockpit-package.yml` especificando os metadados, features do módulo, regras, skills e os provedores de IA suportados.
    * Coloque os executáveis em `bin/` e as habilidades em `skills/`.
 
@@ -32,12 +32,13 @@ Ative esta habilidade sempre que o desenvolvedor solicitar:
 
 4. **Testes Locais (Não use `pkg install`!)**:
    * Devido à restrição de registros no cache remoto, **não** utilize `cockpit pkg install` para testar pacotes em desenvolvimento local.
-   * Em vez disso, copie a pasta do pacote diretamente para `~/.cockpit/packages/` e seus assets para as pastas de skills/rules correspondentes.
+   * Em vez disso, copie a pasta do seu pacote local de `~/.cockpit/local-registry/<nome-do-pacote>` diretamente para `~/.cockpit/packages/` e seus assets para as pastas de skills/rules correspondentes.
    * Atualize os workspaces com `cockpit deploy`.
 
 5. **Publicação**:
    * Crie uma feature branch no repositório `cockpit-registry`.
-   * Registre o novo pacote no arquivo global `package-index.yaml` e faça o push.
+   * Copie o diretório do pacote de `~/.cockpit/local-registry/<nome-do-pacote>` para a raiz da registry.
+   * Registre o novo pacote no arquivo global `package-index.yaml` e envie as alterações.
 
 ## Referências Úteis
 * Para detalhes arquiteturais e configuração avançada, leia o guia na Base de Conhecimento: [package-creation-publishing.md](file:///home/lleite/projects/aicockpit/ai-assets/knowledge-base/guides/package-creation-publishing.md) ou no padrão `~/.cockpit/kb/guides/package-creation-publishing.md`.
