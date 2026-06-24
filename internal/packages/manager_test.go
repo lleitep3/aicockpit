@@ -374,6 +374,7 @@ func TestSyncPackageAssets_CopiesAllAssetTypes(t *testing.T) {
 		"rules/my-rule",
 		"agents/my-agent",
 		"workflows/my-flow",
+		"kb/my-kb",
 	}
 	for _, d := range assetDirs {
 		dir := filepath.Join(installPath, d)
@@ -392,6 +393,7 @@ func TestSyncPackageAssets_CopiesAllAssetTypes(t *testing.T) {
 			Rules:     []Feature{{Path: "rules/my-rule", Name: "my-rule"}},
 			Agents:    []Feature{{Path: "agents/my-agent", Name: "my-agent"}},
 			Workflows: []Feature{{Path: "workflows/my-flow", Name: "my-flow"}},
+			KB:        []KBFeature{{Path: "kb/my-kb/SKILL.md", Type: "guide"}},
 		},
 	}
 
@@ -404,6 +406,7 @@ func TestSyncPackageAssets_CopiesAllAssetTypes(t *testing.T) {
 		filepath.Join(cockpitDir, "rules", "my-rule", "SKILL.md"),
 		filepath.Join(cockpitDir, "agents", "my-agent", "SKILL.md"),
 		filepath.Join(cockpitDir, "workflows", "my-flow", "SKILL.md"),
+		filepath.Join(cockpitDir, "kb", "packages", "test-pkg", "SKILL.md"),
 	}
 	for _, p := range expected {
 		if _, err := os.Stat(p); err != nil {

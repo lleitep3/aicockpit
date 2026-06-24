@@ -69,9 +69,10 @@ func createPackageCommand(pkg *packages.Package, packageName, packagePath string
 	commandName := getPackageCommandName(pkg, packageName)
 
 	return &cobra.Command{
-		Use:   commandName,
-		Short: pkg.Description,
-		Long:  pkg.Description,
+		Use:                commandName,
+		Short:              pkg.Description,
+		Long:               pkg.Description,
+		DisableFlagParsing: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Silence usage so cobra doesn't print usage on package script failure
 			cmd.SilenceUsage = true

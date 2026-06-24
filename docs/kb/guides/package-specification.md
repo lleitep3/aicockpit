@@ -428,6 +428,20 @@ A valid package must have:
 7. ✅ Valid provider support
 8. ✅ Valid dependency versions
 
+## CLI Package Requirements
+
+If a package defines **Modules** (CLI Commands), it **MUST** implement the following interface in its `bin/` directory:
+
+1. `bin/configure`: An executable script that prompts the user to input any necessary configuration (e.g. API keys, base URLs). Secrets must be stored securely using `cockpit vault set <key>`.
+2. `bin/validate`: An executable script that verifies whether the package is properly configured (e.g., checking if the required vault keys exist using `cockpit vault get <key>`) and returns a non-zero exit code if invalid.
+
+Example `bin/configure`:
+```bash
+#!/bin/bash
+read -p "Enter API Key: " API_KEY
+cockpit vault set my-pkg.api-key --value "$API_KEY"
+```
+
 ## Installation Process
 
 When installing a package:
@@ -594,6 +608,10 @@ features:
   modules:
     - path: "modules/cmd.go"
       name: "html-build"
+    - path: "bin/configure"
+      name: "configure"
+    - path: "bin/validate"
+      name: "validate"
   
   kb:
     - path: "kb/guides/getting-started.md"
