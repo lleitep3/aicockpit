@@ -2,6 +2,8 @@ module github.com/lleitep3/aicockpit
 
 go 1.26
 
+toolchain go1.26.4
+
 require (
 	github.com/danieljoos/wincred v1.2.3 // indirect
 	github.com/deckarep/golang-set/v2 v2.8.0 // indirect
