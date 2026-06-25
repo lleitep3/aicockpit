@@ -169,10 +169,22 @@ For more details, see [Quick Start Guide](docs/QUICK_START.md).
   - View logs for specific date
   - Check log file details
 
+### Security & Secrets
+
+- **`cockpit vault set`** - Store a secret securely
+  - Interactive mode (hidden input)
+  - Direct mode with `--value` flag
+
+- **`cockpit vault get`** - Retrieve a secret
+  - Print to stdout for use in scripts
+  - Secure retrieval from OS keyring
+
+- **`cockpit vault remove`** - Remove a secret
+  - Delete securely stored credentials
+
 ### Planned Commands
 
 - **`cockpit pkg`** - Package management
-- **`cockpit vault`** - Secret management
 - **`cockpit agents`** - Manage AI agents
 - **`cockpit skills`** - Manage skills
 - **`cockpit rules`** - Manage rules
@@ -379,7 +391,7 @@ For issues, questions, or suggestions:
 
 ### Phase 2 (In Progress)
 
-- [ ] Vault system (keyring integration)
+- ✅ Vault system (keyring integration)
 - [ ] Package management
 - [ ] Command execution with logging
 - [ ] Knowledge base search

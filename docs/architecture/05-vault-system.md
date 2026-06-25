@@ -39,13 +39,109 @@ sequenceDiagram
 
 O AICockpit expõe a interface do Vault via CLI:
 - `cockpit vault set <chave>`: Grava um segredo. A senha será inserida de forma invisível.
+- `cockpit vault set <chave> --value "valor"`: Grava um segredo diretamente (deixa rastros no histórico do shell).
 - `cockpit vault get <chave>`: Lê e imprime o segredo (útil em automações).
 - `cockpit vault remove <chave>`: Exclui a chave do cofre.
+
+### Exemplos de Uso
+
+```bash
+# Armazenar chave de API (modo interativo - recomendado)
+cockpit vault set openai_api_key
+Enter secret for 'openai_api_key': [input invisível]
+
+# Armazenar chave de API (modo direto - cuidado com histórico)
+cockpit vault set openai_api_key --value "sk-proj-..."
+
+# Recuperar chave para uso em scripts
+API_KEY=$(cockpit vault get openai_api_key)
+
+# Remover chave não utilizada
+cockpit vault remove old_api_key
+```
 
 ## Padrões de Segurança
 
 1. **Namespace Fixo:** O serviço é registrado sob o namespace estrito `aicockpit`, isolando os tokens de outras credenciais do sistema.
 2. **Integração sem Eco:** A CLI previne que chaves longas e sensíveis apareçam no terminal durante o momento da inserção.
 3. **Mock em CI/CD:** A arquitetura suporta um modo simulado (`keyring.MockInit`) para executar testes automatizados transparentes no GitHub Actions.
+4. **Validação de Input:** O sistema valida que valores vazios não são aceitos, evitando armazenamento incorreto.
+5. **Tratamento de Erros:** Erros são encapsulados com informações contextuais sem vazar dados sensíveis.
+
+## Detalhes de Implementação
+
+### Estrutura do Código
+
+```
+internal/vault/vault.go          - Interface Manager e implementação OSVault
+internal/vault/vault_test.go     - Testes unitários com mock
+cmd/vault.go                     - Comandos CLI (set, get, remove)
+cmd/vault_test.go                - Testes de integração CLI
+```
+
+### Interface Manager
+
+```go
+type Manager interface {
+    Set(key string, value string) error
+    Get(key string) (string, error)
+    Delete(key string) error
+}
+```
+
+### Dependências
+
+- `github.com/zalando/go-keyring`: Biblioteca para acesso ao keyring do sistema operacional
+- `golang.org/x/term`: Para input de senha invisível no modo interativo
+
+## Troubleshooting
+
+### Erro: "secret not found in keyring"
+
+**Causa:** A chave não existe no vault.
+
+**Solução:** Verifique se a chave foi armazenada corretamente.
+```bash
+# Tente recuperar a chave
+cockpit vault get sua_chave
+```
+
+### Erro: "inappropriate ioctl for device"
+
+**Causa:** O terminal não suporta input interativo (ex: scripts ou CI/CD).
+
+**Solução:** Use a flag `--value` em vez do modo interativo.
+```bash
+cockpit vault set sua_chave --value "seu_valor"
+```
+
+### Erro: "failed to save secret to vault"
+
+**Causa:** Problemas com o keyring do sistema operacional.
+
+**Solução:**
+- **Linux:** Verifique se `gnome-keyring` ou `kwallet` está instalado e rodando
+- **macOS:** Verifique as permissões do Keychain Access
+- **Windows:** Verifique se o Credential Manager está funcionando
+
+## Testes
+
+### Executar Testes
+
+```bash
+# Testes do pacote vault
+go test ./internal/vault/... -v
+
+# Testes dos comandos CLI
+go test ./cmd/vault_test.go ./cmd/vault.go -v
+```
+
+### Cobertura de Testes
+
+- ✅ Set/Get/Delete básico
+- ✅ Tratamento de erros (chave inexistente)
+- ✅ Validação de valor vazio
+- ✅ Integração CLI completa
+- ✅ Modo interativo e direto
 
 > **Próximo Passo:** Entenda como as informações são guardadas e interligadas no AICockpit lendo o [06. Base de Conhecimento (Knowledge Base)](06-knowledge-base.md).

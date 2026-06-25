@@ -10,7 +10,7 @@ func TestOSVault(t *testing.T) {
 	// Enable mock keyring for testing to avoid OS prompts or failures in CI
 	keyring.MockInit()
 
-	v := NewOSVault()
+	v := newOSVault()
 	key := "test_api_key"
 	value := "super_secret_value"
 

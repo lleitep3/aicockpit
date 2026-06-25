@@ -57,7 +57,20 @@
       "Exec(go build)",
       "Exec(cp)",
       "Exec(git remote)",
-      "Exec(rtk gh)"
+      "Exec(rtk gh)",
+      "Exec(rtk cockpit)",
+      "Exec(rtk go)",
+      "Exec(secret-tool search)",
+      "Exec(rtk ps)",
+      "Exec(rtk which)",
+      "Exec(rtk echo)",
+      "Exec(rtk ls)",
+      "Exec(rtk)",
+      "Exec(/tmp/test_unlock.sh)",
+      "Exec(timeout)",
+      "Exec(/tmp/test_vault_complete.sh)",
+      "Exec(cockpit vault)",
+      "Exec(/tmp/test_simple.sh)"
     ]
   }
 }
