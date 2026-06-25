@@ -7,12 +7,14 @@ import (
 	"github.com/lleitep3/aicockpit/internal/vault"
 )
 
-// Exemplo simples de como uma aplicação Go usaria o vault
+// Exemplo de como uma aplicação Go usaria o vault com PackageVault
+// PackageVault fornece isolamento automático via namespace
 func main() {
-	fmt.Println("=== Exemplo de Uso do Vault AICockpit ===")
+	fmt.Println("=== Exemplo de Uso do Vault AICockpit com PackageVault ===")
 
-	// Criar instância do vault
-	v := vault.NewOSVault()
+	// Criar vault para este pacote (namespace automático)
+	// O nome do pacote é sanitizado automaticamente
+	v := vault.NewPackageVault("meu-app-exemplo")
 
 	// Exemplo 1: Recuperar um secret existente
 	fmt.Println("1. Recuperando secret do vault...")
@@ -26,7 +28,7 @@ func main() {
 		if err != nil {
 			log.Fatalf("Erro ao criar secret de teste: %v", err)
 		}
-		fmt.Println("   ✓ Secret de teste criado")
+		fmt.Println("   ✓ Secret de teste criado no namespace 'meu-app-exemplo'")
 
 		// Tentar recuperar novamente
 		apiKey, err = v.Get("test_api_key")
@@ -36,6 +38,7 @@ func main() {
 	}
 
 	fmt.Printf("   ✓ API Key recuperada: %s...%s\n", apiKey[:10], apiKey[len(apiKey)-4:])
+	fmt.Println("   ✓ (Namespace: meu-app-exemplo)")
 
 	// Exemplo 2: Usar o secret em uma "chamada de API" simulada
 	fmt.Println("\n2. Simulando chamada de API com o secret...")
@@ -57,13 +60,18 @@ func main() {
 
 	// Limpar: remover secret de teste
 	fmt.Println("\n4. Limpando secret de teste...")
-	err = v.Delete("test_api_key")
+	err = v.Remove("test_api_key")
 	if err != nil {
 		log.Printf("Aviso: Erro ao remover secret de teste: %v", err)
 	} else {
-		fmt.Println("   ✓ Secret de teste removido")
+		fmt.Println("   ✓ Secret de teste removido do namespace 'meu-app-exemplo'")
 	}
 
+	fmt.Println("\n=== Benefícios do PackageVault ===")
+	fmt.Println("✓ Namespace automático baseado no nome do pacote")
+	fmt.Println("✓ Isolamento entre pacotes (cross-namespace bloqueado)")
+	fmt.Println("✓ Bypassa lock/unlock (namespace fornece isolamento)")
+	fmt.Println("✓ Sem necessidade de master password para pacotes")
 	fmt.Println("\n=== Exemplo concluído ===")
 }
 

@@ -178,6 +178,21 @@ config = {
 }
 ```
 
+### Padrão 5: Pacotes Go (Recomendado)
+```go
+// Usar PackageVault helper para isolamento automático
+import "github.com/lleitep3/aicockpit/internal/vault"
+
+vault := vault.NewPackageVault("meu-pacote")
+apiKey, _ := vault.Get("api-key")
+```
+
+**Benefícios do PackageVault:**
+- ✅ Namespace automático baseado no nome do pacote
+- ✅ Bypassa lock/unlock (namespace isola)
+- ✅ Sem necessidade de master password
+- ✅ Cross-namespace bloqueado automaticamente
+
 ## 🛠️ Pré-requisitos
 
 ### Para executar os exemplos:
