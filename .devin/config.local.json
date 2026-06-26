@@ -70,7 +70,8 @@
       "Exec(timeout)",
       "Exec(/tmp/test_vault_complete.sh)",
       "Exec(cockpit vault)",
-      "Exec(/tmp/test_simple.sh)"
+      "Exec(/tmp/test_simple.sh)",
+      "Exec(rmdir)"
     ]
   }
 }

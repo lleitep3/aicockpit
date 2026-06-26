@@ -24,7 +24,59 @@ O namespace deve ser o nome do pacote:
 const PackageNamespace = "kb-graphify"
 ```
 
-### 2. Acessar Secrets
+### 2. Acessar Secrets em Go
+
+Pacotes devem usar PackageVault helper:
+
+```go
+import "github.com/lleitep3/aicockpit/internal/vault"
+
+// Criar vault para este pacote
+vault := vault.NewPackageVault("meu-pacote")
+
+// Acessar secrets (funciona mesmo com vault locked)
+apiKey, err := vault.Get("api-key")
+if err != nil {
+    // ⚠️ IMPORTANTE: NUNCA logar o valor da chave em texto plano
+    log.Printf("Failed to get api-key: %v", err)
+    return err
+}
+
+// Usar a chave
+// ⚠️ NUNCA logar secrets sensíveis
+fmt.Printf("API Key: %s\n", apiKey) // ❌ INSEGURO - não faça isso
+```
+
+**✅ FORMA SEGURA de usar secrets:**
+
+```go
+import "github.com/lleitep3/aicockpit/internal/vault"
+
+vault := vault.NewPackageVault("meu-pacote")
+
+// Função segura para mascarar secrets
+func maskSecret(secret string) string {
+    if len(secret) <= 8 {
+        return "***"
+    }
+    return secret[:4] + "..." + secret[len(secret)-4:]
+}
+
+// Acessar secrets
+apiKey, err := vault.Get("api-key")
+if err != nil {
+    log.Printf("Failed to get api-key: %v", err) // ✅ Seguro - só loga erro
+    return err
+}
+
+// Log de forma segura
+log.Printf("Using API key: %s", maskSecret(apiKey)) // ✅ Seguro - mascarado
+
+// Usar em código
+makeAPICall(apiKey)
+```
+
+### 3. Acessar Secrets em Shell Scripts
 
 Pacotes devem usar `--namespace` em todas as operações:
 
@@ -33,105 +85,95 @@ Pacotes devem usar `--namespace` em todas as operações:
 PROVIDER=$(cockpit vault get kb-graphify.provider)
 
 # CORRETO - Com namespace (não afetado por lock)
-PROVIDER=$(cockpit vault get --namespace kb-graphify provider)
+NAMESPACE="kb-graphify"
+PROVIDER=$(cockpit vault get --namespace $NAMESPACE provider)
 ```
 
-### 3. Helper Go para Pacotes
+**⚠️ IMPORTANTE em shell scripts:**
 
-Vou criar um helper para facilitar o uso por pacotes Go:
+```bash
+# ❌ INSEGURO - Deixa rastros no histórico do shell
+API_KEY=$(cockpit vault get --namespace $NAMESPACE api-key)
+echo "API Key: $API_KEY"  # ❌ NUNCA imprimir secrets
+
+# ✅ SEGURO - Use diretamente, não armazene em variáveis se possível
+cockpit vault get --namespace $NAMESPACE api-key | xargs -I {} curl -H "Authorization: Bearer {}" https://api.example.com
+```
+
+### 4. Configurar Secrets
+
+```bash
+# Configure secrets do pacote
+NAMESPACE="meu-pacote"
+cockpit vault set --namespace $NAMESPACE api-key --value "sk-12345"
+cockpit vault set --namespace $NAMESPACE database-url --value "postgres://..."
+```
+
+**⚠️ Use modo interativo quando possível:**
+
+```bash
+# ✅ Mais seguro (modo interativo - input invisível)
+cockpit vault set --namespace $NAMESPACE api-key
+# [prompt interativo - input invisível]
+
+# ⚠️ Menos seguro (deixa rastros no histórico do shell)
+cockpit vault set --namespace $NAMESPACE api-key --value "sk-12345"
+```
+
+### 5. Usar em Variáveis de Ambiente
+
+```bash
+# Exportar secrets para variáveis de ambiente
+NAMESPACE="meu-pacote"
+export API_KEY=$(cockpit vault get --namespace $NAMESPACE api-key)
+export DB_URL=$(cockpit vault get --namespace $NAMESPACE database-url)
+
+# Usar na aplicação
+./my-application
+```
+
+**⚠️ Cuidado:** Variáveis de ambiente podem ser visíveis para outros processos. Use apenas quando necessário.
+
+## Helper Go para Pacotes
+
+### PackageVault
+
+PackageVault fornece acesso simplificado ao vault com namespace automático:
 
 ```go
-// internal/vault/package_vault.go
-package vault
-
-import (
-	"fmt"
-	"os/exec"
-	"strings"
-)
-
-// PackageVault provides vault access for packages
 type PackageVault struct {
-	namespace string
+    namespace string
 }
 
-// NewPackageVault creates a vault instance for a package
-func NewPackageVault(packageName string) *PackageVault {
-	return &PackageVault{
-		namespace: sanitizeNamespace(packageName),
-	}
-}
+// NewPackageVault cria uma vault instance para um pacote
+func NewPackageVault(packageName string) *PackageVault
 
-// Get retrieves a secret from the package's namespace
-func (pv *PackageVault) Get(key string) (string, error) {
-	cmd := exec.Command("cockpit", "vault", "get", "--namespace", pv.namespace, key)
-	output, err := cmd.Output()
-	if err != nil {
-		return "", fmt.Errorf("failed to get secret '%s': %w", key, err)
-	}
-	return strings.TrimSpace(string(output)), nil
-}
+// Get recupera um secret do namespace do pacote
+func (pv *PackageVault) Get(key string) (string, error)
 
-// Set stores a secret in the package's namespace
-func (pv *PackageVault) Set(key, value string) error {
-	cmd := exec.Command("cockpit", "vault", "set", "--namespace", pv.namespace, "--value", value, key)
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("failed to set secret '%s': %w: %s", key, err, string(output))
-	}
-	return nil
-}
+// Set armazena um secret no namespace do pacote
+func (pv *PackageVault) Set(key, value string) error
 
-// Remove removes a secret from the package's namespace
-func (pv *PackageVault) Remove(key string) error {
-	cmd := exec.Command("cockpit", "vault", "remove", "--namespace", pv.namespace, key)
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("failed to remove secret '%s': %w: %s", key, err, string(output))
-	}
-	return nil
-}
+// SetInteractive armazena um secret com input interativo (mais seguro)
+func (pv *PackageVault) SetInteractive(key string) error
 
-// SetInteractive stores a secret with interactive input (more secure)
-func (pv *PackageVault) SetInteractive(key string) error {
-	cmd := exec.Command("cockpit", "vault", "set", "--namespace", pv.namespace, key)
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
-}
+// Remove remove um secret do namespace do pacote
+func (pv *PackageVault) Remove(key string) error
+
+// GetWithDefault recupera um secret, retornando default se não encontrado
+func (pv *PackageVault) GetWithDefault(key, defaultValue string) string
 ```
 
-## Exemplo de Uso por Pacote
+## Exemplos de Uso Seguro
 
-### kb-graphify (Atualização)
-
-**Antes (Inseguro):**
-```bash
-PROVIDER=$(cockpit vault get kb-graphify.provider 2>/dev/null || true)
-API_KEY=$(cockpit vault get kb-graphify.api-key 2>/dev/null || true)
-```
-
-**Depois (Seguro):**
-```bash
-# No código Go
-vault := vault.NewPackageVault("kb-graphify")
-provider, _ := vault.Get("provider")
-apiKey, _ := vault.Get("api-key")
-
-# Ou via shell (com namespace)
-NAMESPACE="kb-graphify"
-PROVIDER=$(cockpit vault get --namespace $NAMESPACE provider 2>/dev/null || true)
-API_KEY=$(cockpit vault get --namespace $NAMESPACE api-key 2>/dev/null || true)
-```
-
-### Pacote Genérico
+### Pacote Go - Padrão Completo
 
 ```go
 package main
 
 import (
     "fmt"
+    "log"
     "github.com/lleitep3/aicockpit/internal/vault"
 )
 
@@ -139,13 +181,74 @@ func main() {
     // Criar vault para este pacote
     vault := vault.NewPackageVault("meu-pacote")
     
-    // Configurar secrets
-    vault.Set("api-key", "sk-12345")
+    // Configurar secrets (normalmente feito uma vez, não no código)
+    // Use modo interativo em produção:
+    // vault.SetInteractive("api-key")
     
-    // Usar secrets
-    apiKey, _ := vault.Get("api-key")
-    fmt.Printf("API Key: %s\n", apiKey)
+    // Recuperar secrets
+    apiKey, err := vault.Get("api-key")
+    if err != nil {
+        // ✅ Seguro - só loga o erro, não o valor
+        log.Printf("Failed to get api-key: %v", err)
+        return
+    }
+    
+    // ✅ Seguro - log mascarado
+    log.Printf("Using API key: %s", maskSecret(apiKey))
+    
+    // Usar o secret
+    err = makeAPICall(apiKey)
+    if err != nil {
+        log.Printf("API call failed: %v", err)
+        return
+    }
+    
+    // Limpar secret quando não for mais necessário
+    defer vault.Remove("api-key")
 }
+
+func makeAPICall(apiKey string) error {
+    // Implementação da chamada de API
+    // ❌ NUNCA logar o apiKey aqui
+    return nil
+}
+
+func maskSecret(secret string) string {
+    if len(secret) <= 8 {
+        return "***"
+    }
+    return secret[:4] + "..." + secret[len(secret)-4:]
+}
+```
+
+### Script Shell - Padrão Completo
+
+```bash
+#!/bin/bash
+set -e
+
+NAMESPACE="meu-pacote"
+
+# Configurar secrets (normalmente feito uma vez)
+# Use modo interativo em produção:
+# cockpit vault set --namespace $NAMESPACE api-key
+# [prompt interativo]
+
+# Recuperar e usar secrets diretamente (sem armazenar em variáveis)
+# ✅ Mais seguro - não armazena em variável
+cockpit vault get --namespace $NAMESPACE api-key | \
+    xargs -I {} curl -H "Authorization: Bearer {}" https://api.example.com
+
+# Se precisar armazenar, use com cuidado
+# ✅ Aceitável - variável de ambiente
+export API_KEY=$(cockpit vault get --namespace $NAMESPACE api-key)
+./my-application
+
+# Limpar a variável após uso
+unset API_KEY
+
+# Remover secrets quando não forem mais necessários
+cockpit vault remove --namespace $NAMESPACE api-key
 ```
 
 ## Comportamento do Lock/Unlock para Pacotes
@@ -177,9 +280,12 @@ cockpit vault get api-key
 ### 1. Durante Desenvolvimento
 
 ```bash
-# Configurar secrets do pacote
-cockpit vault set --namespace meu-pacote api-key --value "sk-12345"
-cockpit vault set --namespace meu-pacote database-url --value "postgres://..."
+# Configurar secrets do pacote (use modo interativo)
+cockpit vault set --namespace meu-pacote api-key
+# [prompt interativo]
+
+cockpit vault set --namespace meu-pacote database-url
+# [prompt interativo]
 
 # O vault pode ficar locked sem afetar o pacote
 cockpit vault lock
@@ -212,6 +318,64 @@ cockpit vault get --namespace meu-pacote api-key
 # 🔒 Vault is locked for this package
 ```
 
+## Melhores Práticas de Segurança
+
+### 1. ❌ NUNCA Logar Secrets em Texto Plano
+
+```go
+// ❌ INSEGURO
+log.Printf("API Key: %s", apiKey)
+fmt.Printf("Debug: %s\n", apiKey)
+```
+
+```go
+// ✅ SEGURO
+log.Printf("API Key: %s", maskSecret(apiKey))
+log.Printf("Failed to get api-key: %v", err) // só loga erro
+```
+
+### 2. ⚠️ Use Modo Interativo Quando Possível
+
+```bash
+# ⚠️ Menos seguro (deixa rastros no histórico do shell)
+cockpit vault set --namespace $NAMESPACE api-key --value "sk-12345"
+
+# ✅ Mais seguro (input invisível)
+cockpit vault set --namespace $NAMESPACE api-key
+```
+
+### 3. ✅ Sempre Use Namespace
+
+```go
+// ❌ INCORRETO (afetado por lock)
+v := vault.NewOSVault()
+apiKey, _ := v.Get("api-key")
+
+// ✅ CORRETO (bypassa lock)
+v := vault.NewPackageVault("meu-pacote")
+apiKey, _ := v.Get("api-key")
+```
+
+### 4. ✅ Remover Secrets Quando Não Forem Necessários
+
+```go
+defer vault.Remove("api-key")
+```
+
+```bash
+cockpit vault remove --namespace $NAMESPACE api-key
+```
+
+### 5. ⚠️ Evite Armazenar Secrets em Variáveis de Ambiente
+
+```bash
+# ⚠️ Aceitável, mas use com cuidado
+export API_KEY=$(cockpit vault get --namespace $NAMESPACE api-key)
+
+# ✅ Melhor - use diretamente
+cockpit vault get --namespace $NAMESPACE api-key | xargs -I {} comando
+```
+
 ## Resumo
 
 | Cenário | Com Namespace | Sem Namespace |
@@ -222,3 +386,5 @@ cockpit vault get --namespace meu-pacote api-key
 | **Master password** | ❌ Não exige | ✅ Exige (se habilitado) |
 
 **Regra para Pacotes:** Sempre use `--namespace` com o nome do pacote!
+
+**Regra de Segurança:** NUNCA logar secrets em texto plano. Sempre use masking ou logue apenas erros.

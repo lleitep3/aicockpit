@@ -193,6 +193,8 @@ apiKey, _ := vault.Get("api-key")
 - ✅ Sem necessidade de master password
 - ✅ Cross-namespace bloqueado automaticamente
 
+**Documentação completa:** Veja `docs/vault-package-usage.md` para exemplos detalhados de uso seguro do vault por pacotes.
+
 ## 🛠️ Pré-requisitos
 
 ### Para executar os exemplos:
