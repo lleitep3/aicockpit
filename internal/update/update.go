@@ -25,8 +25,8 @@ type GitHubRelease struct {
 	HTMLURL string `json:"html_url"`
 }
 
-// UpdateService handles update checking and changelog generation
-type UpdateService struct {
+// Service handles update checking and changelog generation
+type Service struct {
 	client     *http.Client
 	repoOwner  string
 	repoName   string
@@ -34,8 +34,8 @@ type UpdateService struct {
 }
 
 // NewUpdateService creates a new update service
-func NewUpdateService() *UpdateService {
-	return &UpdateService{
+func NewUpdateService() *Service {
+	return &Service{
 		client: &http.Client{
 			Timeout: 10 * time.Second,
 		},
@@ -46,8 +46,8 @@ func NewUpdateService() *UpdateService {
 }
 
 // NewUpdateServiceWithClient creates a new update service with custom HTTP client (for testing)
-func NewUpdateServiceWithClient(client *http.Client, baseURL string) *UpdateService {
-	return &UpdateService{
+func NewUpdateServiceWithClient(client *http.Client, baseURL string) *Service {
+	return &Service{
 		client:     client,
 		repoOwner:  defaultGithubRepoOwner,
 		repoName:   defaultGithubRepoName,
@@ -56,7 +56,7 @@ func NewUpdateServiceWithClient(client *http.Client, baseURL string) *UpdateServ
 }
 
 // CheckForUpdates checks if a new version is available on GitHub
-func (s *UpdateService) CheckForUpdates() (string, string, error) {
+func (s *Service) CheckForUpdates() (string, string, error) {
 	currentVersion := version.GetVersion()
 
 	url := fmt.Sprintf(s.baseAPIURL, s.repoOwner, s.repoName)
@@ -91,7 +91,7 @@ func (s *UpdateService) CheckForUpdates() (string, string, error) {
 }
 
 // isNewerVersion compares two version strings and returns true if the second is newer
-func (s *UpdateService) isNewerVersion(latest, current string) bool {
+func (s *Service) isNewerVersion(latest, current string) bool {
 	latestParts := strings.Split(latest, ".")
 	currentParts := strings.Split(current, ".")
 
@@ -111,7 +111,7 @@ func (s *UpdateService) isNewerVersion(latest, current string) bool {
 }
 
 // GetReleaseNotes fetches the release notes for a specific version
-func (s *UpdateService) GetReleaseNotes(version string) (string, error) {
+func (s *Service) GetReleaseNotes(version string) (string, error) {
 	// Build URL for specific tag
 	baseURL := strings.Replace(s.baseAPIURL, "/latest", "/tags/v"+version, 1)
 	url := fmt.Sprintf(baseURL, s.repoOwner, s.repoName)
