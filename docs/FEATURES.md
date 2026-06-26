@@ -24,6 +24,8 @@
   - Language (en-us, pt-br)
   - Log level (info, debug, warn, error)
   - AI provider selection
+  - Auto-update check (enabled by default)
+  - Last update check timestamp
 - [x] **Configuration updates** - Programmatic config changes
 
 ### 📝 Logging System
@@ -39,6 +41,17 @@
 - [x] **Extensible message system** - Easy to add languages
 - [x] **Fallback mechanism** - Falls back to English if translation missing
 - [x] **Message formatting** - Support for parameterized messages
+
+### 🔄 Update System
+- [x] **Automatic update checking** - Daily verification with 24h cache
+- [x] **GitHub Releases integration** - Checks latest version via API
+- [x] **Interactive update prompts** - User-friendly update notifications
+- [x] **Changelog links** - Direct links to release notes
+- [x] **Git-based upgrades** - Automatic checkout and rebuild
+- [x] **Automated changelog generation** - From conventional commits
+- [x] **Manual update command** - `cockpit update` for on-demand updates
+- [x] **Setup re-run** - Automatic setup after update
+- [x] **Configurable checks** - Can be disabled via config
 
 ### 📋 CLI Commands
 
@@ -67,6 +80,13 @@
 - Removes all AICockpit data
 - Supports multiple languages
 
+#### `cockpit update`
+- Automatic update checking (daily, with 24h cache)
+- Interactive update prompts with changelog links
+- Git-based upgrade mechanism
+- Automatic re-run setup after update
+- Manual update command available
+
 #### `cockpit vault`
 - Secure secret management using OS keyring
 - `vault set` - Store secrets with interactive or direct input
@@ -76,8 +96,9 @@
 - Namespace isolation using "aicockpit" service name
 
 ### 🧪 Testing & Quality
-- [x] **Unit tests** - 20 tests, all passing
-- [x] **Test coverage** - 30.6% overall, 70%+ for core packages
+- [x] **Unit tests** - 436 tests, all passing
+- [x] **Test coverage** - 50.1% overall, 80%+ for core packages
+- [x] **Update service tests** - 83.3% coverage for update checking
 - [x] **Vault tests** - OS keyring integration with mock support
 - [x] **Static analysis** - `go vet` integration
 - [x] **Code formatting** - `go fmt` compliance
@@ -88,11 +109,13 @@
 - [x] **QUICK_START.md** - 5-minute setup guide
 - [x] **INSTALLATION.md** - Detailed installation guide
 - [x] **INSTALLATION_SCRIPTS.md** - Script documentation
+- [x] **CHANGELOG.md** - Automated changelog from conventional commits
 - [x] **SDLC.md** - Development standards
 - [x] **AGENTS.md** - AI agent guidelines
 - [x] **IMPLEMENTATION_SUMMARY.md** - Project status
 - [x] **scripts/README.md** - Installation script docs
 - [x] **docs/architecture/05-vault-system.md** - Vault architecture documentation
+- [x] **docs/commands/update.md** - Update command documentation
 - [x] **docs/vault-guide.md** - Complete vault usage guide
 - [x] **Code comments** - Exported functions documented
 
@@ -178,21 +201,21 @@
 ## 📊 Statistics
 
 ### Code
-- **Total Lines**: 1,500+
-- **Go Code**: ~1,000 lines
-- **Tests**: 20 tests
-- **Documentation**: ~3,000 lines
+- **Total Lines**: 3,500+
+- **Go Code**: ~2,500 lines
+- **Tests**: 436 tests
+- **Documentation**: ~4,000 lines
 
 ### Files
-- **Go Files**: 15 (including vault implementation)
-- **Test Files**: 5 (including vault tests)
-- **Scripts**: 2 (Bash, PowerShell)
-- **Documentation**: 12+ files (including vault guides)
-- **Configuration**: 2 files
+- **Go Files**: 25+ (including update service)
+- **Test Files**: 15+ (including update tests)
+- **Scripts**: 3+ (Bash, PowerShell, changelog generation)
+- **Documentation**: 20+ files (including update guides)
+- **Configuration**: 3 files (including update config)
 
 ### Testing
-- **Coverage**: 30.6% overall, 70%+ for core packages
-- **Test Status**: All passing ✓ (20/20 tests)
+- **Coverage**: 50.1% overall, 80%+ for core packages
+- **Test Status**: All passing ✓ (436/436 tests)
 - **Linting**: No issues ✓
 - **Build**: Successful ✓
 
@@ -284,6 +307,6 @@ make uninstall  # Remove binary
 
 ---
 
-**Status**: Phase 1 Complete ✅, Phase 2 In Progress (Vault Complete)  
+**Status**: Phase 1 Complete ✅, Phase 2 In Progress (Vault & Update Complete)  
 **Version**: 0.1.0  
 **Last Updated**: June 25, 2026

@@ -12,6 +12,7 @@ Complete reference for all AICockpit CLI commands.
 | [`cockpit info`](info.md) | Display configuration information | STABLE |
 | [`cockpit doctor`](doctor.md) | Health check and diagnostics | STABLE |
 | [`cockpit metrics`](metrics.md) | View and analyze metrics | STABLE |
+| [`cockpit update`](update.md) | Update to latest version | STABLE |
 | [`cockpit uninstall`](uninstall.md) | Remove AICockpit | STABLE |
 
 ### Planned Commands
@@ -66,6 +67,7 @@ All commands support these global flags:
 
 ### Maintenance
 
+- [`cockpit update`](update.md) - Update to latest version
 - [`cockpit uninstall`](uninstall.md) - Remove AICockpit
 
 ## Documentation Guidelines
@@ -207,7 +209,7 @@ cockpit metrics list --help
 
 ## Version Information
 
-Commands are documented for AICockpit version **0.2.3**.
+Commands are documented for AICockpit version **0.1.0**.
 
 For version-specific information, run:
 
@@ -235,6 +237,6 @@ To contribute command documentation:
 
 ---
 
-**Last Updated**: June 20, 2026  
-**Version**: 0.2.3  
+**Last Updated**: June 25, 2026  
+**Version**: 0.1.0  
 **Status**: ACTIVE
