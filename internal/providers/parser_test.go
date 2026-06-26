@@ -74,7 +74,7 @@ Step 2`
 func TestParseCanonical_EmptyDir(t *testing.T) {
 	emptyDir := t.TempDir()
 
-	entrypoint, skills, rules, workflows, perms, err := ParseCanonical(emptyDir)
+	entrypoint, skills, rules, workflows, perms, _, err := ParseCanonical(emptyDir)
 	if err != nil {
 		t.Fatalf("expected no error for empty dir, got %v", err)
 	}
@@ -102,7 +102,7 @@ func TestParseCanonical_InvalidPermissionsJSON(t *testing.T) {
 		t.Fatalf("failed to create permissions.yaml: %v", err)
 	}
 
-	_, _, _, _, _, err := ParseCanonical(mockDir)
+	_, _, _, _, _, _, err := ParseCanonical(mockDir)
 	if err == nil {
 		t.Error("expected error for invalid JSON")
 	}

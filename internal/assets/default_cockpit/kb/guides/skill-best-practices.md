@@ -8,6 +8,8 @@ version: "1.0"
 
 # Skill Best Practices
 
+> **Nota:** Este documento descreve **skills internas do AICockpit** (implementadas em Go). Para criar **skills do Devin** (arquivos SKILL.md para uso com o provider Devin), consulte a documentação específica em `docs/providers/devin/SKILLS.md`.
+
 ## Overview
 
 Skills are reusable capabilities that agents and other components can leverage. Skills encapsulate specific functionality and can be composed together to create powerful workflows.

@@ -320,7 +320,7 @@ func TestParser_ParseSkills(t *testing.T) {
 func TestParser_ParseCanonical(t *testing.T) {
 	tmpDir := t.TempDir()
 	os.WriteFile(filepath.Join(tmpDir, "identity.md"), []byte("ident"), 0644)
-	_, _, _, _, _, _ = ParseCanonical(tmpDir)
+	_, _, _, _, _, _, _ = ParseCanonical(tmpDir)
 }
 
 func TestParser_ParseWorkflows_Empty(t *testing.T) {
@@ -328,7 +328,7 @@ func TestParser_ParseWorkflows_Empty(t *testing.T) {
 }
 
 func TestParser_ParseCanonical_Errors(t *testing.T) {
-	_, _, _, _, _, _ = ParseCanonical("/invalid/dir/does/not/exist")
+	_, _, _, _, _, _, _ = ParseCanonical("/invalid/dir/does/not/exist")
 }
 
 func TestAntigravityCompiler_Success(t *testing.T) {

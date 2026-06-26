@@ -48,7 +48,7 @@ func TestReadCanonicalFile_Invalid(t *testing.T) {
 
 func TestAdapters_CompileErrors(t *testing.T) {
 	tmpDir := t.TempDir()
-	entrypoint, skills, rules, workflows, perms, _ := ParseCanonical(tmpDir)
+	entrypoint, skills, rules, workflows, perms, _, _ := ParseCanonical(tmpDir)
 
 	features := map[string]*FeatureConfig{
 		"entrypoint":  {Path: "entry.md", Enabled: true},

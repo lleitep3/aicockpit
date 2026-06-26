@@ -48,6 +48,9 @@ func (m *mockCompiler) CompilePermissions(perms *CanonicalPermissions, p *Provid
 	}
 	return make(map[string]string), nil
 }
+func (m *mockCompiler) CompileAgents(agents []CanonicalAgent, p *Provider) (map[string]string, error) {
+	return make(map[string]string), nil
+}
 
 func TestManagerDeploy(t *testing.T) {
 	tmpProjectDir := t.TempDir()
