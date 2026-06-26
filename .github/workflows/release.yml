@@ -1,8 +1,12 @@
 name: Release
 
 on:
-  push:
-    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 0.5.0)'
+        required: true
+        type: string
 
 jobs:
   release:
@@ -22,31 +26,11 @@ jobs:
       with:
         go-version: '1.26'
     
-    - name: Determine version bump
-      id: version
+    - name: Set version
       run: |
-        # Get the last commit message
-        COMMIT_MSG=$(git log -1 --pretty=%B)
-        
-        # Determine bump type from commit message
-        if echo "$COMMIT_MSG" | grep -q "^feat(.*)\!:"; then
-          BUMP_TYPE="major"
-        elif echo "$COMMIT_MSG" | grep -q "^feat"; then
-          BUMP_TYPE="minor"
-        elif echo "$COMMIT_MSG" | grep -q "^fix"; then
-          BUMP_TYPE="patch"
-        else
-          BUMP_TYPE="patch"
-        fi
-        
-        echo "bump_type=$BUMP_TYPE" >> $GITHUB_OUTPUT
-        echo "Detected bump type: $BUMP_TYPE"
-    
-    - name: Bump version
-      run: |
-        bash scripts/bump-version.sh ${{ steps.version.outputs.bump_type }}
-        NEW_VERSION=$(cat VERSION)
+        NEW_VERSION="${{ github.event.inputs.version }}"
         echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+        echo "Releasing version: $NEW_VERSION"
     
     - name: Create commit
       run: |
@@ -58,11 +42,6 @@ jobs:
     - name: Create tag
       run: |
         git tag -a "v${{ env.NEW_VERSION }}" -m "Release v${{ env.NEW_VERSION }}"
-    
-    - name: Push changes
-      run: |
-        git push origin main
-        git push origin "v${{ env.NEW_VERSION }}"
     
     - name: Generate Changelog
       run: |
@@ -97,10 +76,6 @@ EOF
           git add CHANGELOG.md
           git commit -m "docs(changelog): update CHANGELOG.md for v${{ env.NEW_VERSION }}"
         fi
-    
-    - name: Push CHANGELOG update
-      run: |
-        git push origin main
     
     - name: Create Release
       uses: softprops/action-gh-release@v2
