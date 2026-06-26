@@ -1,0 +1,94 @@
+name: Update Changelog
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  update-changelog:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Update CHANGELOG.md
+      run: |
+        # Get the latest tag
+        LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+        
+        if [ -z "$LATEST_TAG" ]; then
+          echo "No tags found, skipping changelog update"
+          exit 0
+        fi
+        
+        echo "Latest tag: $LATEST_TAG"
+        
+        # Get version from tag
+        VERSION=$(echo $LATEST_TAG | sed 's/v//')
+        
+        # Generate changelog since last tag
+        bash scripts/generate-changelog.sh "$VERSION" "${LATEST_TAG}..HEAD" > NEW_CHANGES.md
+        
+        # Check if there are new changes
+        if grep -q "No commits found" NEW_CHANGES.md; then
+          echo "No new commits since $LATEST_TAG, skipping changelog update"
+          exit 0
+        fi
+        
+        echo "New changes detected, updating CHANGELOG.md"
+        
+        # Update CHANGELOG.md
+        if [ -f "CHANGELOG.md" ]; then
+          # Get current content (skip header)
+          CURRENT_CONTENT=$(tail -n +6 CHANGELOG.md)
+          
+          # Create new changelog with new release
+          cat > CHANGELOG.md << 'EOF'
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+EOF
+          
+          # Add new release content
+          cat NEW_CHANGES.md >> CHANGELOG.md
+          
+          # Add existing content
+          echo "" >> CHANGELOG.md
+          echo "$CURRENT_CONTENT" >> CHANGELOG.md
+          
+          # Commit and push
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add CHANGELOG.md
+          git commit -m "docs(changelog): update CHANGELOG.md for changes since $LATEST_TAG"
+          git push
+        else
+          echo "CHANGELOG.md not found, creating it"
+          cat > CHANGELOG.md << EOF
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+EOF
+          cat NEW_CHANGES.md >> CHANGELOG.md
+          
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add CHANGELOG.md
+          git commit -m "docs(changelog): create CHANGELOG.md"
+          git push
+        fi

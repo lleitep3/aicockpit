@@ -1,0 +1,89 @@
+name: PR Changelog Generator
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [ main, develop ]
+
+jobs:
+  generate-changelog:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      pull-requests: write
+      contents: read
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Generate Changelog
+      id: changelog
+      run: |
+        # Get the base branch (main or develop)
+        BASE_BRANCH="${GITHUB_BASE_REF:-main}"
+        
+        echo "Generating changelog for PR targeting $BASE_BRANCH"
+        
+        # Generate changelog for commits in this PR (no version header)
+        bash scripts/generate-changelog.sh "" "origin/$BASE_BRANCH..HEAD" > PR_CHANGELOG.md
+        
+        # Check if changelog has content
+        if [ -s PR_CHANGELOG.md ] && ! grep -q "No commits found" PR_CHANGELOG.md; then
+          echo "has_changes=true" >> $GITHUB_OUTPUT
+          echo "Changelog generated successfully"
+          cat PR_CHANGELOG.md
+        else
+          echo "has_changes=false" >> $GITHUB_OUTPUT
+          echo "No changelog content generated"
+        fi
+    
+    - name: Post Changelog as PR Comment
+      if: steps.changelog.outputs.has_changes == 'true'
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const fs = require('fs');
+          const changelog = fs.readFileSync('PR_CHANGELOG.md', 'utf8');
+          
+          const comment = `## 📝 Proposed Changelog
+          
+          This PR introduces the following changes:
+          
+          ${changelog}
+          
+          ---
+          
+          🤖 *Generated automatically by PR Changelog Generator*`;
+          
+          // Find existing comment to avoid duplicates
+          const { data: comments } = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+          });
+          
+          const botComment = comments.find(comment => 
+            comment.user.type === 'Bot' && 
+            comment.body.includes('Proposed Changelog')
+          );
+          
+          if (botComment) {
+            // Update existing comment
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: botComment.id,
+              body: comment
+            });
+          } else {
+            // Create new comment
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: comment
+            });
+          }
