@@ -64,6 +64,10 @@ jobs:
         git push origin main
         git push origin "v${{ env.NEW_VERSION }}"
     
+    - name: Generate Changelog
+      run: |
+        bash scripts/generate-changelog.sh ${{ env.NEW_VERSION }} > RELEASE_NOTES.md
+    
     - name: Create Release
       uses: softprops/action-gh-release@v2
       env:
@@ -71,12 +75,6 @@ jobs:
       with:
         tag_name: v${{ env.NEW_VERSION }}
         name: Release v${{ env.NEW_VERSION }}
-        body: |
-          ## Changes
-          
-          See commit history for details.
-          
-          ### Version
-          - **Current**: v${{ env.NEW_VERSION }}
+        body_path: RELEASE_NOTES.md
         draft: false
         prerelease: false

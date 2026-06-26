@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/lleitep3/aicockpit/internal/packages"
 	"github.com/lleitep3/aicockpit/internal/version"
@@ -19,6 +20,8 @@ type Config struct {
 	AIProviders       ProvidersConfig           `yaml:"ai_providers"`
 	KB                KBConfig                  `yaml:"kb"`
 	PackageRegistries []packages.RegistryConfig `yaml:"package_registries"`
+	LastUpdateCheck   string                    `yaml:"last_update_check"`
+	AutoUpdateCheck   bool                      `yaml:"auto_update_check"`
 }
 
 // ProvidersConfig represents configuration for multiple AI providers.
@@ -43,10 +46,11 @@ type KBConfig struct {
 }
 
 var defaultConfig = Config{
-	Version:    version.Version,
-	Language:   "en-us",
-	LogLevel:   "info",
-	AIProvider: "antigravity",
+	Version:         version.Version,
+	Language:        "en-us",
+	LogLevel:        "info",
+	AIProvider:      "antigravity",
+	AutoUpdateCheck: true,
 	AIProviders: ProvidersConfig{
 		Enabled: []string{"antigravity", "devin", "goose"},
 	},
@@ -109,6 +113,12 @@ func Load() (*Config, error) {
 	}
 	if len(cfg.AIProviders.Enabled) == 0 {
 		cfg.AIProviders.Enabled = defaultConfig.AIProviders.Enabled
+	}
+	if cfg.LastUpdateCheck == "" {
+		cfg.LastUpdateCheck = defaultConfig.LastUpdateCheck
+	}
+	if !cfg.AutoUpdateCheck {
+		cfg.AutoUpdateCheck = defaultConfig.AutoUpdateCheck
 	}
 
 	return &cfg, nil
@@ -319,4 +329,29 @@ func (c *Config) GetProviderPath(provider string) string {
 	default:
 		return ""
 	}
+}
+
+// SetLastUpdateCheck sets the last update check timestamp.
+func (c *Config) SetLastUpdateCheck(timestamp string) error {
+	c.LastUpdateCheck = timestamp
+	return Save(c)
+}
+
+// ShouldCheckUpdate returns true if an update check should be performed based on the last check time.
+func (c *Config) ShouldCheckUpdate() bool {
+	if !c.AutoUpdateCheck {
+		return false
+	}
+
+	if c.LastUpdateCheck == "" {
+		return true
+	}
+
+	lastCheck, err := time.Parse(time.RFC3339, c.LastUpdateCheck)
+	if err != nil {
+		return true // Invalid timestamp, check again
+	}
+
+	// Check if 24 hours have passed
+	return time.Since(lastCheck) > 24*time.Hour
 }

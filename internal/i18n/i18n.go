@@ -118,6 +118,17 @@ func initMessages() map[string]map[string]string {
 			"uninstall.confirm": "Are you sure you want to uninstall AICockpit? This will delete all data in %s (y/n): ",
 			"uninstall.success": "AICockpit uninstalled successfully",
 			"uninstall.cancel":  "Uninstall cancelled",
+
+			// Update
+			"update.checking":     "Checking for updates...",
+			"update.available":    "A new version of AICockpit is available: %s (current: %s)",
+			"update.changelog":    "View changelog: %s",
+			"update.prompt":       "Would you like to update now? (y/n): ",
+			"update.updating":     "Updating AICockpit to version %s...",
+			"update.success":      "AICockpit updated successfully to version %s",
+			"update.failed":       "Failed to update AICockpit: %v",
+			"update.cancel":       "Update cancelled",
+			"update.check_failed": "Failed to check for updates: %v",
 		},
 		"pt-br": {
 			// Geral
@@ -163,6 +174,17 @@ func initMessages() map[string]map[string]string {
 			"uninstall.confirm": "Tem certeza que deseja desinstalar o AICockpit? Isso deletará todos os dados em %s (s/n): ",
 			"uninstall.success": "AICockpit desinstalado com sucesso",
 			"uninstall.cancel":  "Desinstalação cancelada",
+
+			// Update
+			"update.checking":     "Verificando atualizações...",
+			"update.available":    "Uma nova versão do AICockpit está disponível: %s (atual: %s)",
+			"update.changelog":    "Ver changelog: %s",
+			"update.prompt":       "Gostaria de atualizar agora? (s/n): ",
+			"update.updating":     "Atualizando AICockpit para versão %s...",
+			"update.success":      "AICockpit atualizado com sucesso para versão %s",
+			"update.failed":       "Falha ao atualizar AICockpit: %v",
+			"update.cancel":       "Atualização cancelada",
+			"update.check_failed": "Falha ao verificar atualizações: %v",
 		},
 	}
 }
