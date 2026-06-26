@@ -6,7 +6,9 @@
       "Exec(git)",
       "Exec(go)",
       "Exec(gh)"
-    ]
+    ],
+    "ask": [],
+    "deny": []
   },
   "userSettings": {
     "globalPermissionGrants": {

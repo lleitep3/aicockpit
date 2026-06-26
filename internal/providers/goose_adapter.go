@@ -207,3 +207,8 @@ func isRequired(ext string, required []string) bool {
 	}
 	return false
 }
+
+// CompileAgents is a no-op for Goose (does not support custom subagents).
+func (g *GooseCompiler) CompileAgents(agents []CanonicalAgent, provider *Provider) (map[string]string, error) {
+	return make(map[string]string), nil
+}

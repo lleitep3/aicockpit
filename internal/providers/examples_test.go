@@ -11,7 +11,7 @@ func TestDocsExamplesCoverage(t *testing.T) {
 	basePath, err := filepath.Abs("../../docs/providers-mapping")
 	if err == nil {
 		// Just parse what we can
-		_, _, _, _, _, _ = ParseCanonical(filepath.Join(basePath, "canonical-example"))
+		_, _, _, _, _, _, _ = ParseCanonical(filepath.Join(basePath, "canonical-example"))
 	}
 }
 

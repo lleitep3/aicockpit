@@ -45,7 +45,7 @@ func (pm *ProviderManager) Deploy(providerName string, cockpitHomeDir string, pr
 	}
 
 	// 1. Parse canonical structure from ~/.cockpit
-	entrypoint, skills, rules, workflows, perms, err := ParseCanonical(cockpitHomeDir)
+	entrypoint, skills, rules, workflows, perms, agents, err := ParseCanonical(cockpitHomeDir)
 	if err != nil {
 		return fmt.Errorf("failed to parse canonical structures: %w", err)
 	}
@@ -81,6 +81,12 @@ func (pm *ProviderManager) Deploy(providerName string, cockpitHomeDir string, pr
 		mergeMap(allFiles, files)
 	} else {
 		return fmt.Errorf("failed to compile permissions: %w", err)
+	}
+
+	if files, err := compiler.CompileAgents(agents, provider); err == nil {
+		mergeMap(allFiles, files)
+	} else {
+		return fmt.Errorf("failed to compile agents: %w", err)
 	}
 
 	// 3. Determine target base directory

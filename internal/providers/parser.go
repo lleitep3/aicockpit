@@ -9,33 +9,38 @@ import (
 )
 
 // ParseCanonical reads the cockpitHomeDir and returns all canonical models.
-func ParseCanonical(cockpitHomeDir string) (*CanonicalEntrypoint, []CanonicalSkill, []CanonicalRule, []CanonicalWorkflow, *CanonicalPermissions, error) {
+func ParseCanonical(cockpitHomeDir string) (*CanonicalEntrypoint, []CanonicalSkill, []CanonicalRule, []CanonicalWorkflow, *CanonicalPermissions, []CanonicalAgent, error) {
 	entrypoint, err := parseEntrypoint(cockpitHomeDir)
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	skills, err := parseSkills(cockpitHomeDir)
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	rules, err := parseRules(cockpitHomeDir)
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	workflows, err := parseWorkflows(cockpitHomeDir)
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	perms, err := parsePermissions(cockpitHomeDir)
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
-	return entrypoint, skills, rules, workflows, perms, nil
+	agents, err := parseAgents(cockpitHomeDir)
+	if err != nil {
+		return nil, nil, nil, nil, nil, nil, err
+	}
+
+	return entrypoint, skills, rules, workflows, perms, agents, nil
 }
 
 func parseEntrypoint(homeDir string) (*CanonicalEntrypoint, error) {
@@ -214,6 +219,10 @@ func parsePermissions(homeDir string) (*CanonicalPermissions, error) {
 		AllowedCommands []string `yaml:"allowed_commands"`
 		DeniedCommands  []string `yaml:"denied_commands"`
 		AllowedDirs     []string `yaml:"allowed_dirs"`
+		// Devin-specific permissions
+		Allow []string `yaml:"allow"`
+		Deny  []string `yaml:"deny"`
+		Ask   []string `yaml:"ask"`
 	}
 
 	if err := yaml.Unmarshal(data, &temp); err != nil {
@@ -223,6 +232,63 @@ func parsePermissions(homeDir string) (*CanonicalPermissions, error) {
 	perms.AllowedCommands = temp.AllowedCommands
 	perms.DeniedCommands = temp.DeniedCommands
 	perms.AllowedDirs = temp.AllowedDirs
+	perms.Allow = temp.Allow
+	perms.Deny = temp.Deny
+	perms.Ask = temp.Ask
 
 	return perms, nil
+}
+
+func parseAgents(homeDir string) ([]CanonicalAgent, error) {
+	agentsDir := filepath.Join(homeDir, "agents")
+	var agents []CanonicalAgent
+
+	entries, err := os.ReadDir(agentsDir)
+	if os.IsNotExist(err) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue // expects agent directories
+		}
+		agentName := entry.Name()
+		agentPath := filepath.Join(agentsDir, agentName, "AGENT.md")
+		data, err := os.ReadFile(agentPath)
+		if err != nil {
+			continue // skip if AGENT.md doesn't exist
+		}
+
+		fm, body := StripFrontmatter(string(data))
+		name := fm["name"]
+		if name == "" {
+			name = agentName
+		}
+
+		// Parse allowed_tools from frontmatter
+		var allowedTools []string
+		if toolsStr, ok := fm["allowed_tools"]; ok {
+			// This is a simplified parsing - in reality you'd want proper YAML parsing
+			// For now, we'll store it as a string and let the compiler handle it
+			allowedTools = []string{toolsStr}
+		}
+
+		agent := CanonicalAgent{
+			Name:         name,
+			Description:  fm["description"],
+			Model:        fm["model"],
+			AllowedTools: allowedTools,
+			Content:      body,
+		}
+
+		// Parse max_nesting if present (skip for now - requires proper YAML parsing)
+		// TODO: Implement proper YAML parsing for complex frontmatter fields
+
+		agents = append(agents, agent)
+	}
+
+	return agents, nil
 }
