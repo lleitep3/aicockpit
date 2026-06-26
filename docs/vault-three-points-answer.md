@@ -12,7 +12,7 @@ if socketPath == "" {
     socketPath = "/tmp/cockpit-vault.sock"  // Local PADRÃO
 }
 
-client := vault.NewVaultServiceClient(socketPath)
+client := vault.NewServiceClient(socketPath)
 ```
 
 **Na prática:**
@@ -42,7 +42,7 @@ cockpit vault grant --package kb-graphify --secret shared:db-connection
 cockpit vault grant --package user-service --secret shared:db-connection
 
 # 3. Pacotes acessam (se tiverem permissão)
-client.GetSecret("shared:db-connection")  # VaultService verifica permissão
+client.GetSecret("shared:db-connection")  # Service verifica permissão
 ```
 
 **Hierarquia de namespaces:**
@@ -187,11 +187,11 @@ aicockpit/
    ↓
 5. Pacote solicita secret
    ↓
-6. VaultService identifica processo
+6. Service identifica processo
    ↓
-7. VaultService verifica permissões
+7. Service verifica permissões
    ↓
-8. VaultService retorna secret (se permitido)
+8. Service retorna secret (se permitido)
 ```
 
 ---

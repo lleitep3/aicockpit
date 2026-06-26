@@ -7,7 +7,7 @@
 # Modo seguro (padrão)
 cockpit vault set key value
 # → Requer master pass
-# → Usa VaultService automaticamente
+# → Usa Service automaticamente
 
 # Modo unsafe (requer master pass + confirmação)
 cockpit vault set --unsafe key value
@@ -50,7 +50,7 @@ cockpit vault set key value
 
 ## 🎯 SOLUÇÃO HÍBRIDA RECOMENDADA
 
-### Combinação: Master Pass + VaultService + Modo Unsafe Controlado
+### Combinação: Master Pass + Service + Modo Unsafe Controlado
 
 ```go
 // cmd/vault.go
@@ -99,8 +99,8 @@ func NewVaultSetCommand() *cobra.Command {
 				}
 			}
 			
-			// Usar VaultService (seguro)
-			client := vault.NewVaultServiceClient()
+			// Usar Service (seguro)
+			client := vault.NewServiceClient()
 			return client.SetSecret(key, value)
 		},
 	}
@@ -147,8 +147,8 @@ cockpit vault enable-master-password
 |---------|-----------|--------------|----------------------|
 | **Sem master pass** | ❌ Baixa | ✅ Alta | ❌ Nenhuma |
 | **Master pass apenas** | ⚠️ Média | ⚠️ Média | ⚠️ Parcial (se senha comprometida) |
-| **Master pass + VaultService** | ✅ Alta | ⚠️ Média | ✅ Boa |
-| **Master pass + VaultService + Unsafe controlado** | ✅✅ Muito Alta | ✅ Boa | ✅ Excelente |
+| **Master pass + Service** | ✅ Alta | ⚠️ Média | ✅ Boa |
+| **Master pass + Service + Unsafe controlado** | ✅✅ Muito Alta | ✅ Boa | ✅ Excelente |
 
 ## 🎯 FLUXO RECOMENDADO
 
@@ -156,7 +156,7 @@ cockpit vault enable-master-password
 ```bash
 $ cockpit vault set api-key "sk-..."
 Master password: *****
-✓ Secret stored securely via VaultService
+✓ Secret stored securely via Service
 ```
 
 ### Modo Unsafe (Quando necessário)
@@ -176,7 +176,7 @@ WARNING: This disables security protection. Continue? (type DISABLE): DISABLE
 
 $ cockpit vault set api-key "sk-..."
 ⚠️ Running in dev mode - no master password required
-✓ Secret stored via VaultService (still uses service, just no password)
+✓ Secret stored via Service (still uses service, just no password)
 ```
 
 ## 🔐 IMPLEMENTAÇÃO DE MASTER PASS
@@ -293,7 +293,7 @@ func promptMasterPassword() string {
 
 **Solução recomendada:**
 1. ✅ **Master pass** (sua ideia) - Evita uso acidental
-2. ✅ **VaultService padrão** - Segurança real por padrão
+2. ✅ **Service padrão** - Segurança real por padrão
 3. ✅ **Modo --unsafe controlado** - Requer master pass + confirmação "UNSAFE"
 4. ✅ **Dev mode sem master pass** - Para desenvolvimento
 5. ✅ **Logging de operações inseguras** - Auditoria
@@ -305,4 +305,4 @@ func promptMasterPassword() string {
 - Auditoria de operações de risco
 - Conforto para desenvolvimento
 
-**Master pass sozinho não é suficiente porque ainda permite bypass se usuário tiver a senha. Combinado com VaultService + controle de unsafe mode, você tem segurança real.**
+**Master pass sozinho não é suficiente porque ainda permite bypass se usuário tiver a senha. Combinado com Service + controle de unsafe mode, você tem segurança real.**

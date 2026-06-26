@@ -47,7 +47,7 @@ import (
 	"strings"
 )
 
-type VaultService struct {
+type Service struct {
 	serverAddr string
 	secretKey  []byte
 }
@@ -66,9 +66,9 @@ type SecretResponse struct {
 	Success bool   `json:"success"`
 }
 
-// NewVaultService creates a new vault service
-func NewVaultService() *VaultService {
-	return &VaultService{
+// NewService creates a new vault service
+func NewService() *Service {
+	return &Service{
 		serverAddr: "/tmp/cockpit-vault.sock", // Unix socket
 		secretKey:  getServiceSecretKey(),
 	}
@@ -76,7 +76,7 @@ func NewVaultService() *VaultService {
 
 // GetSecretForCaller returns the secret for the calling process
 // The caller doesn't specify namespace - the service determines it
-func (vs *VaultService) GetSecretForCaller(key string) (string, error) {
+func (vs *Service) GetSecretForCaller(key string) (string, error) {
 	// Get caller process information
 	callerPID := os.Getppid()
 	exePath, err := getProcessPath(callerPID)
@@ -109,7 +109,7 @@ func (vs *VaultService) GetSecretForCaller(key string) (string, error) {
 }
 
 // determineNamespace determines the namespace based on executable identity
-func (vs *VaultService) determineNamespace(exePath string) string {
+func (vs *Service) determineNamespace(exePath string) string {
 	// Extract app ID from executable path
 	appID := extractAppIDFromPath(exePath)
 	
@@ -124,7 +124,7 @@ func (vs *VaultService) determineNamespace(exePath string) string {
 }
 
 // verifyExecutableSignature verifies that the executable is signed/authorized
-func (vs *VaultService) verifyExecutableSignature(exePath string) bool {
+func (vs *Service) verifyExecutableSignature(exePath string) bool {
 	// In production, verify cryptographic signature
 	// For now, check if it's in authorized locations
 	
@@ -144,14 +144,14 @@ func (vs *VaultService) verifyExecutableSignature(exePath string) bool {
 }
 
 // signRequest creates a signature for the request
-func (vs *VaultService) signRequest(req *SecretRequest) string {
+func (vs *Service) signRequest(req *SecretRequest) string {
 	data := fmt.Sprintf("%d|%s|%s|%d", req.PID, req.Executable, req.Key, req.Timestamp)
 	hash := sha256.Sum256([]byte(data + string(vs.secretKey)))
 	return hex.EncodeToString(hash[:])
 }
 
 // sendRequest sends request to vault service
-func (vs *VaultService) sendRequest(req *SecretRequest) *SecretResponse {
+func (vs *Service) sendRequest(req *SecretRequest) *SecretResponse {
 	// Connect to Unix socket
 	conn, err := net.Dial("unix", vs.serverAddr)
 	if err != nil {

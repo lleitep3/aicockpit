@@ -41,7 +41,7 @@ Em vez de armazenar segredos em arquivos de configuração estáticos (`config.y
 │              Vault Implementations                               │
 │  - NamespacedVault (isolamento de namespace)                    │
 │  - OSVault (acesso direto, descontinuado)                       │
-│  - VaultService (verificação baseada em processo)                │
+│  - Service (verificação baseada em processo)                │
 └───────────────────────────┬─────────────────────────────────────┘
                             │
                             ▼
@@ -436,7 +436,7 @@ internal/vault/
 ├── lock_manager.go           - LockManager com estado criptografado
 ├── master_password.go        - Master password management
 ├── state_encryptor.go        - Criptografia e assinatura de estado
-├── vault_service.go          - VaultService para verificação de processo
+├── vault_service.go          - Service para verificação de processo
 ├── command_handler.go        - CommandHandler para execução segura
 ├── secure_vault.go           - SecureVault com criptografia AES-256
 └── process_auth.go           - Autenticação de processo

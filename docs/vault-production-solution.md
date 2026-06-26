@@ -3,7 +3,7 @@
 ## 🎯 Seus Pontos Excelentes
 
 ### 1. **Aplicação precisa apontar para pasta do vault?**
-**Problema:** Com VaultService, o cliente precisa saber onde está o socket Unix.
+**Problema:** Com Service, o cliente precisa saber onde está o socket Unix.
 
 **Soluções:**
 - ✅ Local padrão: `/tmp/cockpit-vault.sock` (não precisa configurar)
@@ -189,19 +189,19 @@ func (pm *PermissionManager) load() error {
 // internal/vault/vault_service_with_permissions.go
 package vault
 
-type VaultServiceWithPermissions struct {
-	*VaultService
+type ServiceWithPermissions struct {
+	*Service
 	permManager *PermissionManager
 }
 
-func NewVaultServiceWithPermissions(socketPath string) *VaultServiceWithPermissions {
-	return &VaultServiceWithPermissions{
-		VaultService: NewVaultService(socketPath),
+func NewServiceWithPermissions(socketPath string) *ServiceWithPermissions {
+	return &ServiceWithPermissions{
+		Service: NewService(socketPath),
 		permManager:  NewPermissionManager(""),
 	}
 }
 
-func (vs *VaultServiceWithPermissions) handleConnection(conn net.Conn) {
+func (vs *ServiceWithPermissions) handleConnection(conn net.Conn) {
 	defer conn.Close()
 	
 	decoder := json.NewDecoder(conn)
@@ -248,7 +248,7 @@ func (vs *VaultServiceWithPermissions) handleConnection(conn net.Conn) {
 	vs.logSecurityEvent("secret_access_granted", fmt.Sprintf("Package: %s, Key: %s, Namespace: %s", packageName, request.Key, namespace))
 }
 
-func (vs *VaultServiceWithPermissions) determinePackageName(exePath string) string {
+func (vs *ServiceWithPermissions) determinePackageName(exePath string) string {
 	// Similar a determineNamespace mas retorna nome do pacote
 	if strings.Contains(exePath, "/.cockpit/packages/") {
 		parts := strings.Split(exePath, "/.cockpit/packages/")
@@ -544,7 +544,7 @@ if socketPath == "" {
     socketPath = "/tmp/cockpit-vault.sock"  // Padrão
 }
 
-client := vault.NewVaultServiceClient(socketPath)
+client := vault.NewServiceClient(socketPath)
 ```
 **Resposta:** Não precisa configurar, usa local padrão.
 
@@ -558,7 +558,7 @@ cockpit vault set shared:db-connection "postgres://..."
 cockpit vault grant --package kb-graphify --secret shared:db-connection
 cockpit vault grant --package user-service --secret shared:db-connection
 
-# Pacotes acessam via VaultService
+# Pacotes acessam via Service
 client.GetSecret("shared:db-connection")  // Se tiver permissão
 ```
 **Resposta:** Namespace "shared" + sistema de permissões.

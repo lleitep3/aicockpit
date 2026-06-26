@@ -8,7 +8,7 @@ import (
 )
 
 // NamespacedVault provides namespace isolation for vault access
-// Each application/pacakge can only access secrets in its own namespace
+// Each application/package can only access secrets in its own namespace
 type NamespacedVault struct {
 	namespace string
 	osVault   *osVault

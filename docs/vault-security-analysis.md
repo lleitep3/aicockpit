@@ -188,7 +188,7 @@ App → Auth → Vault Service → Keyring
 **Implementação:**
 ```go
 // Vault Service (separado, com autenticação)
-type VaultService struct {
+type Service struct {
     server      *http.Server
     authTokens  map[string]string // appID -> token
     accessLog   []AccessRecord
@@ -201,7 +201,7 @@ type AccessRequest struct {
     Operation string `json:"operation"` // get/set/delete
 }
 
-func (vs *VaultService) handleRequest(w http.ResponseWriter, r *http.Request) {
+func (vs *Service) handleRequest(w http.ResponseWriter, r *http.Request) {
     var req AccessRequest
     json.NewDecoder(r.Body).Decode(&req)
     

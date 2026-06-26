@@ -123,7 +123,7 @@ Error: vault is locked
 ## 🚀 Próximos Passos
 
 1. **Testar auto-lock** - Ajustar implementação para funcionar corretamente
-2. **Integrar com VaultService** - Combinar lock/unlock com VaultService
+2. **Integrar com Service** - Combinar lock/unlock com Service
 3. **Adicionar permissões** - Sistema de permissões por secret
 4. **Atualizar kb-graphify** - Usar novo sistema de lock/unlock
 5. **Documentação** - Adicionar ao README e docs

@@ -13,9 +13,9 @@ import (
 	"time"
 )
 
-// VaultService provides secure secret access where the service controls the namespace
+// Service provides secure secret access where the service controls the namespace
 // Packages NEVER specify their namespace - the service determines it from process identity
-type VaultService struct {
+type Service struct {
 	socketPath string
 	vault      *osVault
 	secretKey  []byte
@@ -38,13 +38,13 @@ type SecretResponse struct {
 	Success bool   `json:"success"`
 }
 
-// NewVaultService creates a new vault service
-func NewVaultService(socketPath string) *VaultService {
+// NewService creates a new vault service
+func NewService(socketPath string) *Service {
 	if socketPath == "" {
 		socketPath = "/tmp/cockpit-vault.sock"
 	}
 
-	return &VaultService{
+	return &Service{
 		socketPath: socketPath,
 		vault:      newOSVault(),
 		secretKey:  getServiceSecretKey(),
@@ -53,7 +53,7 @@ func NewVaultService(socketPath string) *VaultService {
 }
 
 // Start starts the vault service
-func (vs *VaultService) Start() error {
+func (vs *Service) Start() error {
 	vs.mu.Lock()
 	defer vs.mu.Unlock()
 
@@ -70,7 +70,7 @@ func (vs *VaultService) Start() error {
 	}
 
 	vs.running = true
-	fmt.Printf("[VaultService] Started on %s\n", vs.socketPath)
+	fmt.Printf("[Service] Started on %s\n", vs.socketPath)
 
 	go vs.acceptConnections(listener)
 
@@ -78,7 +78,7 @@ func (vs *VaultService) Start() error {
 }
 
 // Stop stops the vault service
-func (vs *VaultService) Stop() error {
+func (vs *Service) Stop() error {
 	vs.mu.Lock()
 	defer vs.mu.Unlock()
 
@@ -91,12 +91,12 @@ func (vs *VaultService) Stop() error {
 }
 
 // acceptConnections accepts incoming connections
-func (vs *VaultService) acceptConnections(listener net.Listener) {
+func (vs *Service) acceptConnections(listener net.Listener) {
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
 			if vs.running {
-				fmt.Printf("[VaultService] Accept error: %v\n", err)
+				fmt.Printf("[Service] Accept error: %v\n", err)
 			}
 			return
 		}
@@ -106,7 +106,7 @@ func (vs *VaultService) acceptConnections(listener net.Listener) {
 }
 
 // handleConnection handles a single connection
-func (vs *VaultService) handleConnection(conn net.Conn) {
+func (vs *Service) handleConnection(conn net.Conn) {
 	defer conn.Close()
 
 	decoder := json.NewDecoder(conn)
@@ -146,7 +146,7 @@ func (vs *VaultService) handleConnection(conn net.Conn) {
 }
 
 // verifyAndGetNamespace verifies the process identity and returns the appropriate namespace
-func (vs *VaultService) verifyAndGetNamespace(req *SecretRequest) (string, error) {
+func (vs *Service) verifyAndGetNamespace(req *SecretRequest) (string, error) {
 	// Verify the process exists
 	if !vs.processExists(req.PID) {
 		return "", fmt.Errorf("process %d does not exist", req.PID)
@@ -175,7 +175,7 @@ func (vs *VaultService) verifyAndGetNamespace(req *SecretRequest) (string, error
 }
 
 // processExists checks if a process with the given PID exists
-func (vs *VaultService) processExists(pid int) bool {
+func (vs *Service) processExists(pid int) bool {
 	// Try to send signal 0 to check if process exists
 	process, err := os.FindProcess(pid)
 	if err != nil {
@@ -206,7 +206,7 @@ func getProcessPath(pid int) (string, error) {
 }
 
 // isAuthorizedLocation checks if the executable is in an authorized location
-func (vs *VaultService) isAuthorizedLocation(exePath string) bool {
+func (vs *Service) isAuthorizedLocation(exePath string) bool {
 	authorizedLocations := []string{
 		"/home/lleite/.cockpit/packages/",
 		os.Getenv("HOME") + "/.cockpit/packages/",
@@ -229,7 +229,7 @@ func (vs *VaultService) isAuthorizedLocation(exePath string) bool {
 }
 
 // determineNamespace determines the namespace from the executable path
-func (vs *VaultService) determineNamespace(exePath string) string {
+func (vs *Service) determineNamespace(exePath string) string {
 	// Extract package name from path
 	// Expected path: /home/user/.cockpit/packages/package-name/...
 	// Or: /home/user/.local/bin/package-name
@@ -254,7 +254,7 @@ func (vs *VaultService) determineNamespace(exePath string) string {
 }
 
 // sendError sends an error response
-func (vs *VaultService) sendError(encoder *json.Encoder, message string) {
+func (vs *Service) sendError(encoder *json.Encoder, message string) {
 	response := SecretResponse{
 		Success: false,
 		Error:   message,
@@ -263,7 +263,7 @@ func (vs *VaultService) sendError(encoder *json.Encoder, message string) {
 }
 
 // logSecurityEvent logs security events
-func (vs *VaultService) logSecurityEvent(eventType, details string) {
+func (vs *Service) logSecurityEvent(eventType, details string) {
 	timestamp := time.Now().Format("2006-01-02 15:04:05")
 	fmt.Printf("[SECURITY %s] %s: %s\n", timestamp, eventType, details)
 }
@@ -279,24 +279,24 @@ func getServiceSecretKey() []byte {
 }
 
 // Client for accessing the vault service
-type VaultServiceClient struct {
+type ServiceClient struct {
 	socketPath string
 }
 
-// NewVaultServiceClient creates a new client
-func NewVaultServiceClient(socketPath string) *VaultServiceClient {
+// NewServiceClient creates a new client
+func NewServiceClient(socketPath string) *ServiceClient {
 	if socketPath == "" {
 		socketPath = "/tmp/cockpit-vault.sock"
 	}
 
-	return &VaultServiceClient{
+	return &ServiceClient{
 		socketPath: socketPath,
 	}
 }
 
 // GetSecret gets a secret from the vault service
 // The client doesn't specify namespace - the service determines it from process identity
-func (client *VaultServiceClient) GetSecret(key string) (string, error) {
+func (client *ServiceClient) GetSecret(key string) (string, error) {
 	// Get current process information
 	pid := os.Getpid()
 	exePath, err := os.Executable()
