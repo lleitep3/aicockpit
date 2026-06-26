@@ -66,7 +66,41 @@ jobs:
     
     - name: Generate Changelog
       run: |
+        # Generate changelog for the release
         bash scripts/generate-changelog.sh ${{ env.NEW_VERSION }} > RELEASE_NOTES.md
+    
+    - name: Update CHANGELOG.md
+      run: |
+        # Prepend new release to CHANGELOG.md
+        if [ -f "CHANGELOG.md" ]; then
+          # Get current changelog content (skip first line if it's the header)
+          CURRENT_CONTENT=$(tail -n +2 CHANGELOG.md)
+          
+          # Create new changelog with new release
+          cat > CHANGELOG.md << 'EOF'
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+EOF
+          
+          # Add new release content
+          cat RELEASE_NOTES.md >> CHANGELOG.md
+          
+          # Add existing content
+          echo "" >> CHANGELOG.md
+          echo "$CURRENT_CONTENT" >> CHANGELOG.md
+          
+          git add CHANGELOG.md
+          git commit -m "docs(changelog): update CHANGELOG.md for v${{ env.NEW_VERSION }}"
+        fi
+    
+    - name: Push CHANGELOG update
+      run: |
+        git push origin main
     
     - name: Create Release
       uses: softprops/action-gh-release@v2
