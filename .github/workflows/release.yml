@@ -26,36 +26,42 @@ jobs:
       with:
         go-version: '1.26'
     
-    - name: Set version
+    - name: Set version and update files
       run: |
         NEW_VERSION="${{ github.event.inputs.version }}"
         echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
         echo "Releasing version: $NEW_VERSION"
-    
-    - name: Create commit
+        
+        # Update version files
+        echo "$NEW_VERSION" > VERSION
+        if [ -f "internal/version/version.go" ]; then
+          sed -i "s/const Version = .*/const Version = \"$NEW_VERSION\"/" internal/version/version.go
+        fi
+
+    - name: Generate Release Notes and Update CHANGELOG.md
       run: |
-        git config user.name "github-actions[bot]"
-        git config user.email "github-actions[bot]@users.noreply.github.com"
-        git add VERSION internal/version/version.go
-        git commit -m "chore(release): bump version to ${{ env.NEW_VERSION }}"
-    
-    - name: Create tag
-      run: |
-        git tag -a "v${{ env.NEW_VERSION }}" -m "Release v${{ env.NEW_VERSION }}"
-    
-    - name: Generate Changelog
-      run: |
-        # Generate changelog for the release
-        bash scripts/generate-changelog.sh ${{ env.NEW_VERSION }} > RELEASE_NOTES.md
-    
-    - name: Update CHANGELOG.md
-      run: |
-        # Prepend new release to CHANGELOG.md
+        # Get the latest tag prior to this release to generate changelog
+        LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+        echo "Previous tag: $LATEST_TAG"
+        
+        # Generate release notes
+        bash scripts/generate-changelog.sh "${{ env.NEW_VERSION }}" "${LATEST_TAG}..HEAD" > RELEASE_NOTES.md
+        
+        echo "Generated Release Notes:"
+        cat RELEASE_NOTES.md
+        
         if [ -f "CHANGELOG.md" ]; then
-          # Get current changelog content (skip first line if it's the header)
-          CURRENT_CONTENT=$(tail -n +2 CHANGELOG.md)
+          # Extract start of historical releases (anything that matches ## [X.Y.Z])
+          HISTORICAL_START_LINE=$(grep -n "^## \[[0-9]" CHANGELOG.md | head -n 1 | cut -d: -f1)
           
-          # Create new changelog with new release
+          if [ -n "$HISTORICAL_START_LINE" ]; then
+            HISTORICAL_CONTENT=$(tail -n +$HISTORICAL_START_LINE CHANGELOG.md)
+          else
+            HISTORICAL_CONTENT=""
+          fi
+          
+          # Rebuild CHANGELOG.md with empty [Unreleased] section on top,
+          # followed by the NEW RELEASE NOTES, and then the historical content.
           cat > CHANGELOG.md << 'EOF'
 # Changelog
 
@@ -64,18 +70,50 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
 EOF
           
-          # Add new release content
+          # Append the new release header and notes
           cat RELEASE_NOTES.md >> CHANGELOG.md
           
-          # Add existing content
-          echo "" >> CHANGELOG.md
-          echo "$CURRENT_CONTENT" >> CHANGELOG.md
-          
-          git add CHANGELOG.md
-          git commit -m "docs(changelog): update CHANGELOG.md for v${{ env.NEW_VERSION }}"
+          # Append the historical content
+          if [ -n "$HISTORICAL_CONTENT" ]; then
+            echo "" >> CHANGELOG.md
+            echo "$HISTORICAL_CONTENT" >> CHANGELOG.md
+          fi
+        else
+          echo "CHANGELOG.md not found, creating it"
+          cat > CHANGELOG.md << 'EOF'
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+EOF
+          # Append release notes
+          cat RELEASE_NOTES.md >> CHANGELOG.md
         fi
+
+    - name: Commit version bump and CHANGELOG
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add VERSION internal/version/version.go CHANGELOG.md
+        git commit -m "chore(release): bump version and update CHANGELOG.md to v${{ env.NEW_VERSION }} [skip ci]"
+
+    - name: Create tag
+      run: |
+        git tag -a "v${{ env.NEW_VERSION }}" -m "Release v${{ env.NEW_VERSION }}"
+
+    - name: Push changes and tag
+      run: |
+        git push origin main
+        git push origin "v${{ env.NEW_VERSION }}"
     
     - name: Create Release
       uses: softprops/action-gh-release@v2

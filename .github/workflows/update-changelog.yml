@@ -3,7 +3,7 @@ name: Update Changelog
 on:
   push:
     branches: [ main ]
-  workflow_dispatch
+  workflow_dispatch:
 
 jobs:
   update-changelog:
@@ -30,14 +30,11 @@ jobs:
         
         echo "Latest tag: $LATEST_TAG"
         
-        # Get version from tag
-        VERSION=$(echo $LATEST_TAG | sed 's/v//')
-        
-        # Generate changelog since last tag
-        bash scripts/generate-changelog.sh "$VERSION" "${LATEST_TAG}..HEAD" > NEW_CHANGES.md
+        # Generate unreleased changes since last tag (empty version parameter)
+        bash scripts/generate-changelog.sh "" "${LATEST_TAG}..HEAD" > NEW_CHANGES.md
         
         # Check if there are new changes
-        if grep -q "No commits found" NEW_CHANGES.md; then
+        if [ ! -s NEW_CHANGES.md ] || grep -q "No commits found" NEW_CHANGES.md; then
           echo "No new commits since $LATEST_TAG, skipping changelog update"
           exit 0
         fi
@@ -46,10 +43,16 @@ jobs:
         
         # Update CHANGELOG.md
         if [ -f "CHANGELOG.md" ]; then
-          # Get current content (skip header)
-          CURRENT_CONTENT=$(tail -n +6 CHANGELOG.md)
+          # Find start of historical releases (skip [Unreleased])
+          HISTORICAL_START_LINE=$(grep -n "^## \[[0-9]" CHANGELOG.md | head -n 1 | cut -d: -f1)
           
-          # Create new changelog with new release
+          if [ -n "$HISTORICAL_START_LINE" ]; then
+            HISTORICAL_CONTENT=$(tail -n +$HISTORICAL_START_LINE CHANGELOG.md)
+          else
+            HISTORICAL_CONTENT=$(tail -n +8 CHANGELOG.md)
+          fi
+          
+          # Rebuild CHANGELOG.md
           cat > CHANGELOG.md << 'EOF'
 # Changelog
 
@@ -58,24 +61,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
 EOF
-          
-          # Add new release content
+          # Append the new changes
           cat NEW_CHANGES.md >> CHANGELOG.md
           
-          # Add existing content
-          echo "" >> CHANGELOG.md
-          echo "$CURRENT_CONTENT" >> CHANGELOG.md
-          
-          # Commit and push
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add CHANGELOG.md
-          git commit -m "docs(changelog): update CHANGELOG.md for changes since $LATEST_TAG [skip ci]"
-          git push
+          # Append the historical content
+          if [ -n "$HISTORICAL_CONTENT" ]; then
+            echo "" >> CHANGELOG.md
+            echo "$HISTORICAL_CONTENT" >> CHANGELOG.md
+          fi
         else
           echo "CHANGELOG.md not found, creating it"
-          cat > CHANGELOG.md << EOF
+          cat > CHANGELOG.md << 'EOF'
 # Changelog
 
 All notable changes to this project will be documented in this file.
@@ -83,12 +82,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
 EOF
           cat NEW_CHANGES.md >> CHANGELOG.md
-          
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add CHANGELOG.md
-          git commit -m "docs(changelog): create CHANGELOG.md [skip ci]"
-          git push
         fi
+        
+        # Commit and push
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add CHANGELOG.md
+        git commit -m "docs(changelog): update CHANGELOG.md for changes since $LATEST_TAG [skip ci]"
+        git push
