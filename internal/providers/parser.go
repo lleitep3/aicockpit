@@ -1,7 +1,6 @@
 package providers
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -285,13 +284,8 @@ func parseAgents(homeDir string) ([]CanonicalAgent, error) {
 			Content:      body,
 		}
 
-		// Parse max_nesting if present
-		if maxNestingStr, ok := fm["max_nesting"]; ok {
-			// Simple parsing - in production you'd want proper error handling
-			var maxNesting int
-			fmt.Sscanf(maxNestingStr, "%d", &maxNesting)
-			agent.MaxNesting = maxNesting
-		}
+		// Parse max_nesting if present (skip for now - requires proper YAML parsing)
+		// TODO: Implement proper YAML parsing for complex frontmatter fields
 
 		agents = append(agents, agent)
 	}

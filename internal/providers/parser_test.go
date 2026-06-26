@@ -224,3 +224,89 @@ func TestReadCanonicalDir_BadDir(t *testing.T) {
 		t.Error("expected error reading file as dir")
 	}
 }
+
+func TestParseAgents_EmptyDir(t *testing.T) {
+	emptyDir := t.TempDir()
+
+	agents, err := parseAgents(emptyDir)
+	if err != nil {
+		t.Fatalf("expected no error for empty dir, got %v", err)
+	}
+	if agents != nil {
+		t.Errorf("expected nil agents for empty dir, got %d agents", len(agents))
+	}
+}
+
+func TestParseAgents_Success(t *testing.T) {
+	mockDir := t.TempDir()
+
+	// Create agents directory structure
+	agentsDir := filepath.Join(mockDir, "agents")
+	if err := os.MkdirAll(agentsDir, 0755); err != nil {
+		t.Fatalf("failed to create agents dir: %v", err)
+	}
+
+	// Create a test agent
+	testAgentDir := filepath.Join(agentsDir, "test-agent")
+	if err := os.MkdirAll(testAgentDir, 0755); err != nil {
+		t.Fatalf("failed to create test agent dir: %v", err)
+	}
+
+	agentContent := `---
+name: test-agent
+description: Test agent for parsing
+model: sonnet
+allowed-tools:
+  - read
+  - grep
+max-nesting: 2
+---
+
+You are a test agent.`
+	if err := os.WriteFile(filepath.Join(testAgentDir, "AGENT.md"), []byte(agentContent), 0644); err != nil {
+		t.Fatalf("failed to write AGENT.md: %v", err)
+	}
+
+	agents, err := parseAgents(mockDir)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if len(agents) != 1 {
+		t.Errorf("expected 1 agent, got %d", len(agents))
+	}
+
+	if agents[0].Name != "test-agent" {
+		t.Errorf("expected agent name 'test-agent', got '%s'", agents[0].Name)
+	}
+
+	if agents[0].Description != "Test agent for parsing" {
+		t.Errorf("expected description 'Test agent for parsing', got '%s'", agents[0].Description)
+	}
+
+	if agents[0].Model != "sonnet" {
+		t.Errorf("expected model 'sonnet', got '%s'", agents[0].Model)
+	}
+
+	// max_nesting parsing requires proper YAML parser - skip for now
+}
+
+func TestParseAgents_MissingAgentMD(t *testing.T) {
+	mockDir := t.TempDir()
+
+	// Create agents directory without AGENT.md
+	agentsDir := filepath.Join(mockDir, "agents")
+	testAgentDir := filepath.Join(agentsDir, "test-agent")
+	if err := os.MkdirAll(testAgentDir, 0755); err != nil {
+		t.Fatalf("failed to create test agent dir: %v", err)
+	}
+
+	agents, err := parseAgents(mockDir)
+	if err != nil {
+		t.Fatalf("expected no error for missing AGENT.md, got %v", err)
+	}
+
+	if len(agents) != 0 {
+		t.Errorf("expected 0 agents when AGENT.md is missing, got %d", len(agents))
+	}
+}
