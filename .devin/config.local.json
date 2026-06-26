@@ -71,7 +71,9 @@
       "Exec(/tmp/test_vault_complete.sh)",
       "Exec(cockpit vault)",
       "Exec(/tmp/test_simple.sh)",
-      "Exec(rmdir)"
+      "Exec(rmdir)",
+      "Exec(go env)",
+      "Exec(sh)"
     ]
   }
 }

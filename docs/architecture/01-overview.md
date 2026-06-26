@@ -41,15 +41,17 @@ graph TD
 * **Provider Manager (`internal/providers`):** O motor de compilação. Traduz os pacotes baixados em configurações ativas nos agentes de IA. *(Discutiremos profundamente na próxima etapa).*
 * **Knowledge Base Engine (`internal/kb`):** O motor de busca vetorial/keyword que as IAs utilizam para encontrar contexto dentro dos arquivos do próprio repositório.
 * **Logger & Metrics (`internal/logging`):** Tudo que passa pelo CLI é logado. Isso permite analisar a performance das IAs e economizar *tokens*.
+* **Update Service (`internal/update`):** Sistema de verificação e atualização automática que consulta a API do GitHub Releases para manter o Cockpit atualizado. Inclui verificação diária, prompts interativos e atualização via git.
 
 ### O Ciclo de Vida de uma Execução
 
 Quando um humano ou uma IA executa `cockpit kb search "metrics"`:
 1. O executável Go processa os argumentos via framework `Cobra`.
-2. A configuração e idioma (Inglês ou Português) são carregados do `~/.cockpit/config.yaml`.
-3. O comando de Busca do KB é acionado passando o termo.
-4. O motor lê os arquivos do cache (`.index.json`) para ganhar velocidade.
-5. Os resultados são parseados e formatados no terminal.
-6. A execução é logada no motor de Métricas (`metrics.json`).
+2. **Verificação de Update** (opcional): O sistema verifica se há atualizações disponíveis (cache de 24h).
+3. A configuração e idioma (Inglês ou Português) são carregados do `~/.cockpit/config.yaml`.
+4. O comando de Busca do KB é acionado passando o termo.
+5. O motor lê os arquivos do cache (`.index.json`) para ganhar velocidade.
+6. Os resultados são parseados e formatados no terminal.
+7. A execução é logada no motor de Métricas (`metrics.json`).
 
 > **Próximo Passo:** Agora que você tem a visão geral de como o sistema está acoplado, vá para [02. O Compilador Canônico e Provedores](02-provider-compilers.md) para entender a mágica da compatibilidade multi-IA.
