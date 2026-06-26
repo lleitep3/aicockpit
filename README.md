@@ -229,6 +229,14 @@ make clean             # Clean build artifacts
 make install-hooks     # Install git pre-commit hooks
 ```
 
+## 🧑‍💻 Identity File
+
+AICockpit supports a local `identity.md` file to store your personal developer profile, workspace preferences and AI communication conventions.
+
+- Use `internal/assets/default_cockpit/identity-example.md` as a starting point.
+- Copy it to `identity.md` and update your own name, role, location, stack and workflow preferences.
+- `identity.md` is ignored by Git to keep personal identity data local.
+
 ### Project Structure
 
 ```

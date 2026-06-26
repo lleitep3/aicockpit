@@ -23,3 +23,6 @@ docs/CLAUDE.md
 # Local Gemini environment data
 .gemini/
 cmd/.gemini/
+
+# Local .cockpit configuration file
+.cockpit/
