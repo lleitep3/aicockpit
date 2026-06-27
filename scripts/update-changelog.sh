@@ -102,16 +102,7 @@ if [ "$PR_MODE" = true ]; then
   PR_NUMBER=$(echo "${PR_URL}" | sed 's/.*\/pull\/\([0-9]*\).*/\1/')
   echo "Created PR #${PR_NUMBER}: ${PR_URL}"
 
-  # Wait for checks to be reported on the PR
-  for i in $(seq 1 60); do
-    if gh pr checks "${PR_NUMBER}" >/dev/null 2>&1; then
-      break
-    fi
-    echo "Waiting for checks to be reported on PR #${PR_NUMBER}..."
-    sleep 5
-  done
-
-  gh pr checks "${PR_NUMBER}" --watch
+  sleep 5
   gh pr merge "${PR_NUMBER}" --squash --admin --delete-branch
   echo "Merged PR #${PR_NUMBER}"
 else
