@@ -137,9 +137,25 @@ git commit -m "chore(release): bump version and update CHANGELOG.md to v${VERSIO
 if [ "$PR_MODE" = true ]; then
   git push origin "$BRANCH"
   PR_URL=$(gh pr create --base main --title "chore(release): bump version and update CHANGELOG.md to v${VERSION} [skip ci]" --body "Automated release bump.")
-  gh pr checks --watch
-  gh pr merge --squash --delete-branch
-  echo "Merged release PR: ${PR_URL}"
+  PR_NUMBER=$(echo "${PR_URL}" | sed 's/.*\/pull\/\([0-9]*\).*/\1/')
+  echo "Created PR #${PR_NUMBER}: ${PR_URL}"
+
+  for i in $(seq 1 120); do
+    STATUS=$(gh pr view "${PR_NUMBER}" --json mergeStateStatus --jq '.mergeStateStatus')
+    echo "PR #${PR_NUMBER} status: ${STATUS}"
+    if [ "${STATUS}" = "CLEAN" ]; then
+      gh pr merge "${PR_NUMBER}" --squash --delete-branch
+      echo "Merged PR #${PR_NUMBER}"
+      break
+    fi
+    sleep 10
+  done
+
+  if [ "${STATUS}" != "CLEAN" ]; then
+    echo "Timeout waiting for PR #${PR_NUMBER} to become mergeable" >&2
+    exit 1
+  fi
+
   git fetch origin main
   git tag -a "v${VERSION}" -m "Release v${VERSION}" origin/main
   git push origin "v${VERSION}"
