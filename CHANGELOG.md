@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.3] - 2026-06-27
+
+### Changed since v0.4.2
+
+
 ### Features
 - calibrate Goose cockpit setup + Docs  (#55)
 - improve changelog generation to work in PRs (#47)
@@ -67,6 +72,7 @@ No breaking changes
 - Merge branch 'main' into fix/setup-initialization
 - Merge pull request #28 from lleitep3/docs/providers-mapping
 - Merge branch 'main' into docs/providers-mapping
+
 
 
 ## [0.1.0] - 2025-01-XX
