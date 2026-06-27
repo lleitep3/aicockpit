@@ -1,15 +1,20 @@
 #!/bin/bash
 
 # Update CHANGELOG.md with unreleased changes since the latest tag.
-# Usage: scripts/update-changelog.sh [--dry-run]
+# Usage: scripts/update-changelog.sh [--dry-run | --pr]
 
 set -euo pipefail
 
 DRY_RUN=false
+PR_MODE=false
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --dry-run)
       DRY_RUN=true
+      shift
+      ;;
+    --pr)
+      PR_MODE=true
       shift
       ;;
     *)
@@ -24,6 +29,12 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
 if [ -z "$LATEST_TAG" ]; then
   echo "No tags found, skipping changelog update"
+  exit 0
+fi
+
+LATEST_COMMIT=$(git log -1 --pretty=format:'%s')
+if [[ "$LATEST_COMMIT" =~ ^docs\(changelog\):.*\[skip\ ci\] ]]; then
+  echo "Latest commit is already a changelog update, skipping"
   exit 0
 fi
 
@@ -73,12 +84,26 @@ if [ "$DRY_RUN" = true ]; then
   exit 0
 fi
 
+if [ "$PR_MODE" = true ]; then
+  BRANCH="chore/changelog-update-$(date +%Y%m%d%H%M%S)"
+  git checkout -b "$BRANCH"
+fi
+
 cat "$OUTPUT" > CHANGELOG.md
 
 git config user.name "github-actions[bot]"
 git config user.email "github-actions[bot]@users.noreply.github.com"
 git add CHANGELOG.md
 git commit -m "docs(changelog): update CHANGELOG.md for changes since ${LATEST_TAG} [skip ci]"
-git push
+
+if [ "$PR_MODE" = true ]; then
+  git push origin "$BRANCH"
+  PR_URL=$(gh pr create --base main --title "docs(changelog): update CHANGELOG.md for changes since ${LATEST_TAG} [skip ci]" --body "Automated changelog update.")
+  gh pr checks --watch
+  gh pr merge --squash --delete-branch
+  echo "Merged changelog PR: ${PR_URL}"
+else
+  git push origin main
+fi
 
 rm -f "$NEW_CHANGES" "$HISTORICAL" "$OUTPUT"

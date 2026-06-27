@@ -17,6 +17,7 @@ jobs:
 
     permissions:
       contents: write
+      pull-requests: write
 
     steps:
       - uses: actions/checkout@v4
@@ -25,4 +26,6 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update CHANGELOG.md
-        run: bash scripts/update-changelog.sh ${{ github.event_name == 'pull_request' && '--dry-run' || '' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash scripts/update-changelog.sh ${{ github.event_name == 'pull_request' && '--dry-run' || '--pr' }}
