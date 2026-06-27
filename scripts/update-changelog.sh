@@ -102,21 +102,18 @@ if [ "$PR_MODE" = true ]; then
   PR_NUMBER=$(echo "${PR_URL}" | sed 's/.*\/pull\/\([0-9]*\).*/\1/')
   echo "Created PR #${PR_NUMBER}: ${PR_URL}"
 
-  for i in $(seq 1 120); do
-    STATUS=$(gh pr view "${PR_NUMBER}" --json mergeStateStatus --jq '.mergeStateStatus')
-    echo "PR #${PR_NUMBER} status: ${STATUS}"
-    if [ "${STATUS}" = "CLEAN" ]; then
-      gh pr merge "${PR_NUMBER}" --squash --admin --delete-branch
-      echo "Merged PR #${PR_NUMBER}"
+  # Wait for checks to be reported on the PR
+  for i in $(seq 1 60); do
+    if gh pr checks "${PR_NUMBER}" >/dev/null 2>&1; then
       break
     fi
-    sleep 10
+    echo "Waiting for checks to be reported on PR #${PR_NUMBER}..."
+    sleep 5
   done
 
-  if [ "${STATUS}" != "CLEAN" ]; then
-    echo "Timeout waiting for PR #${PR_NUMBER} to become mergeable" >&2
-    exit 1
-  fi
+  gh pr checks "${PR_NUMBER}" --watch
+  gh pr merge "${PR_NUMBER}" --squash --admin --delete-branch
+  echo "Merged PR #${PR_NUMBER}"
 else
   git push origin main
 fi
