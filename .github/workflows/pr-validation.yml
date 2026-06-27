@@ -1,0 +1,25 @@
+name: PR Validation
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+    branches:
+      - main
+      - develop
+
+jobs:
+  validate-pr:
+    runs-on: ubuntu-latest
+
+    permissions:
+      pull-requests: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate PR description
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr view ${{ github.event.pull_request.number }} --json body --jq .body > /tmp/pr-body.txt
+          bash scripts/validate-pr.sh /tmp/pr-body.txt
