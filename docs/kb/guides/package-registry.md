@@ -710,6 +710,50 @@ $ cockpit pkg registries update official
 $ cockpit pkg registries enable community
 ```
 
+## Contributing to a Registry
+
+When submitting packages or updates to a registry via pull request, the following rules apply and are enforced by CI:
+
+### Rules
+
+1. **One package per PR.** Each pull request must add or modify exactly one package. Bundling multiple packages in a single PR will cause CI validation to fail.
+
+2. **Version bump required.** Every PR that touches a package must include a version increment in both the package's `cockpit-package.yml` manifest and the corresponding entry in `package-index.yaml`. PRs without a version bump are rejected.
+
+3. **Bump must match PR commits.** The version increment must reflect the nature of the commits in the PR:
+   - `PATCH` bump for bug fixes and non-functional changes
+   - `MINOR` bump for new features, backward compatible
+   - `MAJOR` bump for breaking changes
+
+4. **CI validates these rules.** The GitHub Actions workflow (`.github/workflows/validate-packages.yml`) automatically checks all of the above on every PR. A PR cannot be merged until all validation steps pass.
+
+### Contribution Workflow
+
+```bash
+# 1. Fork and clone the registry
+git clone https://github.com/user/cockpit-packages.git
+cd cockpit-packages
+
+# 2. Create a feature branch for exactly one package
+git checkout -b feature/my-package
+
+# 3. Add or update the package
+cp -r /path/to/my-package ./packages/my-package
+
+# 4. Bump the version in cockpit-package.yml
+#    (edit version field, e.g. 1.0.0 -> 1.1.0)
+
+# 5. Update package-index.yaml with the same version bump
+#    and any changed metadata
+
+# 6. Commit using conventional commits
+git add packages/my-package package-index.yaml
+git commit -m "feat(packages): add my-package v1.1.0"
+
+# 7. Open a PR — CI will validate the rules above automatically
+git push origin feature/my-package
+```
+
 ## See Also
 
 - [Package Specification](./package-specification.md)

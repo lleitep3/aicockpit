@@ -407,15 +407,36 @@ Include usage examples in documentation.
 
 ## Contributing to the Registry
 
-To contribute a package:
+To contribute a package, follow the steps below and make sure your PR satisfies all contribution rules — they are enforced automatically by CI.
+
+### Contribution Rules
+
+1. **One package per PR.** Each pull request must add or modify exactly one package. PRs touching multiple packages will fail CI validation.
+
+2. **Version bump required.** Every PR that touches a package must increment the version in both:
+   - `packages/<name>/cockpit-package.yml` — the `version` field
+   - `package-index.yaml` — the matching entry's `version` field
+
+   PRs that do not include a version bump are automatically rejected.
+
+3. **Bump must match PR commits.** Choose the bump level based on what the commits in the PR actually change:
+   - `PATCH` (`x.y.Z`) — bug fixes, documentation, non-functional changes
+   - `MINOR` (`x.Y.0`) — new features, backward compatible
+   - `MAJOR` (`X.0.0`) — breaking changes
+
+4. **CI validates these rules.** The workflow at `.github/workflows/validate-packages.yml` runs on every PR and checks all rules above. The PR cannot be merged until all checks pass.
+
+### Step-by-Step Workflow
 
 1. **Fork** the repository
-2. **Create** a feature branch
-3. **Add** your package
-4. **Update** `package-index.yaml`
-5. **Test** thoroughly
-6. **Document** comprehensively
-7. **Submit** a pull request
+2. **Create** a feature branch scoped to one package (`feature/my-package`)
+3. **Add** your package under `packages/`
+4. **Bump** the version in `cockpit-package.yml`
+5. **Update** `package-index.yaml` with the new version and any changed metadata
+6. **Test** thoroughly (minimum 90% coverage)
+7. **Document** comprehensively (`README.md`, usage guides)
+8. **Commit** using Conventional Commits (`feat(packages): add my-package v1.0.0`)
+9. **Submit** a pull request — CI validates all rules automatically
 
 ## Support
 
