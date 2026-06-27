@@ -1,16 +1,21 @@
 #!/bin/bash
 
 # Bump version, update CHANGELOG.md with a versioned release section, and create a tag.
-# Usage: scripts/bump-release.sh [--dry-run] [--version X.Y.Z]
+# Usage: scripts/bump-release.sh [--dry-run | --pr] [--version X.Y.Z]
 
 set -euo pipefail
 
 DRY_RUN=false
+PR_MODE=false
 VERSION=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --dry-run)
       DRY_RUN=true
+      shift
+      ;;
+    --pr)
+      PR_MODE=true
       shift
       ;;
     --version)
@@ -28,6 +33,12 @@ LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
 if [ -z "$LATEST_TAG" ]; then
   echo "No tags found, cannot create release" >&2
   exit 1
+fi
+
+LATEST_COMMIT=$(git log -1 --pretty=format:'%s')
+if [[ "$LATEST_COMMIT" =~ ^chore\(release\):.*\[skip\ ci\] ]]; then
+  echo "Latest commit is already a release bump, skipping"
+  exit 0
 fi
 
 if [ -z "$VERSION" ]; then
@@ -105,6 +116,11 @@ if [ "$DRY_RUN" = true ]; then
   exit 0
 fi
 
+if [ "$PR_MODE" = true ]; then
+  BRANCH="chore/release-v${VERSION}-$(date +%Y%m%d%H%M%S)"
+  git checkout -b "$BRANCH"
+fi
+
 echo "${VERSION}" > VERSION
 if [ -f internal/version/version.go ]; then
   sed -i "s/const Version = .*/const Version = \"${VERSION}\"/" internal/version/version.go
@@ -117,9 +133,21 @@ git config user.name "github-actions[bot]"
 git config user.email "github-actions[bot]@users.noreply.github.com"
 git add VERSION internal/version/version.go CHANGELOG.md
 git commit -m "chore(release): bump version and update CHANGELOG.md to v${VERSION} [skip ci]"
-git tag -a "v${VERSION}" -m "Release v${VERSION}"
-git push origin main
-git push origin "v${VERSION}"
+
+if [ "$PR_MODE" = true ]; then
+  git push origin "$BRANCH"
+  PR_URL=$(gh pr create --base main --title "chore(release): bump version and update CHANGELOG.md to v${VERSION} [skip ci]" --body "Automated release bump.")
+  gh pr checks --watch
+  gh pr merge --squash --delete-branch
+  echo "Merged release PR: ${PR_URL}"
+  git fetch origin main
+  git tag -a "v${VERSION}" -m "Release v${VERSION}" origin/main
+  git push origin "v${VERSION}"
+else
+  git tag -a "v${VERSION}" -m "Release v${VERSION}"
+  git push origin main
+  git push origin "v${VERSION}"
+fi
 
 if [ -n "${GITHUB_OUTPUT:-}" ]; then
   echo "tag_name=v${VERSION}" >> "$GITHUB_OUTPUT"
