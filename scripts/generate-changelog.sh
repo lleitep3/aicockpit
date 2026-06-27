@@ -68,7 +68,7 @@ fi
 
 # Categorize commits by type
 echo "### Features"
-FEATURES=$(echo "$COMMITS" | grep -E "^feat" | sed 's/^feat(\(.*\))?: /- /' || true)
+FEATURES=$(echo "$COMMITS" | grep -E "^feat" | sed -E 's/^feat(\([^)]*\))?: /- /' || true)
 if [ -n "$FEATURES" ]; then
     echo "$FEATURES"
 else
@@ -77,7 +77,7 @@ fi
 echo ""
 
 echo "### Bug Fixes"
-FIXES=$(echo "$COMMITS" | grep -E "^fix" | sed 's/^fix(\(.*\))?: /- /' || true)
+FIXES=$(echo "$COMMITS" | grep -E "^fix" | sed -E 's/^fix(\([^)]*\))?: /- /' || true)
 if [ -n "$FIXES" ]; then
     echo "$FIXES"
 else
@@ -86,7 +86,7 @@ fi
 echo ""
 
 echo "### Performance"
-PERF=$(echo "$COMMITS" | grep -E "^perf" | sed 's/^perf(\(.*\))?: /- /' || true)
+PERF=$(echo "$COMMITS" | grep -E "^perf" | sed -E 's/^perf(\([^)]*\))?: /- /' || true)
 if [ -n "$PERF" ]; then
     echo "$PERF"
 else
@@ -104,7 +104,7 @@ fi
 echo ""
 
 echo "### Documentation"
-DOCS=$(echo "$COMMITS" | grep -E "^docs" | sed 's/^docs(\(.*\))?: /- /' || true)
+DOCS=$(echo "$COMMITS" | grep -E "^docs" | sed -E 's/^docs(\([^)]*\))?: /- /' || true)
 if [ -n "$DOCS" ]; then
     echo "$DOCS"
 else
@@ -113,7 +113,7 @@ fi
 echo ""
 
 echo "### Testing"
-TESTS=$(echo "$COMMITS" | grep -E "^test" | sed 's/^test(\(.*\))?: /- /' || true)
+TESTS=$(echo "$COMMITS" | grep -E "^test" | sed -E 's/^test(\([^)]*\))?: /- /' || true)
 if [ -n "$TESTS" ]; then
     echo "$TESTS"
 else
@@ -122,7 +122,7 @@ fi
 echo ""
 
 echo "### Other Changes"
-OTHER=$(echo "$COMMITS" | grep -vE "^(feat|fix|perf|docs|style|refactor|test|chore|ci)" | sed 's/^/ - /' || true)
+OTHER=$(echo "$COMMITS" | grep -vE "^(feat|fix|perf|docs|style|refactor|test|chore|ci)" | sed 's/^/- /' || true)
 if [ -n "$OTHER" ]; then
     echo "$OTHER"
 else
