@@ -20,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - implement KB Graph Search and Vault System
 
 ### Bug Fixes
+- wait for PR checks and merge with admin bypass (#65)
+- use admin merge to bypass signed commit requirement (#63)
 - wait for PR mergeability instead of gh checks (#59)
 - respect protected main with PR-based updates (#57)
 - repair changelog and release pipelines (#56)
@@ -36,6 +38,7 @@ No performance improvements
 No breaking changes
 
 ### Documentation
+- update CHANGELOG.md for changes since v0.4.2 [skip ci] (#62)
 - add CODEOWNERS and infrastructure protection guidance
 - add contribution rules and CI validation workflow
 - update registry docs to use packages/ directory
