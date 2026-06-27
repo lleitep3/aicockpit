@@ -158,3 +158,8 @@ func (a *AntigravityCompiler) CompilePermissions(perms *CanonicalPermissions, pr
 
 	return files, nil
 }
+
+// CompileAgents is a no-op for Antigravity (does not support custom subagents).
+func (a *AntigravityCompiler) CompileAgents(agents []CanonicalAgent, provider *Provider) (map[string]string, error) {
+	return make(map[string]string), nil
+}

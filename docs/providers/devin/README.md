@@ -26,7 +26,7 @@ O Devin, em sua arquitetura nativa, oferece suporte para:
 
 ## Integrações Atuais no AICockpit Adapter
 O adapter do Devin atualmente compila e propaga os seguintes artefatos canônicos:
-- `skills`: Copia skills da base do cockpit para a pasta `.devin/skills/` no escopo do projeto.
+- `skills`: Copia skills da base do cockpit para a pasta `.devin/skills/` no escopo do projeto. Skills globais podem ser instaladas em `~/.config/devin/skills/` para uso em todos os projetos.
 - `rules`: Compila arquivos de regras para o `.devin/AGENTS.md` no escopo do projeto.
 - `gold_rules`: Agrega regras de ouro (gold rules) de pacotes do cockpit e as injeta no arquivo global de memória do Devin (`~/.codeium/windsurf/memories/global_rules.md`).
 - `workflows`: Gera as definições de tools/skills no arquivo `.devin/config.yaml`.

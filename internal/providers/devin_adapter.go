@@ -143,7 +143,7 @@ func (d *DevinCompiler) CompileWorkflows(workflows []CanonicalWorkflow, provider
 	return files, nil
 }
 
-// CompilePermissions reads ~/.devin/config.local.json and merges it.
+// CompilePermissions reads the config file and merges permissions.
 func (d *DevinCompiler) CompilePermissions(perms *CanonicalPermissions, provider *Provider) (map[string]string, error) {
 	files := make(map[string]string)
 	permConfig, hasPerms := provider.Features["permissions"]
@@ -160,14 +160,33 @@ func (d *DevinCompiler) CompilePermissions(perms *CanonicalPermissions, provider
 		}
 
 		permissions := getNestedMap(m, "permissions")
-		existing := getStringSliceFromMap(permissions, "allow")
+		existingAllow := getStringSliceFromMap(permissions, "allow")
+		existingDeny := getStringSliceFromMap(permissions, "deny")
+		existingAsk := getStringSliceFromMap(permissions, "ask")
 
-		merged := mergeStringSlice(existing, devinCockpitPermissions)
+		// Merge allow permissions
+		mergedAllow := mergeStringSlice(existingAllow, devinCockpitPermissions)
 		if perms != nil {
-			merged = mergeStringSlice(merged, perms.AllowedCommands)
+			mergedAllow = mergeStringSlice(mergedAllow, perms.AllowedCommands)
+			mergedAllow = mergeStringSlice(mergedAllow, perms.Allow)
 		}
 
-		setStringSliceInMap(permissions, "allow", merged)
+		// Merge deny permissions
+		mergedDeny := existingDeny
+		if perms != nil {
+			mergedDeny = mergeStringSlice(mergedDeny, perms.DeniedCommands)
+			mergedDeny = mergeStringSlice(mergedDeny, perms.Deny)
+		}
+
+		// Merge ask permissions
+		mergedAsk := existingAsk
+		if perms != nil {
+			mergedAsk = mergeStringSlice(mergedAsk, perms.Ask)
+		}
+
+		setStringSliceInMap(permissions, "allow", mergedAllow)
+		setStringSliceInMap(permissions, "deny", mergedDeny)
+		setStringSliceInMap(permissions, "ask", mergedAsk)
 		m["permissions"] = permissions
 
 		err = writeJSONFile(expanded, m)
@@ -176,5 +195,66 @@ func (d *DevinCompiler) CompilePermissions(perms *CanonicalPermissions, provider
 		}
 	}
 
+	return files, nil
+}
+
+// CompileAgents copies custom subagent profiles to the agents directory.
+func (d *DevinCompiler) CompileAgents(agents []CanonicalAgent, provider *Provider) (map[string]string, error) {
+	files := make(map[string]string)
+	agentsConfig, hasAgents := provider.Features["agents"]
+
+	if hasAgents && agentsConfig.Enabled {
+		for _, agent := range agents {
+			// Build frontmatter
+			var fm strings.Builder
+			fm.WriteString("---\n")
+			fm.WriteString(fmt.Sprintf("name: %s\n", agent.Name))
+			if agent.Description != "" {
+				fm.WriteString(fmt.Sprintf("description: %s\n", agent.Description))
+			}
+			if agent.Model != "" {
+				fm.WriteString(fmt.Sprintf("model: %s\n", agent.Model))
+			}
+			if len(agent.AllowedTools) > 0 {
+				fm.WriteString("allowed-tools:\n")
+				for _, tool := range agent.AllowedTools {
+					fm.WriteString(fmt.Sprintf("  - %s\n", tool))
+				}
+			}
+			if agent.MaxNesting > 0 {
+				fm.WriteString(fmt.Sprintf("max-nesting: %d\n", agent.MaxNesting))
+			}
+			if agent.Permissions != nil {
+				fm.WriteString("permissions:\n")
+				if allow, ok := agent.Permissions["allow"].([]string); ok && len(allow) > 0 {
+					fm.WriteString("  allow:\n")
+					for _, a := range allow {
+						fm.WriteString(fmt.Sprintf("    - %s\n", a))
+					}
+				}
+				if deny, ok := agent.Permissions["deny"].([]string); ok && len(deny) > 0 {
+					fm.WriteString("  deny:\n")
+					for _, d := range deny {
+						fm.WriteString(fmt.Sprintf("    - %s\n", d))
+					}
+				}
+				if ask, ok := agent.Permissions["ask"].([]string); ok && len(ask) > 0 {
+					fm.WriteString("  ask:\n")
+					for _, a := range ask {
+						fm.WriteString(fmt.Sprintf("    - %s\n", a))
+					}
+				}
+			}
+			fm.WriteString("---\n")
+
+			// Build full AGENT.md content
+			var content strings.Builder
+			content.WriteString(fm.String())
+			content.WriteString("\n")
+			content.WriteString(agent.Content)
+
+			files[filepath.Join(agentsConfig.Path, agent.Name, "AGENT.md")] = content.String()
+		}
+	}
 	return files, nil
 }

@@ -31,9 +31,9 @@ func TestVaultCommands(t *testing.T) {
 		key := "test_key_cli"
 		value := "secret_cli_value"
 
-		// Set via CLI args with --value flag
+		// Set via CLI args with --value flag and --namespace
 		setCmd := NewVaultSetCommand(log, cfg, translator)
-		setCmd.SetArgs([]string{key, "--value", value})
+		setCmd.SetArgs([]string{key, "--value", value, "--namespace", "test"})
 
 		var out bytes.Buffer
 		setCmd.SetOut(&out)
@@ -44,9 +44,9 @@ func TestVaultCommands(t *testing.T) {
 			t.Fatalf("Failed to execute set command: %v", err)
 		}
 
-		// Get via CLI
+		// Get via CLI with --namespace
 		getCmd := NewVaultGetCommand(log, cfg, translator)
-		getCmd.SetArgs([]string{key})
+		getCmd.SetArgs([]string{key, "--namespace", "test"})
 
 		out.Reset()
 		getCmd.SetOut(&out)
@@ -68,12 +68,12 @@ func TestVaultCommands(t *testing.T) {
 
 		// Set first
 		setCmd := NewVaultSetCommand(log, cfg, translator)
-		setCmd.SetArgs([]string{key, "--value", value})
+		setCmd.SetArgs([]string{key, "--value", value, "--namespace", "test"})
 		_ = setCmd.Execute()
 
-		// Remove via CLI
+		// Remove via CLI with --namespace
 		removeCmd := NewVaultRemoveCommand(log, cfg, translator)
-		removeCmd.SetArgs([]string{key})
+		removeCmd.SetArgs([]string{key, "--namespace", "test"})
 
 		var out bytes.Buffer
 		removeCmd.SetOut(&out)
@@ -84,9 +84,9 @@ func TestVaultCommands(t *testing.T) {
 			t.Fatalf("Failed to execute remove command: %v", err)
 		}
 
-		// Verify it's gone
+		// Verify it's gone with --namespace
 		getCmd := NewVaultGetCommand(log, cfg, translator)
-		getCmd.SetArgs([]string{key})
+		getCmd.SetArgs([]string{key, "--namespace", "test"})
 		err = getCmd.Execute()
 		if err == nil {
 			t.Errorf("Expected error when getting removed key, got nil")

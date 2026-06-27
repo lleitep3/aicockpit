@@ -44,28 +44,32 @@ providers:
     features:
       entrypoint:
         enabled: true
-        path: "~/.devin/AGENTS.md"
-        description: "Devin's main agent entrypoint"
+        path: "~/.config/devin/AGENTS.md"
+        description: "Devin's main agent entrypoint (global rules)"
       skills:
         enabled: true
-        path: "~/.devin/skills"
-        description: "Reusable capabilities for Devin"
+        path: "~/.config/devin/skills"
+        description: "Reusable capabilities for Devin (global skills)"
       rules:
         enabled: true
-        path: "~/.codeium/windsurf/memories/global_rules.md"
+        path: ".devin/AGENTS.md"
         description: "Project-level rules and context for Devin"
       gold_rules:
         enabled: true
         path: "~/.codeium/windsurf/memories/global_rules.md"
-        description: "Global gold rules injected into Devin's memory system"
+        description: "Global gold rules injected into Devin's memory system (Windsurf compatibility)"
       workflows:
         enabled: true
-        path: "~/.codeium/windsurf/global_workflows/"
-        description: "Devin custom tools and configuration"
+        path: ".devin/config.yaml"
+        description: "Devin custom tools and configuration (workflows implemented as skills)"
+      agents:
+        enabled: true
+        path: "~/.config/devin/agents"
+        description: "Custom subagent profiles for Devin"
       permissions:
         enabled: true
-        path: "~/.devin/config.local.json"
-        description: "Exec permission grants for cockpit commands"
+        path: "~/.config/devin/config.json"
+        description: "Permission grants for cockpit commands (global config)"
 
   # Goose - Open-source AI agent by Block
   goose:

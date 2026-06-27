@@ -3,6 +3,7 @@ package providers
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -320,7 +321,7 @@ func TestParser_ParseSkills(t *testing.T) {
 func TestParser_ParseCanonical(t *testing.T) {
 	tmpDir := t.TempDir()
 	os.WriteFile(filepath.Join(tmpDir, "identity.md"), []byte("ident"), 0644)
-	_, _, _, _, _, _ = ParseCanonical(tmpDir)
+	_, _, _, _, _, _, _ = ParseCanonical(tmpDir)
 }
 
 func TestParser_ParseWorkflows_Empty(t *testing.T) {
@@ -328,7 +329,7 @@ func TestParser_ParseWorkflows_Empty(t *testing.T) {
 }
 
 func TestParser_ParseCanonical_Errors(t *testing.T) {
-	_, _, _, _, _, _ = ParseCanonical("/invalid/dir/does/not/exist")
+	_, _, _, _, _, _, _ = ParseCanonical("/invalid/dir/does/not/exist")
 }
 
 func TestAntigravityCompiler_Success(t *testing.T) {
@@ -431,7 +432,7 @@ func TestDevin_MoreBranches(t *testing.T) {
 		"rules":      {Enabled: true, Path: "rules"},
 	}}
 
-	entry := &CanonicalEntrypoint{ProjectContext: "ctx"}
+	entry := &CanonicalEntrypoint{GoldenRules: []string{"g1", "g2"}, ProjectContext: "ctx"}
 	_, _ = dc.CompileEntrypoint(entry, prov)
 
 	rules := []CanonicalRule{{Name: "r1", Content: "c1"}, {Name: "r2", Content: "c2"}}
@@ -439,4 +440,118 @@ func TestDevin_MoreBranches(t *testing.T) {
 
 	skills := []CanonicalSkill{{Name: "s1", ScriptFiles: map[string]string{"sh": "echo"}}}
 	_, _ = dc.CompileSkills(skills, prov)
+}
+
+func TestDevin_CompileAgents_Success(t *testing.T) {
+	dc := NewDevinCompiler()
+	prov := &Provider{Features: map[string]*FeatureConfig{
+		"agents": {Enabled: true, Path: "~/.config/devin/agents"},
+	}}
+
+	agents := []CanonicalAgent{
+		{
+			Name:         "test-agent",
+			Description:  "Test agent",
+			Model:        "sonnet",
+			AllowedTools: []string{"read", "grep"},
+			Content:      "You are a test agent.",
+			MaxNesting:   2,
+		},
+	}
+
+	files, err := dc.CompileAgents(agents, prov)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if len(files) != 1 {
+		t.Errorf("expected 1 file, got %d", len(files))
+	}
+
+	// Check that the agent file was created with correct content
+	expectedPath := filepath.Join("~/.config/devin/agents", "test-agent", "AGENT.md")
+	if _, ok := files[expectedPath]; !ok {
+		t.Errorf("expected file %s not found in output", expectedPath)
+	}
+
+	// Check that the frontmatter contains expected fields
+	content := files[expectedPath]
+	if !contains(content, "name: test-agent") {
+		t.Error("agent file should contain name in frontmatter")
+	}
+	if !contains(content, "description: Test agent") {
+		t.Error("agent file should contain description in frontmatter")
+	}
+	if !contains(content, "model: sonnet") {
+		t.Error("agent file should contain model in frontmatter")
+	}
+	if !contains(content, "max-nesting: 2") {
+		t.Error("agent file should contain max-nesting in frontmatter")
+	}
+	if !contains(content, "allowed-tools:") {
+		t.Error("agent file should contain allowed-tools in frontmatter")
+	}
+}
+
+func TestDevin_CompileAgents_Disabled(t *testing.T) {
+	dc := NewDevinCompiler()
+	prov := &Provider{Features: map[string]*FeatureConfig{
+		"agents": {Enabled: false, Path: "~/.config/devin/agents"},
+	}}
+
+	agents := []CanonicalAgent{
+		{Name: "test-agent", Content: "You are a test agent."},
+	}
+
+	files, err := dc.CompileAgents(agents, prov)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if len(files) != 0 {
+		t.Errorf("expected no files when agents disabled, got %d", len(files))
+	}
+}
+
+func TestDevin_CompileAgents_WithPermissions(t *testing.T) {
+	dc := NewDevinCompiler()
+	prov := &Provider{Features: map[string]*FeatureConfig{
+		"agents": {Enabled: true, Path: "~/.config/devin/agents"},
+	}}
+
+	agents := []CanonicalAgent{
+		{
+			Name:        "secure-agent",
+			Description: "Secure agent with permissions",
+			Permissions: map[string]interface{}{
+				"allow": []string{"Read(src/**)", "Exec(git)"},
+				"deny":  []string{"Write(**)"},
+			},
+			Content: "You are a secure agent.",
+		},
+	}
+
+	files, err := dc.CompileAgents(agents, prov)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if len(files) != 1 {
+		t.Errorf("expected 1 file, got %d", len(files))
+	}
+
+	content := files[filepath.Join("~/.config/devin/agents", "secure-agent", "AGENT.md")]
+	if !contains(content, "permissions:") {
+		t.Error("agent file should contain permissions in frontmatter")
+	}
+	if !contains(content, "allow:") {
+		t.Error("agent file should contain allow permissions")
+	}
+	if !contains(content, "deny:") {
+		t.Error("agent file should contain deny permissions")
+	}
+}
+
+func contains(s, substr string) bool {
+	return strings.Contains(s, substr)
 }

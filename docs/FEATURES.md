@@ -24,6 +24,8 @@
   - Language (en-us, pt-br)
   - Log level (info, debug, warn, error)
   - AI provider selection
+  - Auto-update check (enabled by default)
+  - Last update check timestamp
 - [x] **Configuration updates** - Programmatic config changes
 
 ### 📝 Logging System
@@ -39,6 +41,17 @@
 - [x] **Extensible message system** - Easy to add languages
 - [x] **Fallback mechanism** - Falls back to English if translation missing
 - [x] **Message formatting** - Support for parameterized messages
+
+### 🔄 Update System
+- [x] **Automatic update checking** - Daily verification with 24h cache
+- [x] **GitHub Releases integration** - Checks latest version via API
+- [x] **Interactive update prompts** - User-friendly update notifications
+- [x] **Changelog links** - Direct links to release notes
+- [x] **Git-based upgrades** - Automatic checkout and rebuild
+- [x] **Automated changelog generation** - From conventional commits
+- [x] **Manual update command** - `cockpit update` for on-demand updates
+- [x] **Setup re-run** - Automatic setup after update
+- [x] **Configurable checks** - Can be disabled via config
 
 ### 📋 CLI Commands
 
@@ -67,9 +80,26 @@
 - Removes all AICockpit data
 - Supports multiple languages
 
+#### `cockpit update`
+- Automatic update checking (daily, with 24h cache)
+- Interactive update prompts with changelog links
+- Git-based upgrade mechanism
+- Automatic re-run setup after update
+- Manual update command available
+
+#### `cockpit vault`
+- Secure secret management using OS keyring
+- `vault set` - Store secrets with interactive or direct input
+- `vault get` - Retrieve secrets for use in scripts
+- `vault remove` - Delete stored secrets
+- Cross-platform support (macOS Keychain, Windows Credential Manager, Linux Secret Service/KWallet)
+- Namespace isolation using "aicockpit" service name
+
 ### 🧪 Testing & Quality
-- [x] **Unit tests** - 14 tests, all passing
-- [x] **Test coverage** - 24.5% overall, 70%+ for core packages
+- [x] **Unit tests** - 436 tests, all passing
+- [x] **Test coverage** - 50.1% overall, 80%+ for core packages
+- [x] **Update service tests** - 83.3% coverage for update checking
+- [x] **Vault tests** - OS keyring integration with mock support
 - [x] **Static analysis** - `go vet` integration
 - [x] **Code formatting** - `go fmt` compliance
 - [x] **Linter configuration** - `.golangci.yml`
@@ -79,10 +109,14 @@
 - [x] **QUICK_START.md** - 5-minute setup guide
 - [x] **INSTALLATION.md** - Detailed installation guide
 - [x] **INSTALLATION_SCRIPTS.md** - Script documentation
+- [x] **CHANGELOG.md** - Automated changelog from conventional commits
 - [x] **SDLC.md** - Development standards
 - [x] **AGENTS.md** - AI agent guidelines
 - [x] **IMPLEMENTATION_SUMMARY.md** - Project status
 - [x] **scripts/README.md** - Installation script docs
+- [x] **docs/architecture/05-vault-system.md** - Vault architecture documentation
+- [x] **docs/commands/update.md** - Update command documentation
+- [x] **docs/vault-guide.md** - Complete vault usage guide
 - [x] **Code comments** - Exported functions documented
 
 ### 🏗️ Architecture
@@ -97,6 +131,7 @@
 - [x] **User-specific storage** - `~/.cockpit/`
 - [x] **Safe error handling** - No sensitive data in logs
 - [x] **No sudo required** - User-level installation
+- [x] **Vault system** - OS keyring integration for secure secret storage
 
 ### 🛠️ Build Automation
 - [x] **Makefile** - Comprehensive build commands
@@ -106,12 +141,6 @@
 - [x] **Easy installation** - `make install`
 
 ## 🚀 Planned Features (Phase 2)
-
-### 🔐 Vault System
-- [ ] OS keyring integration
-- [ ] Secret management commands
-- [ ] Encryption support
-- [ ] Secure credential storage
 
 ### 📦 Package Management
 - [ ] Package manifest system (cockpit-package.yaml)
@@ -129,7 +158,6 @@
 
 ### 🎯 Extended Commands
 - [ ] `cockpit pkg` - Package management
-- [ ] `cockpit vault` - Secret management
 - [ ] `cockpit agents` - Agent management
 - [ ] `cockpit skills` - Skills management
 - [ ] `cockpit rules` - Rules management
@@ -173,21 +201,21 @@
 ## 📊 Statistics
 
 ### Code
-- **Total Lines**: 1,048
-- **Go Code**: ~700 lines
-- **Tests**: 14 tests
-- **Documentation**: ~2,000 lines
+- **Total Lines**: 3,500+
+- **Go Code**: ~2,500 lines
+- **Tests**: 436 tests
+- **Documentation**: ~4,000 lines
 
 ### Files
-- **Go Files**: 13
-- **Test Files**: 3
-- **Scripts**: 2 (Bash, PowerShell)
-- **Documentation**: 9 files
-- **Configuration**: 2 files
+- **Go Files**: 25+ (including update service)
+- **Test Files**: 15+ (including update tests)
+- **Scripts**: 3+ (Bash, PowerShell, changelog generation)
+- **Documentation**: 20+ files (including update guides)
+- **Configuration**: 3 files (including update config)
 
 ### Testing
-- **Coverage**: 24.5% overall, 70%+ for core packages
-- **Test Status**: All passing ✓
+- **Coverage**: 50.1% overall, 80%+ for core packages
+- **Test Status**: All passing ✓ (436/436 tests)
 - **Linting**: No issues ✓
 - **Build**: Successful ✓
 
@@ -202,6 +230,7 @@
 ### Frameworks & Libraries
 - **Cobra** - CLI framework
 - **YAML v3** - Configuration parsing
+- **go-keyring** - OS keyring integration for vault
 - **Go standard library** - Logging, testing, etc.
 
 ### Tools
@@ -262,7 +291,7 @@ make uninstall  # Remove binary
 - [x] Documentation
 
 ### Phase 2 (In Progress)
-- [ ] Vault system
+- [x] Vault system
 - [ ] Package management
 - [ ] Command execution
 - [ ] Extended commands
@@ -278,6 +307,6 @@ make uninstall  # Remove binary
 
 ---
 
-**Status**: Phase 1 Complete ✅  
+**Status**: Phase 1 Complete ✅, Phase 2 In Progress (Vault & Update Complete)  
 **Version**: 0.1.0  
-**Last Updated**: June 20, 2026
+**Last Updated**: June 25, 2026
