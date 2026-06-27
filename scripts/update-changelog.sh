@@ -99,9 +99,24 @@ git commit -m "docs(changelog): update CHANGELOG.md for changes since ${LATEST_T
 if [ "$PR_MODE" = true ]; then
   git push origin "$BRANCH"
   PR_URL=$(gh pr create --base main --title "docs(changelog): update CHANGELOG.md for changes since ${LATEST_TAG} [skip ci]" --body "Automated changelog update.")
-  gh pr checks --watch
-  gh pr merge --squash --delete-branch
-  echo "Merged changelog PR: ${PR_URL}"
+  PR_NUMBER=$(echo "${PR_URL}" | sed 's/.*\/pull\/\([0-9]*\).*/\1/')
+  echo "Created PR #${PR_NUMBER}: ${PR_URL}"
+
+  for i in $(seq 1 120); do
+    STATUS=$(gh pr view "${PR_NUMBER}" --json mergeStateStatus --jq '.mergeStateStatus')
+    echo "PR #${PR_NUMBER} status: ${STATUS}"
+    if [ "${STATUS}" = "CLEAN" ]; then
+      gh pr merge "${PR_NUMBER}" --squash --delete-branch
+      echo "Merged PR #${PR_NUMBER}"
+      break
+    fi
+    sleep 10
+  done
+
+  if [ "${STATUS}" != "CLEAN" ]; then
+    echo "Timeout waiting for PR #${PR_NUMBER} to become mergeable" >&2
+    exit 1
+  fi
 else
   git push origin main
 fi
