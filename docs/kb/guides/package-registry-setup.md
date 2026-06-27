@@ -24,17 +24,23 @@ cockpit-registry/
 ├── README.md                   # Registry documentation
 ├── LICENSE                     # Repository license (MIT)
 ├── .gitignore                  # Git ignore rules
-├── hello-world/                # First example package
-│   ├── cockpit-package.yml     # Package manifest
-│   ├── README.md               # Package documentation
-│   ├── LICENSE                 # Package license
-│   ├── modules/                # CLI modules
-│   │   ├── cmd.go              # Hello command implementation
-│   │   └── cmd_test.go         # Command tests
-│   └── kb/                     # Knowledge base
-│       └── guides/
-│           └── usage.md        # Usage guide
-└── [future-packages]/          # Additional packages
+├── .github/                    # GitHub workflows
+│   └── workflows/
+│       └── validate-packages.yml
+├── packages/                   # Package directory root
+│   ├── hello-world/            # First example package
+│   │   ├── cockpit-package.yml # Package manifest
+│   │   ├── README.md           # Package documentation
+│   │   ├── LICENSE             # Package license
+│   │   ├── modules/            # CLI modules
+│   │   │   ├── cmd.go          # Hello command implementation
+│   │   │   └── cmd_test.go     # Command tests
+│   │   └── kb/                 # Knowledge base
+│   │       └── guides/
+│   │           └── usage.md    # Usage guide
+│   └── [future-packages]/      # Additional packages
+│       └── ...
+└── docs/                       # Optional registry documentation
     └── ...
 ```
 
@@ -92,8 +98,8 @@ Each package entry in the index contains:
   tags:                                   # Search tags
     - tag1
     - tag2
-  path: "package-name"                    # Directory path in registry
-  url: "https://github.com/.../tree/main/package-name"  # GitHub URL
+  path: "packages/package-name"           # Directory path in registry (under packages/)
+  url: "https://github.com/.../tree/main/packages/package-name"  # GitHub URL
   homepage: "https://..."                 # Package homepage
   repository: "https://..."               # Repository URL
   supported_providers:                    # Supported providers
@@ -246,12 +252,12 @@ To add a new package to the registry:
 ### 1. Create Package Directory
 
 ```bash
-mkdir -p my-package/{modules,skills,agents,kb}
+mkdir -p packages/my-package/{modules,skills,agents,kb}
 ```
 
 ### 2. Create Package Manifest
 
-Create `my-package/cockpit-package.yml` with package metadata.
+Create `packages/my-package/cockpit-package.yml` with package metadata.
 
 ### 3. Implement Features
 
@@ -274,6 +280,8 @@ packages:
   - name: "my-package"
     version: "1.0.0"
     description: "My awesome package"
+    path: "packages/my-package"
+    url: "https://github.com/user/cockpit-registry/tree/main/packages/my-package"
     # ... other fields
 ```
 

@@ -20,21 +20,24 @@ A Package Registry is a Git repository that contains AICockpit packages and a pa
 cockpit-packages/
 ├── package-index.yaml          # Package registry index
 ├── README.md                   # Registry documentation
-├── html-document-build/        # Package directory
-│   ├── cockpit-package.yml     # Package manifest
-│   ├── README.md               # Package documentation
-│   ├── agents/
-│   ├── .cockpit/skills/
-│   ├── modules/
-│   ├── kb/
-│   └── workflows/
-├── text-processor/             # Another package
-│   ├── cockpit-package.yml
-│   ├── README.md
-│   └── ...
-└── kb-manager/                 # Another package
-    ├── cockpit-package.yml
-    ├── README.md
+├── packages/                   # Package directory root
+│   ├── html-document-build/    # Package directory
+│   │   ├── cockpit-package.yml # Package manifest
+│   │   ├── README.md           # Package documentation
+│   │   ├── agents/
+│   │   ├── .cockpit/skills/
+│   │   ├── modules/
+│   │   ├── kb/
+│   │   └── workflows/
+│   ├── text-processor/         # Another package
+│   │   ├── cockpit-package.yml
+│   │   ├── README.md
+│   │   └── ...
+│   └── kb-manager/             # Another package
+│       ├── cockpit-package.yml
+│       ├── README.md
+│       └── ...
+└── docs/                       # Optional registry documentation
     └── ...
 ```
 
@@ -76,8 +79,8 @@ packages:
       - documentation
       - html
       - generation
-    path: "html-document-build"
-    url: "https://github.com/lleite/cockpit-packages/tree/main/html-document-build"
+    path: "packages/html-document-build"
+    url: "https://github.com/lleite/cockpit-packages/tree/main/packages/html-document-build"
     homepage: "https://docs.aicockpit.dev/packages/html-document-build"
     repository: "https://github.com/lleite/cockpit-packages"
     
@@ -128,8 +131,8 @@ packages:
       - text
       - processing
       - utilities
-    path: "text-processor"
-    url: "https://github.com/lleite/cockpit-packages/tree/main/text-processor"
+    path: "packages/text-processor"
+    url: "https://github.com/lleite/cockpit-packages/tree/main/packages/text-processor"
     supported_providers:
       - devin
       - goose
@@ -153,8 +156,8 @@ packages:
       - kb
       - knowledge-base
       - management
-    path: "kb-manager"
-    url: "https://github.com/lleite/cockpit-packages/tree/main/kb-manager"
+    path: "packages/kb-manager"
+    url: "https://github.com/lleite/cockpit-packages/tree/main/packages/kb-manager"
     supported_providers:
       - devin
       - goose
@@ -437,7 +440,7 @@ This is automatically configured during `cockpit setup`.
 git clone https://github.com/user/cockpit-packages.git
 cd cockpit-packages
 
-# Initialize structure
+# Initialize structure (packages under packages/)
 mkdir -p packages
 touch package-index.yaml
 touch README.md
@@ -463,15 +466,15 @@ packages: []
 ### Step 3: Add Packages
 
 ```bash
-# Copy package to registry
-cp -r /path/to/my-package ./my-package
+# Copy package to registry under packages/
+cp -r /path/to/my-package ./packages/my-package
 
 # Update package-index.yaml with package info
-# (Add entry to packages list)
+# (Add entry to packages list with path: "packages/my-package")
 
 # Commit and push
 git add .
-git commit -m "Add my-package"
+git commit -m "feat(packages): add my-package"
 git push origin main
 ```
 

@@ -14,9 +14,9 @@ Basicamente, é um repositório Git ou uma URL estática contendo um catálogo c
 graph LR
     subgraph GitHub: lleitep3/cockpit-registry
         Index[package-index.yaml]
-        Pkg1[Pacote: RTK]
-        Pkg2[Pacote: Caveman]
-        Pkg3[Pacote: KB-Search]
+        Pkg1[Pacote: RTK em packages/rtk]
+        Pkg2[Pacote: Caveman em packages/caveman]
+        Pkg3[Pacote: KB-Search em packages/kb-search]
     end
     
     CockpitCLI{AICockpit CLI}
@@ -34,7 +34,7 @@ name: "official-registry"
 packages:
   rtk:
     version: "1.0.0"
-    path: "rtk"
+    path: "packages/rtk"
     description: "Intercepta e filtra comandos do sistema."
 ```
 
