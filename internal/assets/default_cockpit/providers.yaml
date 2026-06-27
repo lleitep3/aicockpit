@@ -77,20 +77,32 @@ providers:
     name: "Goose"
     description: "Open-source AI agent by Block"
     workspace: "~"
-    version: "1.0.0"
+    version: "1.0.1"
     features:
+      agents:
+        enabled: true
+        path: "~/.agents/agents/"
+        description: "Autonomous subagent templates for Goose"
       skills:
         enabled: true
         path: "~/.agents/skills/"
         description: "Reusable capabilities for Goose"
       rules:
         enabled: true
-        path: ".config/goose/rtk-hints.md"
-        description: "Always-on rules and guidelines (.goosehints equivalent)"
+        path: "~/AppData/Roaming/Block/goose/config/.goosehints"
+        description: "Always-on rules and guidelines"
+      workflows:
+        enabled: true
+        path: "~/AppData/Roaming/Block/goose/config/recipes"
+        description: "Goose workflow files == recipes"
       permissions:
         enabled: true
-        path: ".config/goose/config.yaml"
+        path: "~/AppData/Roaming/Block/goose/config/permission.yaml"
         description: "Goose global extensions and permissions"
+      hooks:
+        enabled: true
+        path: "~/.agents/hooks/"
+        description: "Lifecycle hooks for automation and policy enforcement"
 
 # Feature definitions
 features:
