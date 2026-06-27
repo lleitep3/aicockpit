@@ -405,6 +405,22 @@ Package names should be lowercase with hyphens (e.g., `hello-world`).
 
 Include usage examples in documentation.
 
+### 8. Protect Registry Infrastructure
+
+Registry maintainers should protect shared repository infrastructure from unreviewed changes. Create a `.github/CODEOWNERS` file that requires maintainer approval for any changes under:
+
+- `.github/` — GitHub workflows, issue templates, and repository settings
+- `scripts/` — automation, validation, and release scripts
+
+Example `CODEOWNERS` entry:
+
+```text
+.github/    @org/registry-maintainers
+scripts/    @org/registry-maintainers
+```
+
+This ensures that CI workflows, validation scripts, and other critical infrastructure cannot be modified without explicit maintainer review.
+
 ## Contributing to the Registry
 
 To contribute a package, follow the steps below and make sure your PR satisfies all contribution rules — they are enforced automatically by CI.
