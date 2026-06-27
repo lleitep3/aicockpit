@@ -8,6 +8,9 @@ on:
       - completed
     branches:
       - main
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       version:
@@ -45,7 +48,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           INPUT_VERSION: ${{ github.event.inputs.version || '' }}
         run: |
-          ARGS="--pr"
+          ARGS="${{ github.event_name == 'pull_request' && '--dry-run' || '--pr' }}"
           [ -n "$INPUT_VERSION" ] && ARGS="$ARGS --version $INPUT_VERSION"
           bash scripts/bump-release.sh $ARGS
 

@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 concurrency:
@@ -28,4 +31,4 @@ jobs:
       - name: Update CHANGELOG.md
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: bash scripts/update-changelog.sh --pr
+        run: bash scripts/update-changelog.sh ${{ github.event_name == 'pull_request' && '--dry-run' || '--pr' }}
