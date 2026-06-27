@@ -172,44 +172,53 @@ test(metrics): add tests for stats calculation
 
 1. Push your branch to your fork
 2. Create a Pull Request on GitHub
-3. **PR Title Format**: `[TYPE] Description`
-   - `[MAJOR]` for breaking changes
-   - `[MINOR]` for new features
-   - `[PATCH]` for bug fixes
+3. **PR Title Format**: follow Conventional Commits
+   - `feat(scope): description` for new features
+   - `fix(scope): description` for bug fixes
+   - `docs(scope): description` for documentation
+   - `ci(scope): description` for CI changes
+   - `chore(scope): description` for tooling
+   - Add `!` after the type for breaking changes (`feat(scope)!: description`)
 
 ### PR Title Examples
 
 ```
-[MINOR] Add filtering by date to metrics command
-[PATCH] Fix race condition in file logger
-[MAJOR] Redesign configuration system
+feat(metrics): add filtering by date to metrics command
+fix(logging): prevent duplicate log entries
+docs: update installation instructions for Windows
+chore(deps): update golangci-lint
+feat(auth)!: redesign configuration system
 ```
 
 ### PR Description Template
 
-Use the provided PR template. Include:
+Use the provided PR template at `.github/PULL_REQUEST_TEMPLATE.md`. It must include:
 
-- **Description**: What does this PR do?
-- **Type of Change**: MAJOR/MINOR/PATCH
-- **Related Issues**: Reference any related issues
-- **Testing**: How was this tested?
-- **Checklist**: Confirm all items
+- **Description**: what and why
+- **Type of Change**: select one (Bug fix, Nova Feature, Breaking change, etc.)
+- **Semantic Versioning Impact**: select one (PATCH, MINOR, MAJOR)
+- **Evidence**: logs, screenshots or outputs
+- **Test Commands**: how to test manually
+- **Checklist**: at least one item checked
+
+The `PR Validation` workflow will reject PRs that do not follow the template.
 
 ### PR Requirements
 
-- ✅ All tests pass
+- ✅ All CI checks pass
 - ✅ Code follows style guidelines
-- ✅ Documentation is updated
-- ✅ Commit messages follow conventions
-- ✅ No breaking changes without [MAJOR] label
-- ✅ PR title includes [MAJOR], [MINOR], or [PATCH]
+- ✅ Documentation is updated (if applicable)
+- ✅ Commit messages follow Conventional Commits
+- ✅ PR title follows Conventional Commits
+- ✅ PR description follows the template
+- ✅ Breaking changes are marked with `!` or `BREAKING CHANGE:` in the commit
 
 ### Review Process
 
-1. At least one approval required
-2. All CI checks must pass
-3. No merge conflicts
-4. Squash commits if requested
+1. All CI checks must pass
+2. No merge conflicts
+3. Squash merge is preferred
+4. Changes to `.github/` require code owner approval (see `.github/CODEOWNERS`)
 
 ## Testing
 

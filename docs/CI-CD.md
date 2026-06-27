@@ -53,35 +53,54 @@ fi
 - ✅ Run linting with golangci-lint
 - ✅ Upload coverage to Codecov
 
-### 4. Release Workflow (`release.yml`)
+### 4. Update Changelog Workflow (`update-changelog.yml`)
 
-**Trigger**: Push to `main` branch (after PR merge)
+**Trigger**: `push` to `main` or `workflow_dispatch`
 
 **Steps**:
-1. Determine version bump type from commit message
-2. Bump version using semantic versioning
-3. Create commit with new version
-4. Create git tag
-5. Push changes and tag
-6. Create GitHub release
+1. Checkout with `RELEASE_TOKEN` (PAT) so the bot PR can trigger checks
+2. Run `scripts/update-changelog.sh --pr`
+3. Generate a new `CHANGELOG.md` from Conventional Commits
+4. Create PR from `chore/changelog-update-...`
+5. Merge the PR with `gh pr merge --admin` (bypasses `required signed commits`)
+
+**Note**: the PR commit has `[skip ci]`, so no CI checks run on it.
+
+### 5. Release Workflow (`release.yml`)
+
+**Trigger**: `workflow_run` after `Update Changelog` completes successfully
+
+**Steps**:
+1. Checkout with `RELEASE_TOKEN`
+2. Run `scripts/bump-release.sh --pr`
+3. Determine version bump from Conventional Commits
+4. Update `VERSION`, `internal/version/version.go` and `CHANGELOG.md`
+5. Create PR from `chore/release/bump-vX.Y.Z`
+6. Merge the PR with `gh pr merge --admin`
+7. Create git tag `vX.Y.Z`
+8. Create GitHub release
 
 **Version Bump Logic**:
-- `feat(...)!:` → MAJOR version bump
-- `feat(...)` → MINOR version bump
-- `fix(...)` → PATCH version bump
-- Other commits → PATCH version bump
+- `feat(...)!:` or `BREAKING CHANGE` → MAJOR
+- `feat(...)` → MINOR
+- `fix(...)` → PATCH
+- Other commits → PATCH
 
-**Example**:
-```bash
-# MAJOR bump
-feat(auth)!: redesign authentication system
+### 6. PR Validation Workflow (`pr-validation.yml`)
 
-# MINOR bump
-feat(metrics): add new metrics endpoint
+**Trigger**: Pull requests to `main` or `develop`
 
-# PATCH bump
-fix(logging): fix race condition
-```
+**Steps**:
+- Validate PR description against the PR template using `scripts/validate-pr.sh`
+- Enforce required sections, type of change, version impact and checklist
+
+### 7. PR Changelog Generator (`pr-changelog.yml`)
+
+**Trigger**: Pull requests to `main` or `develop`
+
+**Steps**:
+- Preview the changelog that would be generated for the PR
+
 
 ## Version Management
 
@@ -114,7 +133,7 @@ The release workflow automatically:
 5. Creates a git tag
 6. Creates a GitHub release
 
-**Note**: Version is ONLY updated on merge to `main`, not on PRs.
+**Note**: Version is ONLY updated on merge to `main`, not on PRs. The release workflow runs after the changelog workflow and creates a release PR that is merged automatically.
 
 ## Coverage Requirements
 
@@ -293,33 +312,36 @@ If build fails:
 
 ## GitHub Actions Secrets
 
-The release workflow requires GitHub Actions secrets:
+The release workflow requires these GitHub Actions secrets:
 
-- `GITHUB_TOKEN` - Automatically provided by GitHub Actions
+- `GITHUB_TOKEN` - Automatically provided by GitHub Actions (used for release creation)
+- `RELEASE_TOKEN` - Personal Access Token with `repo` (classic) or `contents:write` + `pull-requests:write` (fine-grained) used to create and merge bot PRs
+
+In addition, the repository must have these settings enabled:
+
+- Settings → Actions → General → `Read and write permissions`
+- Settings → Actions → General → `Allow GitHub Actions to create and approve pull requests`
 
 ## Release Process
+
+### Automatic Release
+
+When a PR is merged to `main`:
+
+1. `Update Changelog` runs, updates `CHANGELOG.md` and merges the changelog PR
+2. `Release` runs, bumps the version, merges the release PR, creates the tag and GitHub Release
+
+No manual version bump is required.
 
 ### Manual Release (if needed)
 
 ```bash
-# 1. Update version
-./scripts/bump-version.sh minor
+# 1. Dry-run to see what would happen
+bash scripts/bump-release.sh --dry-run
 
-# 2. Commit
-git add VERSION internal/version/version.go
-git commit -m "chore(release): bump version to X.Y.Z"
-
-# 3. Tag
-git tag -a vX.Y.Z -m "Release vX.Y.Z"
-
-# 4. Push
-git push origin main
-git push origin vX.Y.Z
+# 2. Run the release pipeline manually
+gh workflow run release.yml --ref main
 ```
-
-### Automatic Release
-
-Releases are automatically created when commits are merged to `main`.
 
 ## Monitoring
 
@@ -338,9 +360,12 @@ View coverage reports:
 1. **Always run `make check` before committing**
 2. **Write tests for new features**
 3. **Maintain 90%+ coverage**
-4. **Use semantic commit messages**
+4. **Use Conventional Commits** (`feat(scope):`, `fix(scope):`, etc.) — the release bump depende deles
 5. **Keep PRs focused and small**
 6. **Review CI/CD results before merging**
+7. **Do not push directly to `main`** — use a feature branch and PR
+8. **Keep `RELEASE_TOKEN` valid** — if it expires, the changelog/release workflows will fail
+9. **Do not remove `[skip ci]` from automated commits** — it prevents unnecessary CI runs on bot PRs
 
 ## Further Reading
 

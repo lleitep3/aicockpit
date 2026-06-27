@@ -12,10 +12,10 @@ func TestCheckForUpdates_NewVersionAvailable(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(`{
-			"tag_name": "v0.2.0",
-			"name": "Release v0.2.0",
+			"tag_name": "v9.9.9",
+			"name": "Release v9.9.9",
 			"body": "## New Features\n- Feature 1\n- Feature 2",
-			"html_url": "https://github.com/lleitep3/aicockpit/releases/tag/v0.2.0"
+			"html_url": "https://github.com/lleitep3/aicockpit/releases/tag/v9.9.9"
 		}`))
 	}))
 	defer server.Close()
@@ -27,8 +27,8 @@ func TestCheckForUpdates_NewVersionAvailable(t *testing.T) {
 		t.Fatalf("CheckForUpdates() error = %v", err)
 	}
 
-	if latestVersion != "0.2.0" {
-		t.Errorf("CheckForUpdates() latestVersion = %v, want %v", latestVersion, "0.2.0")
+	if latestVersion != "9.9.9" {
+		t.Errorf("CheckForUpdates() latestVersion = %v, want %v", latestVersion, "9.9.9")
 	}
 
 	if url == "" {
