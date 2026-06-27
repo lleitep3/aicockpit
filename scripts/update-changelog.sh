@@ -106,7 +106,7 @@ if [ "$PR_MODE" = true ]; then
     STATUS=$(gh pr view "${PR_NUMBER}" --json mergeStateStatus --jq '.mergeStateStatus')
     echo "PR #${PR_NUMBER} status: ${STATUS}"
     if [ "${STATUS}" = "CLEAN" ]; then
-      gh pr merge "${PR_NUMBER}" --squash --delete-branch
+      gh pr merge "${PR_NUMBER}" --squash --admin --delete-branch
       echo "Merged PR #${PR_NUMBER}"
       break
     fi
