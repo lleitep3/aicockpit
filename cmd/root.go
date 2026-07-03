@@ -44,6 +44,7 @@ func NewRootCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translator
 	rootCmd.AddCommand(NewMetricsCommand(log, cfg, t))
 	rootCmd.AddCommand(NewKBCommand(log, cfg, t))
 	rootCmd.AddCommand(NewPkgCommand())
+	rootCmd.AddCommand(NewSchedulerCommand(log, cfg, t))
 	rootCmd.AddCommand(NewUpdateCommand(log, cfg, t))
 
 	// Load commands from installed packages
