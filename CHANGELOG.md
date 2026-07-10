@@ -7,11 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.16] - 2026-07-10
+
+### Changed since v0.4.15
+
+
 ### Features
 No features
 
 ### Bug Fixes
-No bug fixes
+- harden hook execution against path traversal and untrusted scripts (#130)
 
 ### Performance
 No performance improvements
@@ -20,13 +25,14 @@ No performance improvements
 No breaking changes
 
 ### Documentation
-No documentation changes
+- update CHANGELOG.md for changes since v0.4.15 [skip ci] (#131)
 
 ### Testing
 No test changes
 
 ### Other Changes
 No other changes
+
 
 
 ## [0.4.15] - 2026-07-10
