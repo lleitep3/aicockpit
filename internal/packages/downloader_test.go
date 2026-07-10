@@ -2,10 +2,15 @@ package packages
 
 import (
 	"archive/zip"
+	"context"
+	"fmt"
 	"io"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 )
 
 func TestNewPackageDownloader(t *testing.T) {
@@ -203,5 +208,131 @@ func TestExtractPackageFromZipCreateDirectory(t *testing.T) {
 	filePath := filepath.Join(destDir, "subdir", "file.txt")
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		t.Error("Expected file in subdirectory not found")
+	}
+}
+
+// newTestZipServer creates a test HTTP server that serves a minimal ZIP containing
+// a package directory, and returns the server and a cleanup function.
+func newTestZipServer(t *testing.T, packageName string) *httptest.Server {
+	t.Helper()
+
+	// Build a ZIP in memory.
+	tmpZip, err := os.CreateTemp("", "test-zip-*.zip")
+	if err != nil {
+		t.Fatalf("failed to create temp zip: %v", err)
+	}
+	t.Cleanup(func() { os.Remove(tmpZip.Name()) })
+
+	zw := zip.NewWriter(tmpZip)
+	entry := fmt.Sprintf("repo-main/%s/README.md", packageName)
+	w, err := zw.Create(entry)
+	if err != nil {
+		t.Fatalf("failed to create zip entry: %v", err)
+	}
+	if _, err := io.WriteString(w, "# test"); err != nil {
+		t.Fatalf("failed to write zip entry: %v", err)
+	}
+	zw.Close()
+	tmpZip.Close()
+
+	zipBytes, err := os.ReadFile(tmpZip.Name())
+	if err != nil {
+		t.Fatalf("failed to read zip: %v", err)
+	}
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/zip")
+		w.WriteHeader(http.StatusOK)
+		w.Write(zipBytes) //nolint:errcheck
+	}))
+	return srv
+}
+
+func TestDownloadPackageFromURL_WithExplicitContext(t *testing.T) {
+	const pkg = "hello-world"
+	srv := newTestZipServer(t, pkg)
+	defer srv.Close()
+
+	tmpDir := t.TempDir()
+	destDir := filepath.Join(tmpDir, pkg)
+
+	downloader := NewPackageDownloader()
+	ctx := context.Background()
+
+	err := downloader.DownloadPackageFromURL(ctx, srv.URL+"/pkg.zip", pkg, destDir)
+	if err != nil {
+		t.Fatalf("expected no error with explicit context, got: %v", err)
+	}
+
+	readmePath := filepath.Join(destDir, fmt.Sprintf("repo-main/%s/README.md", pkg))
+	if _, err := os.Stat(readmePath); os.IsNotExist(err) {
+		t.Errorf("expected downloaded file at %s", readmePath)
+	}
+}
+
+func TestDownloadPackageFromURL_WithNoDeadlineContext(t *testing.T) {
+	const pkg = "hello-world"
+	srv := newTestZipServer(t, pkg)
+	defer srv.Close()
+
+	tmpDir := t.TempDir()
+	destDir := filepath.Join(tmpDir, pkg)
+
+	downloader := NewPackageDownloader()
+
+	// context.TODO() has no deadline — the function must apply defaultDownloadTimeout internally.
+	err := downloader.DownloadPackageFromURL(context.TODO(), srv.URL+"/pkg.zip", pkg, destDir)
+	if err != nil {
+		t.Fatalf("expected no error with no-deadline context, got: %v", err)
+	}
+}
+
+func TestDownloadPackageFromURL_WithCancelledContext(t *testing.T) {
+	// Server that blocks until the client gives up.
+	blocked := make(chan struct{})
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		<-blocked
+	}))
+	defer srv.Close()
+	defer close(blocked)
+
+	tmpDir := t.TempDir()
+	destDir := filepath.Join(tmpDir, "pkg")
+
+	downloader := NewPackageDownloader()
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel() // cancel immediately
+
+	err := downloader.DownloadPackageFromURL(ctx, srv.URL+"/pkg.zip", "pkg", destDir)
+	if err == nil {
+		t.Fatal("expected error from cancelled context, got nil")
+	}
+}
+
+func TestDownloadPackageFromURL_WithExpiredTimeout(t *testing.T) {
+	// Server that always hangs.
+	blocked := make(chan struct{})
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		<-blocked
+	}))
+	defer srv.Close()
+	defer close(blocked)
+
+	tmpDir := t.TempDir()
+	destDir := filepath.Join(tmpDir, "pkg")
+
+	downloader := NewPackageDownloader()
+	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
+	defer cancel()
+
+	err := downloader.DownloadPackageFromURL(ctx, srv.URL+"/pkg.zip", "pkg", destDir)
+	if err == nil {
+		t.Fatal("expected timeout error, got nil")
+	}
+}
+
+func TestDefaultDownloadTimeout(t *testing.T) {
+	if defaultDownloadTimeout != 60*time.Second {
+		t.Errorf("expected defaultDownloadTimeout = 60s, got %v", defaultDownloadTimeout)
 	}
 }
