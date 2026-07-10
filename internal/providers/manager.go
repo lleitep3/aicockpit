@@ -151,11 +151,27 @@ func (pm *ProviderManager) Deploy(providerName string, cockpitHomeDir string, pr
 			}
 		}
 
-		if err := os.WriteFile(destPath, []byte(finalContent), 0o644); err != nil {
+		if err := atomicWriteFile(destPath, []byte(finalContent), 0o644); err != nil {
 			return fmt.Errorf("failed to write compiled file %s: %w", destPath, err)
 		}
 	}
 
+	return nil
+}
+
+// atomicWriteFile writes data to path atomically: it first writes to a
+// temporary file in the same directory, then renames it to path.
+// This prevents readers from ever observing a partially-written file and
+// preserves the original when a write fails mid-way.
+func atomicWriteFile(path string, data []byte, perm os.FileMode) error {
+	tmpPath := path + ".tmp"
+	if err := os.WriteFile(tmpPath, data, perm); err != nil {
+		return fmt.Errorf("failed to write temp file: %w", err)
+	}
+	if err := os.Rename(tmpPath, path); err != nil {
+		os.Remove(tmpPath) //nolint:errcheck // best-effort cleanup
+		return fmt.Errorf("failed to rename temp file to destination: %w", err)
+	}
 	return nil
 }
 

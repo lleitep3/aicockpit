@@ -381,3 +381,56 @@ func TestGetProviderOptionsWithDetection(t *testing.T) {
 		t.Error("beta should NOT be detected (workspace missing, binary missing)")
 	}
 }
+
+// ── atomicWriteFile ───────────────────────────────────────────────────────────
+
+func TestAtomicWriteFile_WritesContent(t *testing.T) {
+	tmpDir := t.TempDir()
+	dest := filepath.Join(tmpDir, "out.txt")
+
+	if err := atomicWriteFile(dest, []byte("hello"), 0o644); err != nil {
+		t.Fatalf("atomicWriteFile() error = %v", err)
+	}
+
+	data, err := os.ReadFile(dest)
+	if err != nil {
+		t.Fatalf("ReadFile() error = %v", err)
+	}
+	if string(data) != "hello" {
+		t.Errorf("content = %q, want %q", string(data), "hello")
+	}
+}
+
+func TestAtomicWriteFile_NoTempFileLeft(t *testing.T) {
+	tmpDir := t.TempDir()
+	dest := filepath.Join(tmpDir, "out.txt")
+
+	if err := atomicWriteFile(dest, []byte("world"), 0o644); err != nil {
+		t.Fatalf("atomicWriteFile() error = %v", err)
+	}
+
+	// The .tmp file must not exist after a successful write
+	if _, err := os.Stat(dest + ".tmp"); !os.IsNotExist(err) {
+		t.Error("expected .tmp file to be removed after successful atomicWriteFile()")
+	}
+}
+
+func TestAtomicWriteFile_OverwritesExisting(t *testing.T) {
+	tmpDir := t.TempDir()
+	dest := filepath.Join(tmpDir, "out.txt")
+
+	// Write initial content
+	if err := atomicWriteFile(dest, []byte("v1"), 0o644); err != nil {
+		t.Fatalf("first atomicWriteFile() error = %v", err)
+	}
+
+	// Overwrite
+	if err := atomicWriteFile(dest, []byte("v2"), 0o644); err != nil {
+		t.Fatalf("second atomicWriteFile() error = %v", err)
+	}
+
+	data, _ := os.ReadFile(dest)
+	if string(data) != "v2" {
+		t.Errorf("after overwrite content = %q, want %q", string(data), "v2")
+	}
+}
