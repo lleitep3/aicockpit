@@ -6,6 +6,7 @@ BINARY_PATH=bin/$(BINARY_NAME)
 MAIN_PATH=.
 COVERAGE_FILE=coverage.out
 INSTALL_PATH=$(HOME)/.local/bin
+VERSION := $(shell cat VERSION)
 
 help:
 	@echo "AICockpit - Available commands:"
@@ -25,9 +26,9 @@ help:
 	@echo ""
 
 build:
-	@echo "Building $(BINARY_NAME)..."
+	@echo "Building $(BINARY_NAME) $(VERSION)..."
 	@mkdir -p bin
-	@go build -o $(BINARY_PATH) $(MAIN_PATH)
+	@go build -ldflags="-X github.com/lleitep3/aicockpit/internal/version.Version=$(VERSION)" -o $(BINARY_PATH) $(MAIN_PATH)
 	@echo "✓ Build successful: $(BINARY_PATH)"
 
 test:
