@@ -997,3 +997,41 @@ func BenchmarkBM25Scorer_Search(b *testing.B) {
 		_, _ = searcher.Search("logging configuration", documents)
 	}
 }
+
+// ── DefaultScorer.CombineScores ───────────────────────────────────────────────
+
+func TestDefaultScorer_CombineScores_SemanticZero(t *testing.T) {
+	// When ScoreSemantic is not available (returns 0), CombineScores must
+	// return the full keyword score unchanged — not 40% of it.
+	ds := NewDefaultScorer()
+	keyword := 0.8
+	result := ds.CombineScores(keyword, 0)
+	if result != keyword {
+		t.Errorf("CombineScores(%v, 0) = %v, want %v (should not degrade keyword score)", keyword, result, keyword)
+	}
+}
+
+func TestDefaultScorer_CombineScores_Hybrid(t *testing.T) {
+	// When a real semantic score is provided (non-zero), the hybrid formula
+	// (40% keyword + 60% semantic) should be applied.
+	ds := NewDefaultScorer()
+	keyword := 0.5
+	semantic := 0.8
+	expected := (keyword * 0.4) + (semantic * 0.6)
+	result := ds.CombineScores(keyword, semantic)
+	if result != expected {
+		t.Errorf("CombineScores(%v, %v) = %v, want %v", keyword, semantic, result, expected)
+	}
+}
+
+func TestDefaultScorer_ScoreSemantic_ReturnsZero(t *testing.T) {
+	// ScoreSemantic explicitly returns 0 until embedding is implemented.
+	// This test documents the known limitation so future devs see a failing
+	// test when they wire in a real semantic scorer.
+	ds := NewDefaultScorer()
+	doc := &Document{ID: "d1", Content: "some content"}
+	score := ds.ScoreSemantic("query", doc)
+	if score != 0 {
+		t.Errorf("ScoreSemantic() = %v, expected 0 (embedding not yet implemented)", score)
+	}
+}
