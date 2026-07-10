@@ -295,7 +295,6 @@ Veja o diretório `examples/` para exemplos completos:
 
 - `examples/basic/vault_example.go` - Uso básico do vault
 - `examples/demos/vault-lock/main.go` - Demo de lock/unlock
-- `examples/demos/vault-service/main.go` - Demo de vault service
 - `examples/demos/namespaced/main.go` - Demo de isolamento de namespace
 
 ## Considerações de Segurança
@@ -436,10 +435,8 @@ internal/vault/
 ├── lock_manager.go           - LockManager com estado criptografado
 ├── master_password.go        - Master password management
 ├── state_encryptor.go        - Criptografia e assinatura de estado
-├── vault_service.go          - Service para verificação de processo
 ├── command_handler.go        - CommandHandler para execução segura
-├── secure_vault.go           - SecureVault com criptografia AES-256
-└── process_auth.go           - Autenticação de processo
+└── secure_vault.go           - SecureVault com criptografia AES-256
 
 cmd/
 ├── vault.go                  - Comandos CLI (set, get, remove)
