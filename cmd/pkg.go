@@ -262,7 +262,7 @@ func NewPkgInstallCommand() *cobra.Command {
 			}
 
 			// Validate the downloaded package
-			if err := downloadedPkg.Validate(); err != nil {
+			if err := downloadedPkg.Validate(installPath); err != nil {
 				return fmt.Errorf("downloaded package validation failed: %w", err)
 			}
 

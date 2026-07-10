@@ -147,11 +147,130 @@ func TestValidatePackage(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := tt.pkg.Validate()
+			// Empty packagePath skips filesystem checks — tests struct-level validation only.
+			err := tt.pkg.Validate("")
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Validate() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
+	}
+}
+
+// ── validateFeatures ─────────────────────────────────────────────────────────
+
+func TestValidateFeatures_ExistingPaths(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create real files that the manifest will reference
+	skillFile := filepath.Join(tmpDir, "skills", "SKILL.md")
+	if err := os.MkdirAll(filepath.Dir(skillFile), 0o755); err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+	if err := os.WriteFile(skillFile, []byte("# skill"), 0o644); err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+
+	pkg := &Package{
+		Name:         "test",
+		Version:      "1.0.0",
+		Description:  "Test",
+		Author:       "Author",
+		License:      "MIT",
+		Requirements: Requirements{Cockpit: "0.2.0"},
+		Features: Features{
+			Skills: []Feature{{Path: "skills/SKILL.md", Name: "test-skill"}},
+		},
+		Installation: Installation{
+			SupportedProviders: []string{"devin"},
+			ProviderFeatures:   map[string][]string{"devin": {"skills"}},
+		},
+	}
+
+	if err := pkg.Validate(tmpDir); err != nil {
+		t.Errorf("expected no error for existing paths, got: %v", err)
+	}
+}
+
+func TestValidateFeatures_MissingSkill(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	pkg := &Package{
+		Name:         "test",
+		Version:      "1.0.0",
+		Description:  "Test",
+		Author:       "Author",
+		License:      "MIT",
+		Requirements: Requirements{Cockpit: "0.2.0"},
+		Features: Features{
+			Skills: []Feature{{Path: "skills/ghost.md", Name: "ghost"}},
+		},
+		Installation: Installation{
+			SupportedProviders: []string{"devin"},
+			ProviderFeatures:   map[string][]string{"devin": {"skills"}},
+		},
+	}
+
+	err := pkg.Validate(tmpDir)
+	if err == nil {
+		t.Error("expected error for missing skill path, got nil")
+	}
+}
+
+func TestValidateFeatures_MissingKB(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create skill so we pass the skills check
+	skillDir := filepath.Join(tmpDir, "skills")
+	if err := os.MkdirAll(skillDir, 0o755); err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(skillDir, "SKILL.md"), []byte(""), 0o644); err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+
+	pkg := &Package{
+		Name:         "test",
+		Version:      "1.0.0",
+		Description:  "Test",
+		Author:       "Author",
+		License:      "MIT",
+		Requirements: Requirements{Cockpit: "0.2.0"},
+		Features: Features{
+			Skills: []Feature{{Path: "skills/SKILL.md", Name: "test-skill"}},
+			KB:     []KBFeature{{Path: "kb/missing.md", Type: "guide"}},
+		},
+		Installation: Installation{
+			SupportedProviders: []string{"devin"},
+			ProviderFeatures:   map[string][]string{"devin": {"skills"}},
+		},
+	}
+
+	err := pkg.Validate(tmpDir)
+	if err == nil {
+		t.Error("expected error for missing kb path, got nil")
+	}
+}
+
+func TestValidateFeatures_EmptyPathSkipsCheck(t *testing.T) {
+	// packagePath="" must skip filesystem validation entirely.
+	pkg := &Package{
+		Name:         "test",
+		Version:      "1.0.0",
+		Description:  "Test",
+		Author:       "Author",
+		License:      "MIT",
+		Requirements: Requirements{Cockpit: "0.2.0"},
+		Features: Features{
+			Skills: []Feature{{Path: "skills/nonexistent.md", Name: "ghost"}},
+		},
+		Installation: Installation{
+			SupportedProviders: []string{"devin"},
+			ProviderFeatures:   map[string][]string{"devin": {"skills"}},
+		},
+	}
+
+	if err := pkg.Validate(""); err != nil {
+		t.Errorf("expected no error when packagePath is empty, got: %v", err)
 	}
 }
 
