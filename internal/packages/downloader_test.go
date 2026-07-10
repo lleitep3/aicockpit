@@ -659,6 +659,35 @@ func TestDownloadPackageFromGitHub_PackageMissingInZip(t *testing.T) {
 	}
 }
 
+func TestDownloadPackageFromGitHub_DestDirIsFile(t *testing.T) {
+	oldBase := githubBaseURL
+	defer func() { githubBaseURL = oldBase }()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		buf := &bytes.Buffer{}
+		zw := zip.NewWriter(buf)
+		zw.Create("repo-main/pkg/README.md") //nolint:errcheck
+		zw.Close()
+		w.Header().Set("Content-Type", "application/zip")
+		w.WriteHeader(http.StatusOK)
+		w.Write(buf.Bytes()) //nolint:errcheck
+	}))
+	defer srv.Close()
+	githubBaseURL = srv.URL
+
+	tmpDir := t.TempDir()
+	destFile := filepath.Join(tmpDir, "destfile")
+	if err := os.WriteFile(destFile, []byte("x"), 0o644); err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+
+	downloader := NewPackageDownloader()
+	err := downloader.DownloadPackageFromGitHub(context.Background(), "owner", "repo", "main", "pkg", destFile)
+	if err == nil {
+		t.Fatal("expected error when destination path is a file")
+	}
+}
+
 func TestDownloadPackageFromGitHub_Timeout(t *testing.T) {
 	blocked := make(chan struct{})
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -792,6 +821,32 @@ func TestExtractPackageFromZip_DestDirNotWritable(t *testing.T) {
 	}
 }
 
+func TestExtractPackageFromZip_DestDirIsFile(t *testing.T) {
+	tmpDir := t.TempDir()
+	zipPath := filepath.Join(tmpDir, "test.zip")
+
+	zipFile, err := os.Create(zipPath)
+	if err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+	zw := zip.NewWriter(zipFile)
+	zw.Create("repo-main/pkg/file.txt") //nolint:errcheck
+	zw.Close()
+	zipFile.Close()
+
+	// Destination path is a file, so MkdirAll cannot create it as a directory.
+	destFile := filepath.Join(tmpDir, "destfile")
+	if err := os.WriteFile(destFile, []byte("x"), 0o644); err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+
+	downloader := NewPackageDownloader()
+	err = downloader.extractPackageFromZip(zipPath, "pkg", destFile, "repo", "main")
+	if err == nil {
+		t.Error("Expected error when destination path is a file")
+	}
+}
+
 func TestDownloadPackageFromURL_DestDirNotWritable(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		buf := &bytes.Buffer{}
@@ -815,5 +870,30 @@ func TestDownloadPackageFromURL_DestDirNotWritable(t *testing.T) {
 	err := downloader.DownloadPackageFromURL(context.Background(), srv.URL+"/pkg.zip", "pkg", roDir)
 	if err == nil {
 		t.Error("Expected error when destination directory is not writable")
+	}
+}
+
+func TestDownloadPackageFromURL_DestDirIsFile(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		buf := &bytes.Buffer{}
+		zw := zip.NewWriter(buf)
+		zw.Create("file.txt") //nolint:errcheck
+		zw.Close()
+		w.Header().Set("Content-Type", "application/zip")
+		w.WriteHeader(http.StatusOK)
+		w.Write(buf.Bytes()) //nolint:errcheck
+	}))
+	defer srv.Close()
+
+	tmpDir := t.TempDir()
+	destFile := filepath.Join(tmpDir, "destfile")
+	if err := os.WriteFile(destFile, []byte("x"), 0o644); err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+
+	downloader := NewPackageDownloader()
+	err := downloader.DownloadPackageFromURL(context.Background(), srv.URL+"/pkg.zip", "pkg", destFile)
+	if err == nil {
+		t.Error("Expected error when destination path is a file")
 	}
 }

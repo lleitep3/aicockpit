@@ -393,3 +393,31 @@ func TestUpdateRegistry_FetchError(t *testing.T) {
 		t.Error("Expected error when git fetch fails")
 	}
 }
+
+func TestUpdateRegistry_Success(t *testing.T) {
+	remoteDir := t.TempDir()
+	if err := exec.Command("git", "init", "-b", "main", remoteDir).Run(); err != nil {
+		t.Skip("git not available:", err)
+	}
+	if err := os.WriteFile(filepath.Join(remoteDir, "package-index.yaml"), []byte("version: 1.0\n"), 0o644); err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+	if err := exec.Command("git", "-C", remoteDir, "add", ".").Run(); err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+	if err := exec.Command("git", "-C", remoteDir, "-c", "commit.gpgsign=false", "-c", "user.email=test@test.com", "-c", "user.name=Test", "commit", "-m", "init").Run(); err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+
+	tmpDir := t.TempDir()
+	cloneDir := filepath.Join(tmpDir, "clone")
+	if err := exec.Command("git", "clone", remoteDir, cloneDir).Run(); err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+
+	rc := NewRegistryCache(tmpDir)
+	registry := RegistryConfig{Name: "local-registry", URL: remoteDir, Branch: "main"}
+	if err := rc.updateRegistry(cloneDir, registry); err != nil {
+		t.Fatalf("updateRegistry failed: %v", err)
+	}
+}
