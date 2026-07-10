@@ -3,6 +3,7 @@ package packages
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -188,6 +189,42 @@ func TestValidateFeatures_ExistingPaths(t *testing.T) {
 
 	if err := pkg.Validate(tmpDir); err != nil {
 		t.Errorf("expected no error for existing paths, got: %v", err)
+	}
+}
+
+func TestValidateFeatures_ExistingKB(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	skillFile := filepath.Join(tmpDir, "skills", "SKILL.md")
+	kbFile := filepath.Join(tmpDir, "kb", "guide.md")
+	for _, f := range []string{skillFile, kbFile} {
+		if err := os.MkdirAll(filepath.Dir(f), 0o755); err != nil {
+			t.Fatalf("setup: %v", err)
+		}
+		if err := os.WriteFile(f, []byte("# doc"), 0o644); err != nil {
+			t.Fatalf("setup: %v", err)
+		}
+	}
+
+	pkg := &Package{
+		Name:         "test",
+		Version:      "1.0.0",
+		Description:  "Test",
+		Author:       "Author",
+		License:      "MIT",
+		Requirements: Requirements{Cockpit: "0.2.0"},
+		Features: Features{
+			Skills: []Feature{{Path: "skills/SKILL.md", Name: "test-skill"}},
+			KB:     []KBFeature{{Path: "kb/guide.md", Type: "guide"}},
+		},
+		Installation: Installation{
+			SupportedProviders: []string{"devin"},
+			ProviderFeatures:   map[string][]string{"devin": {"skills"}},
+		},
+	}
+
+	if err := pkg.Validate(tmpDir); err != nil {
+		t.Errorf("expected no error for existing KB path, got: %v", err)
 	}
 }
 
@@ -476,6 +513,221 @@ func TestGetDefaultConfig(t *testing.T) {
 	}
 }
 
+func TestGetKBFeatures(t *testing.T) {
+	pkg := &Package{
+		Features: Features{
+			KB: []KBFeature{
+				{Path: "kb/guide.md", Type: "guide"},
+				{Path: "kb/faq.md", Type: "troubleshooting"},
+			},
+		},
+	}
+
+	kb := pkg.GetKBFeatures()
+	if len(kb) != 2 {
+		t.Errorf("GetKBFeatures() returned %d items, expected 2", len(kb))
+	}
+	if kb[0].Type != "guide" {
+		t.Errorf("Expected first KB type 'guide', got %q", kb[0].Type)
+	}
+}
+
+func TestGetDependencies(t *testing.T) {
+	pkg := &Package{
+		Dependencies: []Dependency{
+			{Name: "dep1", Version: "1.0.0"},
+			{Name: "dep2", Version: "2.0.0", Optional: true},
+		},
+	}
+
+	deps := pkg.GetDependencies()
+	if len(deps) != 2 {
+		t.Errorf("GetDependencies() returned %d items, expected 2", len(deps))
+	}
+	if deps[0].Name != "dep1" {
+		t.Errorf("Expected first dependency name 'dep1', got %q", deps[0].Name)
+	}
+}
+
+func TestGetExternalDependencies(t *testing.T) {
+	pkg := &Package{
+		ExternalDependencies: ExternalDeps{
+			Go:     []string{"github.com/test/pkg@v1.0.0"},
+			Node:   []string{"express@^4.0.0"},
+			System: []string{"pandoc>=2.0"},
+		},
+	}
+
+	external := pkg.GetExternalDependencies()
+	if len(external.Go) != 1 {
+		t.Errorf("GetExternalDependencies() returned %d go deps, expected 1", len(external.Go))
+	}
+	if len(external.Node) != 1 {
+		t.Errorf("GetExternalDependencies() returned %d node deps, expected 1", len(external.Node))
+	}
+	if len(external.System) != 1 {
+		t.Errorf("GetExternalDependencies() returned %d system deps, expected 1", len(external.System))
+	}
+}
+
+func TestGetConfiguration(t *testing.T) {
+	pkg := &Package{
+		Configuration: Configuration{
+			Defaults: map[string]interface{}{
+				"output_dir": "articles",
+			},
+			Options: []ConfigOption{
+				{Name: "theme", Type: "string", Default: "light"},
+			},
+		},
+	}
+
+	cfg := pkg.GetConfiguration()
+	if cfg.Defaults["output_dir"] != "articles" {
+		t.Errorf("Expected output_dir 'articles', got %v", cfg.Defaults["output_dir"])
+	}
+	if len(cfg.Options) != 1 {
+		t.Errorf("GetConfiguration() returned %d options, expected 1", len(cfg.Options))
+	}
+}
+
+func TestGetConfigOptions(t *testing.T) {
+	pkg := &Package{
+		Configuration: Configuration{
+			Options: []ConfigOption{
+				{Name: "theme", Type: "string", Default: "light"},
+				{Name: "timeout", Type: "number", Default: 30},
+			},
+		},
+	}
+
+	options := pkg.GetConfigOptions()
+	if len(options) != 2 {
+		t.Errorf("GetConfigOptions() returned %d items, expected 2", len(options))
+	}
+	if options[0].Name != "theme" {
+		t.Errorf("Expected first option name 'theme', got %q", options[0].Name)
+	}
+}
+
+func TestLoadPackage_InvalidYAML(t *testing.T) {
+	tmpDir := t.TempDir()
+	manifestPath := filepath.Join(tmpDir, "cockpit-package.yml")
+	if err := os.WriteFile(manifestPath, []byte("name: [\n"), 0o644); err != nil {
+		t.Fatalf("Failed to create invalid manifest: %v", err)
+	}
+
+	_, err := LoadPackage(tmpDir)
+	if err == nil {
+		t.Error("Expected error for invalid YAML manifest")
+	}
+}
+
+func TestSavePackage_MkdirAllError(t *testing.T) {
+	pkg := &Package{Name: "x", Version: "1.0.0"}
+
+	// Path with a file as parent directory so MkdirAll fails.
+	tmpDir := t.TempDir()
+	parentFile := filepath.Join(tmpDir, "not-a-dir")
+	if err := os.WriteFile(parentFile, []byte("x"), 0o644); err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+
+	if err := SavePackage(filepath.Join(parentFile, "pkg"), pkg); err == nil {
+		t.Error("Expected error when package directory cannot be created")
+	}
+}
+
+func TestSavePackage_WriteFileError(t *testing.T) {
+	pkg := &Package{Name: "x", Version: "1.0.0"}
+
+	tmpDir := t.TempDir()
+	// Create a read-only directory so WriteFile fails.
+	roDir := filepath.Join(tmpDir, "readonly")
+	if err := os.MkdirAll(roDir, 0o555); err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+	defer os.Chmod(roDir, 0o755) //nolint:errcheck
+
+	if err := SavePackage(roDir, pkg); err == nil {
+		t.Error("Expected error when manifest file cannot be written")
+	}
+}
+
+func TestGetDefaultConfig_Empty(t *testing.T) {
+	pkg := &Package{}
+
+	cfg := pkg.GetDefaultConfig()
+	if cfg == nil {
+		t.Fatal("Expected non-nil empty config map")
+	}
+	if len(cfg) != 0 {
+		t.Errorf("Expected empty config, got %d items", len(cfg))
+	}
+}
+
+func TestGetFeaturesByType_Unknown(t *testing.T) {
+	pkg := &Package{
+		Features: Features{
+			Agents: []Feature{{Path: "agents/a.go", Name: "a"}},
+		},
+	}
+
+	features := pkg.GetFeaturesByType("unknown")
+	if features != nil {
+		t.Errorf("Expected nil for unknown feature type, got %v", features)
+	}
+}
+
+func TestValidatePackage_AllRequiredFields(t *testing.T) {
+	valid := func() *Package {
+		return &Package{
+			Name:         "test",
+			Version:      "1.0.0",
+			Description:  "Test",
+			Author:       "Author",
+			License:      "MIT",
+			Requirements: Requirements{Cockpit: "0.2.0"},
+			Features: Features{
+				Skills: []Feature{{Path: "skills/test.go", Name: "test"}},
+			},
+			Installation: Installation{
+				SupportedProviders: []string{"devin"},
+				ProviderFeatures:   map[string][]string{"devin": {"skills"}},
+			},
+		}
+	}
+
+	tests := []struct {
+		name    string
+		mutate  func(*Package)
+		wantErr string
+	}{
+		{"empty name", func(p *Package) { p.Name = "" }, "name is required"},
+		{"empty version", func(p *Package) { p.Version = "" }, "version is required"},
+		{"empty description", func(p *Package) { p.Description = "" }, "description is required"},
+		{"empty author", func(p *Package) { p.Author = "" }, "author is required"},
+		{"empty license", func(p *Package) { p.License = "" }, "license is required"},
+		{"empty cockpit requirement", func(p *Package) { p.Requirements.Cockpit = "" }, "cockpit version requirement is required"},
+		{"no supported providers", func(p *Package) { p.Installation.SupportedProviders = nil }, "supported provider"},
+		{"no provider features", func(p *Package) { p.Installation.ProviderFeatures = nil }, "provider features"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			pkg := valid()
+			tt.mutate(pkg)
+			err := pkg.Validate("")
+			if err == nil {
+				t.Fatalf("Validate() expected error containing %q, got nil", tt.wantErr)
+			}
+			if !strings.Contains(strings.ToLower(err.Error()), tt.wantErr) {
+				t.Errorf("Validate() error = %q, expected to contain %q", err.Error(), tt.wantErr)
+			}
+		})
+	}
+}
+
 func TestSavePackage(t *testing.T) {
 	tmpDir := t.TempDir()
 
@@ -629,5 +881,22 @@ installation:
 	}
 	if len(pkg.Installation.PostUninstall) != 0 {
 		t.Errorf("Expected 0 post_uninstall hooks, got %d", len(pkg.Installation.PostUninstall))
+	}
+}
+
+func TestSavePackage_WriteError(t *testing.T) {
+	tmpDir := t.TempDir()
+	// Create a FILE at the package path so MkdirAll succeeds but WriteFile to
+	// "packagePath/cockpit-package.yml" fails because packagePath is a file.
+	pkgPath := filepath.Join(tmpDir, "collision")
+	if err := os.WriteFile(pkgPath, []byte("I am a file"), 0o644); err != nil {
+		t.Fatalf("WriteFile: %v", err)
+	}
+	// Now the path is a file, so WriteFile(pkgPath/cockpit-package.yml) fails.
+	pkg := &Package{Name: "x", Version: "1.0.0"}
+	err := SavePackage(pkgPath, pkg)
+	// Either MkdirAll fails (pkgPath is file) or WriteFile inside fails.
+	if err == nil {
+		t.Error("SavePackage() should fail when packagePath is a file")
 	}
 }

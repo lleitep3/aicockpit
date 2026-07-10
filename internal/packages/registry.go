@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 	"time"
 
 	"gopkg.in/yaml.v3"
@@ -315,9 +316,10 @@ func (rm *RegistryManager) matchesQuery(pkg PackageIndexEntry, query string) boo
 
 // contains checks if a string contains a substring (case-insensitive).
 func contains(s, substr string) bool {
-	// Simple substring check
-	return len(s) > 0 && len(substr) > 0 &&
-		(s == substr || len(s) > len(substr))
+	if s == "" || substr == "" {
+		return false
+	}
+	return strings.Contains(strings.ToLower(s), strings.ToLower(substr))
 }
 
 // GetCacheDir returns the cache directory.

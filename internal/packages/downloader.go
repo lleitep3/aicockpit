@@ -16,6 +16,10 @@ import (
 // defaultDownloadTimeout is the timeout applied when no context is provided.
 const defaultDownloadTimeout = 60 * time.Second
 
+// githubBaseURL is the base URL for GitHub downloads. It is a package variable
+// so tests can point it at a local httptest server.
+var githubBaseURL = "https://github.com"
+
 // PackageDownloader handles downloading packages from registries.
 type PackageDownloader struct {
 	httpClient *http.Client
@@ -43,8 +47,15 @@ func NewPackageDownloader() *PackageDownloader {
 	return downloader
 }
 
-// getGitHubToken retrieves the GitHub token from gh CLI
+// getGitHubToken retrieves the GitHub token from env vars or gh CLI.
 func getGitHubToken() string {
+	if token := os.Getenv("COCKPIT_GITHUB_TOKEN"); token != "" {
+		return token
+	}
+	if token := os.Getenv("GITHUB_TOKEN"); token != "" {
+		return token
+	}
+
 	cmd := exec.Command("gh", "auth", "token")
 	output, err := cmd.Output()
 	if err != nil {
@@ -73,8 +84,8 @@ func (pd *PackageDownloader) DownloadPackageFromGitHub(ctx context.Context, owne
 	}
 
 	// Construct GitHub API URL for downloading the repository as ZIP
-	// Format: https://github.com/{owner}/{repo}/archive/refs/heads/{branch}.zip
-	downloadURL := fmt.Sprintf("https://github.com/%s/%s/archive/refs/heads/%s.zip", owner, repo, branch)
+	// Format: {githubBaseURL}/{owner}/{repo}/archive/refs/heads/{branch}.zip
+	downloadURL := fmt.Sprintf("%s/%s/%s/archive/refs/heads/%s.zip", githubBaseURL, owner, repo, branch)
 
 	// Download the ZIP file
 	fmt.Printf("Downloading package from: %s\n", downloadURL)

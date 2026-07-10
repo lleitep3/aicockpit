@@ -94,3 +94,21 @@ providers:
 		t.Errorf("expected rules file to be created at %s: %v", rulePath, err)
 	}
 }
+
+func TestNewDeployCommand_NoProviders(t *testing.T) {
+	tmpDir := t.TempDir()
+	t.Setenv("HOME", tmpDir)
+
+	logMgr, _ := logging.NewManager(filepath.Join(tmpDir, "logs"))
+	cfg := &config.Config{
+		Version:          "1.0.0",
+		Language:         "en-us",
+		EnabledProviders: []string{}, // no providers
+	}
+	tr := i18n.New("en-us")
+
+	cmd := NewDeployCommand(logMgr, cfg, tr)
+	if err := cmd.Execute(); err == nil {
+		t.Error("deploy with no providers should return error")
+	}
+}

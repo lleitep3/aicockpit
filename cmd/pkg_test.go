@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -206,5 +208,170 @@ func TestPkgCommandHierarchy(t *testing.T) {
 		if !found {
 			t.Errorf("Expected subcommand '%s' not found", cmd)
 		}
+	}
+}
+
+// ── copyFile ──────────────────────────────────────────────────────────────
+
+func TestCopyFile_Success(t *testing.T) {
+	src := filepath.Join(t.TempDir(), "src.txt")
+	dst := filepath.Join(t.TempDir(), "dst.txt")
+
+	if err := os.WriteFile(src, []byte("hello"), 0o644); err != nil {
+		t.Fatalf("WriteFile: %v", err)
+	}
+	if err := copyFile(src, dst); err != nil {
+		t.Fatalf("copyFile() error = %v", err)
+	}
+	data, _ := os.ReadFile(dst)
+	if string(data) != "hello" {
+		t.Errorf("dst content = %q, want %q", string(data), "hello")
+	}
+}
+
+func TestCopyFile_MissingSrc(t *testing.T) {
+	err := copyFile("/nonexistent/src.txt", t.TempDir()+"/dst.txt")
+	if err == nil {
+		t.Error("copyFile() expected error for missing source, got nil")
+	}
+}
+
+// ── copyDirectory ─────────────────────────────────────────────────────────
+
+func TestCopyDirectory_Success(t *testing.T) {
+	srcDir := t.TempDir()
+	dstDir := filepath.Join(t.TempDir(), "dst")
+
+	// Create nested structure.
+	subDir := filepath.Join(srcDir, "sub")
+	if err := os.MkdirAll(subDir, 0o755); err != nil {
+		t.Fatalf("MkdirAll: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(srcDir, "a.txt"), []byte("a"), 0o644); err != nil {
+		t.Fatalf("WriteFile a.txt: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(subDir, "b.txt"), []byte("b"), 0o644); err != nil {
+		t.Fatalf("WriteFile b.txt: %v", err)
+	}
+
+	if err := copyDirectory(srcDir, dstDir); err != nil {
+		t.Fatalf("copyDirectory() error = %v", err)
+	}
+
+	// Verify both files exist in destination.
+	for _, rel := range []string{"a.txt", "sub/b.txt"} {
+		if _, err := os.Stat(filepath.Join(dstDir, rel)); err != nil {
+			t.Errorf("expected %s to exist in dst: %v", rel, err)
+		}
+	}
+}
+
+func TestCopyDirectory_MissingSrc(t *testing.T) {
+	err := copyDirectory("/nonexistent/src", t.TempDir()+"/dst")
+	if err == nil {
+		t.Error("copyDirectory() expected error for missing source, got nil")
+	}
+}
+
+// ── pkg list / install / search RunE ─────────────────────────────────────
+
+func makePkgConfig(t *testing.T) {
+	t.Helper()
+	tmpDir := t.TempDir()
+	t.Setenv("HOME", tmpDir)
+	cockpitDir := filepath.Join(tmpDir, ".cockpit")
+	if err := os.MkdirAll(cockpitDir, 0o755); err != nil {
+		t.Fatalf("MkdirAll: %v", err)
+	}
+	yaml := `version: "0.1.0"
+language: en-us
+log_level: info
+auto_update_check: false
+enabled_providers: []
+package_registries: []
+`
+	if err := os.WriteFile(filepath.Join(cockpitDir, "config.yaml"), []byte(yaml), 0o644); err != nil {
+		t.Fatalf("WriteFile config: %v", err)
+	}
+}
+
+func TestNewPkgListCommand_NoPackages(t *testing.T) {
+	makePkgConfig(t)
+	cmd := NewPkgListCommand()
+	cmd.SetArgs([]string{})
+	if err := cmd.Execute(); err != nil {
+		t.Errorf("list (no packages) error = %v", err)
+	}
+}
+
+func TestNewPkgListCommand_UnknownRegistry(t *testing.T) {
+	makePkgConfig(t)
+	cmd := NewPkgListCommand()
+	cmd.SetArgs([]string{"--source", "nonexistent"})
+	if err := cmd.Execute(); err == nil {
+		t.Error("list --source nonexistent should error")
+	}
+}
+
+func TestNewPkgSearchCommand_NoResults(t *testing.T) {
+	makePkgConfig(t)
+	cmd := NewPkgSearchCommand()
+	cmd.SetArgs([]string{"no-such-pkg"})
+	if err := cmd.Execute(); err != nil {
+		t.Errorf("search (no results) error = %v", err)
+	}
+}
+
+func TestNewPkgInstallCommand_RegistryNotFound(t *testing.T) {
+	makePkgConfig(t)
+	cmd := NewPkgInstallCommand()
+	cmd.SetArgs([]string{"--source", "ghost", "some-pkg"})
+	if err := cmd.Execute(); err == nil {
+		t.Error("install --source ghost should error")
+	}
+}
+
+func TestNewPkgInstallCommand_PackageNotFound(t *testing.T) {
+	makePkgConfig(t)
+	cmd := NewPkgInstallCommand()
+	cmd.SetArgs([]string{"totally-unknown-pkg"})
+	if err := cmd.Execute(); err == nil {
+		t.Error("install unknown package should error")
+	}
+}
+
+func TestNewPkgUninstallCommand_NotInstalled(t *testing.T) {
+	makePkgConfig(t)
+	cmd := NewPkgUninstallCommand()
+	cmd.SetArgs([]string{"ghost-package"})
+	if err := cmd.Execute(); err == nil {
+		t.Error("uninstall not-installed package should error")
+	}
+}
+
+func TestNewPkgUpgradeCommand_NotInstalled(t *testing.T) {
+	makePkgConfig(t)
+	cmd := NewPkgUpgradeCommand()
+	cmd.SetArgs([]string{"ghost-package"})
+	if err := cmd.Execute(); err == nil {
+		t.Error("upgrade not-installed package should error")
+	}
+}
+
+func TestNewPkgConfigureCommand_NotInstalled(t *testing.T) {
+	makePkgConfig(t)
+	cmd := NewPkgConfigureCommand()
+	cmd.SetArgs([]string{"ghost-package"})
+	if err := cmd.Execute(); err == nil {
+		t.Error("configure not-installed package should error")
+	}
+}
+
+func TestNewPkgValidateCommand_NotInstalled(t *testing.T) {
+	makePkgConfig(t)
+	cmd := NewPkgValidateCommand()
+	cmd.SetArgs([]string{"ghost-package"})
+	if err := cmd.Execute(); err == nil {
+		t.Error("validate not-installed package should error")
 	}
 }

@@ -23,7 +23,15 @@ type LockState struct {
 // NewLockManager creates a new lock manager
 func NewLockManager(storagePath string) *LockManager {
 	if storagePath == "" {
-		storagePath = "/home/lleite/.cockpit/vault/lock_state.json"
+		home := os.Getenv("HOME")
+		if home == "" {
+			var err error
+			home, err = os.UserHomeDir()
+			if err != nil {
+				home = os.TempDir()
+			}
+		}
+		storagePath = home + "/.cockpit/vault/lock_state.json"
 	}
 
 	lm := &LockManager{

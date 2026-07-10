@@ -3,6 +3,7 @@ package cmd
 import (
 	"bytes"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -11,6 +12,32 @@ import (
 	"github.com/lleitep3/aicockpit/internal/kb"
 	"github.com/lleitep3/aicockpit/internal/logging"
 )
+
+// newKBTestDeps creates test deps with a cockpit dir in tmpDir/.cockpit so
+// cfg.Save() can persist during tests.
+func newKBTestDeps(t *testing.T) (*logging.Manager, *config.Config, *i18n.Translator, string) {
+	t.Helper()
+	tmpDir := t.TempDir()
+	t.Setenv("HOME", tmpDir)
+	cockpitDir := filepath.Join(tmpDir, ".cockpit")
+	if err := os.MkdirAll(cockpitDir, 0o755); err != nil {
+		t.Fatalf("MkdirAll cockpit: %v", err)
+	}
+	log, err := logging.NewManager(filepath.Join(cockpitDir, "logs"))
+	if err != nil {
+		t.Fatalf("logging.NewManager: %v", err)
+	}
+	kbRoot := filepath.Join(cockpitDir, "kb")
+	if err := os.MkdirAll(kbRoot, 0o755); err != nil {
+		t.Fatalf("MkdirAll kb: %v", err)
+	}
+	cfg := &config.Config{
+		Version:  "0.1.0",
+		Language: "en-us",
+		KB:       config.KBConfig{Roots: []string{kbRoot}},
+	}
+	return log, cfg, i18n.New("en-us"), kbRoot
+}
 
 func TestNewKBCommand(t *testing.T) {
 	log, err := logging.NewManager("")
@@ -486,5 +513,108 @@ func TestNewKBRebuildCacheCommand(t *testing.T) {
 	err = cmd.RunE(cmd, []string{})
 	if err != nil {
 		t.Errorf("NewKBRebuildCacheCommand() RunE() error = %v", err)
+	}
+}
+
+// ── RunE execution tests ──────────────────────────────────────────────────
+
+func TestKBSearchCommand_NoRoots(t *testing.T) {
+	log, _, _ := newTestDeps(t)
+	cfg := &config.Config{Version: "0.1.0", Language: "en-us", KB: config.KBConfig{Roots: []string{}}}
+	tr := i18n.New("en-us")
+	cmd := NewKBSearchCommand(log, cfg, tr)
+	cmd.SetArgs([]string{"--bm25", "query"})
+	if err := cmd.Execute(); err != nil {
+		t.Errorf("search (no roots) error = %v", err)
+	}
+}
+
+func TestKBSearchCommand_WithResults(t *testing.T) {
+	log, cfg, tr, kbRoot := newKBTestDeps(t)
+
+	// Write a markdown doc so search returns at least one result.
+	doc := "---\ntitle: Hello World\ntags: [hello]\n---\nHello world content.\n"
+	if err := os.WriteFile(filepath.Join(kbRoot, "hello.md"), []byte(doc), 0o644); err != nil {
+		t.Fatalf("WriteFile: %v", err)
+	}
+
+	cmd := NewKBSearchCommand(log, cfg, tr)
+	cmd.SetArgs([]string{"--bm25", "hello"})
+	// May return 0 results if index not built — still must not error.
+	if err := cmd.Execute(); err != nil {
+		t.Errorf("search with doc error = %v", err)
+	}
+}
+
+func TestKBListCommand_NoRoots(t *testing.T) {
+	log, _, _ := newTestDeps(t)
+	cfg := &config.Config{Version: "0.1.0", Language: "en-us"}
+	tr := i18n.New("en-us")
+	cmd := NewKBListCommand(log, cfg, tr)
+	if err := cmd.RunE(cmd, []string{}); err != nil {
+		t.Errorf("list (no roots) error = %v", err)
+	}
+}
+
+func TestKBListCommand_EmptyRoot(t *testing.T) {
+	log, cfg, tr, _ := newKBTestDeps(t)
+	cmd := NewKBListCommand(log, cfg, tr)
+	if err := cmd.RunE(cmd, []string{}); err != nil {
+		t.Errorf("list (empty root) error = %v", err)
+	}
+}
+
+func TestKBAddCommand_Run(t *testing.T) {
+	log, cfg, tr := newTestDeps(t)
+	cmd := NewKBAddCommand(log, cfg, tr)
+	if err := cmd.RunE(cmd, []string{"/some/file.md"}); err != nil {
+		t.Errorf("add run error = %v", err)
+	}
+}
+
+func TestKBRemoveCommand_Run(t *testing.T) {
+	log, cfg, tr := newTestDeps(t)
+	cmd := NewKBRemoveCommand(log, cfg, tr)
+	if err := cmd.RunE(cmd, []string{"some-id"}); err != nil {
+		t.Errorf("remove run error = %v", err)
+	}
+}
+
+func TestKBRootAddCommand_Run(t *testing.T) {
+	log, cfg, tr, kbRoot := newKBTestDeps(t)
+	newRoot := filepath.Join(kbRoot, "extra")
+	if err := os.MkdirAll(newRoot, 0o755); err != nil {
+		t.Fatalf("MkdirAll: %v", err)
+	}
+	cmd := NewKBRootAddCommand(log, cfg, tr)
+	if err := cmd.RunE(cmd, []string{newRoot}); err != nil {
+		t.Errorf("root add error = %v", err)
+	}
+}
+
+func TestKBRootRemoveCommand_Run(t *testing.T) {
+	log, cfg, tr, kbRoot := newKBTestDeps(t)
+	cmd := NewKBRootRemoveCommand(log, cfg, tr)
+	if err := cmd.RunE(cmd, []string{kbRoot}); err != nil {
+		t.Errorf("root remove error = %v", err)
+	}
+}
+
+func TestKBRootRemoveCommand_NotFound(t *testing.T) {
+	log, cfg, tr, _ := newKBTestDeps(t)
+	cmd := NewKBRootRemoveCommand(log, cfg, tr)
+	err := cmd.RunE(cmd, []string{"/nonexistent/path"})
+	if err == nil {
+		t.Error("root remove nonexistent should return error")
+	}
+}
+
+func TestKBRootListCommand_NoRoots(t *testing.T) {
+	log, _, _ := newTestDeps(t)
+	cfg := &config.Config{Version: "0.1.0", Language: "en-us"}
+	tr := i18n.New("en-us")
+	cmd := NewKBRootListCommand(log, cfg, tr)
+	if err := cmd.RunE(cmd, []string{}); err != nil {
+		t.Errorf("root list (no roots) error = %v", err)
 	}
 }
