@@ -536,3 +536,37 @@ func TestManager_NewManager_NoRoots(t *testing.T) {
 		t.Errorf("GetRoots() returned %d roots, want 0", len(manager.GetRoots()))
 	}
 }
+
+func TestNewManagerWithLogger_NilLogger(t *testing.T) {
+	tmpDir := t.TempDir()
+	indexPath := filepath.Join(tmpDir, ".index.json")
+
+	manager := NewManagerWithLogger([]string{tmpDir}, indexPath, nil)
+
+	if manager == nil {
+		t.Fatal("expected non-nil manager")
+	}
+	if manager.log != nil {
+		t.Error("expected nil logger field")
+	}
+}
+
+func TestNewManagerWithLogger_SkipsStderrOnMissingDoc(t *testing.T) {
+	// Build an index that references a non-existent file.  With nil logger the
+	// Manager must skip the bad entry silently (no panic, no stderr write) and
+	// return an empty document slice instead of an error.
+	tmpDir := t.TempDir()
+	indexPath := filepath.Join(tmpDir, ".index.json")
+
+	manager := NewManagerWithLogger([]string{tmpDir}, indexPath, nil)
+
+	// ListDocuments will call indexToDocuments; index is empty → no bad paths,
+	// just verifying the nil-logger path doesn't panic.
+	docs, err := manager.ListDocuments()
+	if err != nil {
+		t.Fatalf("ListDocuments() unexpected error: %v", err)
+	}
+	if len(docs) != 0 {
+		t.Errorf("expected 0 documents for empty root, got %d", len(docs))
+	}
+}

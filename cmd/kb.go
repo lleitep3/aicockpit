@@ -73,7 +73,7 @@ func NewKBSearchCommand(log *logging.Manager, cfg *config.Config, t *i18n.Transl
 			indexPath := filepath.Join(config.GetCockpitDir(), ".kb-index.json")
 
 			// Create manager
-			manager := kb.NewManager(roots, indexPath)
+			manager := kb.NewManagerWithLogger(roots, indexPath, log)
 
 			// Perform search
 			results, err := manager.Search(query)
@@ -132,7 +132,7 @@ func NewKBListCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translat
 			indexPath := filepath.Join(config.GetCockpitDir(), ".kb-index.json")
 
 			// Create manager
-			manager := kb.NewManager(roots, indexPath)
+			manager := kb.NewManagerWithLogger(roots, indexPath, log)
 
 			// Load all documents
 			documents, err := manager.ListDocuments()
@@ -244,7 +244,7 @@ func NewKBRootAddCommand(log *logging.Manager, cfg *config.Config, t *i18n.Trans
 			indexPath := filepath.Join(config.GetCockpitDir(), ".kb-index.json")
 
 			// Create manager with current roots
-			manager := kb.NewManager(cfg.KB.Roots, indexPath)
+			manager := kb.NewManagerWithLogger(cfg.KB.Roots, indexPath, log)
 
 			// Add root
 			err := manager.AddRoot(rootPath)
@@ -294,7 +294,7 @@ func NewKBRootRemoveCommand(log *logging.Manager, cfg *config.Config, t *i18n.Tr
 			indexPath := filepath.Join(config.GetCockpitDir(), ".kb-index.json")
 
 			// Create manager with current roots
-			manager := kb.NewManager(cfg.KB.Roots, indexPath)
+			manager := kb.NewManagerWithLogger(cfg.KB.Roots, indexPath, log)
 
 			// Remove root
 			err := manager.RemoveRoot(rootPath)
@@ -362,7 +362,7 @@ func NewKBRebuildCacheCommand(log *logging.Manager, cfg *config.Config, t *i18n.
 			indexPath := filepath.Join(config.GetCockpitDir(), ".kb-index.json")
 
 			// Create manager
-			manager := kb.NewManager(roots, indexPath)
+			manager := kb.NewManagerWithLogger(roots, indexPath, log)
 
 			// Rebuild index
 			fmt.Println("Rebuilding knowledge base index...")
@@ -546,7 +546,7 @@ func NewKBGraphCommand(log *logging.Manager, cfg *config.Config, t *i18n.Transla
 			}
 
 			indexPath := filepath.Join(config.GetCockpitDir(), ".kb-index.json")
-			manager := kb.NewManager(roots, indexPath)
+			manager := kb.NewManagerWithLogger(roots, indexPath, log)
 
 			docs, err := manager.ListDocuments()
 			if err != nil {
