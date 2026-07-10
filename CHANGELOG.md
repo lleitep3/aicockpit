@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.6] - 2026-07-10
+
+### Changed since v0.4.5
+
+
+### Features
+- unify provider config + detect installed providers (#85)
+
+### Bug Fixes
+No bug fixes
+
+### Performance
+No performance improvements
+
+### Breaking Changes
+No breaking changes
+
+### Documentation
+No documentation changes
+
+### Testing
+No test changes
+
+### Other Changes
+No other changes
+
+
+
 ## [0.4.5] - 2026-07-10
 
 ### Changed since v0.4.4
