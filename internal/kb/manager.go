@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/lleitep3/aicockpit/internal/logging"
 )
 
 // Manager orchestrates KB operations using Repository, Searcher, Scorer, and IndexProvider.
@@ -15,10 +17,17 @@ type Manager struct {
 	indexer   IndexProvider
 	roots     []string
 	indexPath string
+	log       *logging.Manager
 }
 
 // NewManager creates a new KB Manager.
 func NewManager(roots []string, indexPath string) *Manager {
+	return NewManagerWithLogger(roots, indexPath, nil)
+}
+
+// NewManagerWithLogger creates a new KB Manager with a structured logger.
+// When log is nil, warnings are silently discarded instead of written to stderr.
+func NewManagerWithLogger(roots []string, indexPath string, log *logging.Manager) *Manager {
 	// Use the first root as base path for repository
 	basePath := ""
 	if len(roots) > 0 {
@@ -32,6 +41,7 @@ func NewManager(roots []string, indexPath string) *Manager {
 		indexer:   NewFileIndexProvider(indexPath),
 		roots:     roots,
 		indexPath: indexPath,
+		log:       log,
 	}
 }
 
@@ -187,16 +197,20 @@ func (m *Manager) indexToDocuments(index *KBIndex) ([]*Document, error) {
 			// Load document directly from disk (not through repository)
 			data, err := os.ReadFile(fullPath)
 			if err != nil {
-				// Log warning but continue
-				fmt.Fprintf(os.Stderr, "Warning: failed to load document %s: %v\n", fullPath, err)
+				m.logWarn("failed to load document", map[string]interface{}{
+					"path":  fullPath,
+					"error": err.Error(),
+				})
 				continue
 			}
 
 			// Parse document
 			doc, err := ParseDocument(entry.ID, entry.Path, string(data))
 			if err != nil {
-				// Log warning but continue
-				fmt.Fprintf(os.Stderr, "Warning: failed to parse document %s: %v\n", fullPath, err)
+				m.logWarn("failed to parse document", map[string]interface{}{
+					"path":  fullPath,
+					"error": err.Error(),
+				})
 				continue
 			}
 
@@ -205,6 +219,17 @@ func (m *Manager) indexToDocuments(index *KBIndex) ([]*Document, error) {
 	}
 
 	return documents, nil
+}
+
+// logWarn emits a structured warning via the injected logger.
+// Falls back to a no-op when no logger is configured so that callers that
+// use NewManager() (without a logger) don't write to stderr.
+func (m *Manager) logWarn(message string, ctx map[string]interface{}) {
+	if m.log == nil {
+		return
+	}
+	//nolint:errcheck // best-effort logging; failure is non-actionable here
+	m.log.LogWarn(message, ctx)
 }
 
 // GetIndexPath returns the path to the index file.
