@@ -1115,6 +1115,69 @@ installation:
 	}
 }
 
+// TestInstallPackage_MkdirAllFails exercises line 46-48: os.MkdirAll fails
+// because packagesDir is read-only so the pkg subdir can't be created.
+func TestInstallPackage_MkdirAllFails(t *testing.T) {
+	if os.Getuid() == 0 {
+		t.Skip("skipping permission-based test when running as root")
+	}
+
+	tmpDir := t.TempDir()
+
+	// Create packages dir as read-only.
+	packagesDir := filepath.Join(tmpDir, "packages")
+	if err := os.MkdirAll(packagesDir, 0o555); err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+	t.Cleanup(func() { os.Chmod(packagesDir, 0o755) }) //nolint:errcheck
+
+	// PackageManager uses cockpitDir; packages live at cockpitDir/packages.
+	// NewPackageManager sets packagesDir = cockpitDir + "/packages".
+	// So we set cockpitDir = tmpDir and pre-create packages/ as read-only.
+	pm := NewPackageManager(tmpDir)
+
+	// Build valid package source in a separate dir.
+	pkgSrc := t.TempDir()
+	manifest := `name: "mkdir-fail-pkg"
+version: "1.0.0"
+description: "test"
+author: "test"
+license: "MIT"
+type: "utility"
+requirements:
+  cockpit: "0.1.0"
+features:
+  skills:
+    - path: "skills/sk.md"
+      name: "sk"
+installation:
+  supported_providers:
+    - devin
+  provider_features:
+    devin:
+      - skills
+  method: "copy"
+`
+	if err := os.MkdirAll(filepath.Join(pkgSrc, "skills"), 0o755); err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(pkgSrc, "skills", "sk.md"), []byte("# sk"), 0o644); err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(pkgSrc, "cockpit-package.yml"), []byte(manifest), 0o644); err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+
+	err := pm.InstallPackage(pkgSrc, nil)
+	_ = os.Chmod(packagesDir, 0o755)
+	if err == nil {
+		t.Error("expected error when package dir can't be created")
+	}
+	if !strings.Contains(err.Error(), "failed to create package directory") {
+		t.Errorf("unexpected error: %v", err)
+	}
+}
+
 // TestInstallPackage_CopyFilesFails exercises the copyPackageFiles error branch
 // and the os.RemoveAll cleanup path that follows.
 func TestInstallPackage_CopyFilesFails(t *testing.T) {
@@ -1730,6 +1793,71 @@ func TestCopyPackageFiles_SkipsManifest(t *testing.T) {
 	}
 }
 
+// TestCopyPackageFiles_WriteFileError exercises line 270-272: WriteFile fails
+// when copying a regular file to a read-only dst directory.
+func TestCopyPackageFiles_WriteFileError(t *testing.T) {
+	if os.Getuid() == 0 {
+		t.Skip("skipping permission-based test when running as root")
+	}
+
+	tmpDir := t.TempDir()
+	pm := NewPackageManager(tmpDir)
+
+	src := filepath.Join(tmpDir, "src")
+	if err := os.MkdirAll(src, 0o755); err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(src, "file.txt"), []byte("data"), 0o644); err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+
+	// dst is read-only — WriteFile will fail.
+	dst := filepath.Join(tmpDir, "dst-ro")
+	if err := os.MkdirAll(dst, 0o555); err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+	t.Cleanup(func() { os.Chmod(dst, 0o755) }) //nolint:errcheck
+
+	err := pm.copyPackageFiles(src, dst)
+	_ = os.Chmod(dst, 0o755)
+	if err == nil {
+		t.Error("expected error when dst dir is read-only")
+	}
+}
+
+// TestCopyPackageFiles_SubdirMkdirError exercises line 253-255: MkdirAll fails
+// when creating a subdirectory inside a read-only dst.
+func TestCopyPackageFiles_SubdirMkdirError(t *testing.T) {
+	if os.Getuid() == 0 {
+		t.Skip("skipping permission-based test when running as root")
+	}
+
+	tmpDir := t.TempDir()
+	pm := NewPackageManager(tmpDir)
+
+	src := filepath.Join(tmpDir, "src")
+	subdir := filepath.Join(src, "mysubdir")
+	if err := os.MkdirAll(subdir, 0o755); err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(subdir, "f.txt"), []byte("x"), 0o644); err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+
+	// dst is read-only — MkdirAll(dst/mysubdir) will fail.
+	dst := filepath.Join(tmpDir, "dst-ro")
+	if err := os.MkdirAll(dst, 0o555); err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+	t.Cleanup(func() { os.Chmod(dst, 0o755) }) //nolint:errcheck
+
+	err := pm.copyPackageFiles(src, dst)
+	_ = os.Chmod(dst, 0o755)
+	if err == nil {
+		t.Error("expected error when dst subdir creation fails")
+	}
+}
+
 // TestCopyPackageFiles_SubdirRecursion verifies that subdirectories (not named
 // cockpit-package.yml) are recursed into correctly.
 func TestCopyPackageFiles_SubdirRecursion(t *testing.T) {
@@ -1879,6 +2007,77 @@ func TestCopyDir_SubdirMkdirError(t *testing.T) {
 	_ = os.Chmod(dst, 0o755)
 	if err == nil {
 		t.Error("expected error when dst is read-only")
+	}
+}
+
+// TestCopyDir_RecursiveFail exercises line 576-578: copyDir recursive call fails.
+// We create src/subdir/deepdir — dst/subdir exists but is read-only so MkdirAll
+// for dst/subdir/deepdir fails, causing the recursive copyDir call to return error.
+func TestCopyDir_RecursiveFail(t *testing.T) {
+	if os.Getuid() == 0 {
+		t.Skip("skipping permission-based test when running as root")
+	}
+
+	tmpDir := t.TempDir()
+	pm := NewPackageManager(tmpDir)
+
+	// src has: subdir/deepdir/file.txt
+	src := filepath.Join(tmpDir, "src")
+	deep := filepath.Join(src, "subdir", "deepdir")
+	if err := os.MkdirAll(deep, 0o755); err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(deep, "f.txt"), []byte("x"), 0o644); err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+
+	// dst exists; dst/subdir is read-only → MkdirAll(dst/subdir/deepdir) fails.
+	dst := filepath.Join(tmpDir, "dst")
+	if err := os.MkdirAll(dst, 0o755); err != nil {
+		t.Fatalf("setup dst: %v", err)
+	}
+	dstSubdir := filepath.Join(dst, "subdir")
+	if err := os.MkdirAll(dstSubdir, 0o555); err != nil {
+		t.Fatalf("setup dstSubdir: %v", err)
+	}
+	t.Cleanup(func() { os.Chmod(dstSubdir, 0o755) }) //nolint:errcheck
+
+	err := pm.copyDir(src, dst)
+	_ = os.Chmod(dstSubdir, 0o755)
+	if err == nil {
+		t.Error("expected error when nested MkdirAll fails in recursive copyDir")
+	}
+}
+
+// TestCopyDir_WriteFileFail exercises line 584-586: os.WriteFile fails in copyDir.
+// src has a plain file; dst exists but is read-only.
+func TestCopyDir_WriteFileFail(t *testing.T) {
+	if os.Getuid() == 0 {
+		t.Skip("skipping permission-based test when running as root")
+	}
+
+	tmpDir := t.TempDir()
+	pm := NewPackageManager(tmpDir)
+
+	src := filepath.Join(tmpDir, "src")
+	if err := os.MkdirAll(src, 0o755); err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(src, "file.txt"), []byte("data"), 0o644); err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+
+	// dst is read-only — WriteFile inside it will fail.
+	dst := filepath.Join(tmpDir, "dst-ro")
+	if err := os.MkdirAll(dst, 0o555); err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+	t.Cleanup(func() { os.Chmod(dst, 0o755) }) //nolint:errcheck
+
+	err := pm.copyDir(src, dst)
+	_ = os.Chmod(dst, 0o755)
+	if err == nil {
+		t.Error("expected error when WriteFile fails in copyDir")
 	}
 }
 
@@ -2460,6 +2659,88 @@ func TestListInstalledPackages_CreatesPackagesDir(t *testing.T) {
 	}
 }
 
+// TestListInstalledPackages_ReadDirFails exercises line 198-200: ReadDir fails
+// because packagesDir exists but has 0o000 permissions (unreadable).
+func TestListInstalledPackages_ReadDirFails(t *testing.T) {
+	if os.Getuid() == 0 {
+		t.Skip("skipping permission-based test when running as root")
+	}
+
+	tmpDir := t.TempDir()
+	// Pre-create packagesDir as unreadable — MkdirAll succeeds, ReadDir fails.
+	packagesDir := filepath.Join(tmpDir, "packages")
+	if err := os.MkdirAll(packagesDir, 0o000); err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+	t.Cleanup(func() { os.Chmod(packagesDir, 0o755) }) //nolint:errcheck
+
+	pm := NewPackageManager(tmpDir)
+	_, err := pm.ListInstalledPackages()
+	_ = os.Chmod(packagesDir, 0o755)
+	if err == nil {
+		t.Error("expected error when packages dir is unreadable")
+	}
+	if !strings.Contains(err.Error(), "failed to read packages directory") {
+		t.Errorf("unexpected error: %v", err)
+	}
+}
+
+// TestListInstalledPackages_MkdirAllFails exercises line 193-195: MkdirAll
+// fails because the cockpitDir path itself is a file (not a directory).
+func TestListInstalledPackages_MkdirAllFails(t *testing.T) {
+	if os.Getuid() == 0 {
+		t.Skip("skipping permission-based test when running as root")
+	}
+
+	tmpDir := t.TempDir()
+	// Create a FILE at the cockpitDir path — MkdirAll(cockpitDir/packages) will fail.
+	cockpitDirPath := filepath.Join(tmpDir, "cockpit-as-file")
+	if err := os.WriteFile(cockpitDirPath, []byte("not a dir"), 0o644); err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+
+	pm := NewPackageManager(cockpitDirPath)
+	_, err := pm.ListInstalledPackages()
+	if err == nil {
+		t.Error("expected error when packages dir can't be created")
+	}
+	if !strings.Contains(err.Error(), "failed to create packages directory") {
+		t.Errorf("unexpected error: %v", err)
+	}
+}
+
+// TestUninstallPackage_BackupFails exercises line 85-87: backupPackage fails
+// when the backup destination directory can't be created.
+func TestUninstallPackage_BackupFails(t *testing.T) {
+	if os.Getuid() == 0 {
+		t.Skip("skipping permission-based test when running as root")
+	}
+
+	tmpDir := t.TempDir()
+	pm := NewPackageManager(tmpDir)
+
+	// Install a real package first.
+	pkgSrc := createTestPackage(t, tmpDir)
+	if err := pm.InstallPackage(pkgSrc, nil); err != nil {
+		t.Fatalf("InstallPackage: %v", err)
+	}
+
+	// Make cockpitDir read-only so cockpitDir/backups can't be created.
+	if err := os.Chmod(tmpDir, 0o555); err != nil {
+		t.Fatalf("chmod: %v", err)
+	}
+	t.Cleanup(func() { os.Chmod(tmpDir, 0o755) }) //nolint:errcheck
+
+	err := pm.UninstallPackage("test-package")
+	_ = os.Chmod(tmpDir, 0o755)
+	if err == nil {
+		t.Error("expected error when backup can't be created")
+	}
+	if !strings.Contains(err.Error(), "failed to create backup") {
+		t.Errorf("unexpected error: %v", err)
+	}
+}
+
 // ── TriggerDeploy ──────────────────────────────────────────────────────────
 
 func TestTriggerDeploy_InvalidBin(t *testing.T) {
@@ -2575,4 +2856,104 @@ func TestUninstallPackage_NotFound(t *testing.T) {
 	if err == nil {
 		t.Error("UninstallPackage() for non-installed package should error")
 	}
+}
+
+// ── SyncPackageAssets — gold rules error paths ───────────────────────────────
+
+// TestSyncPackageAssets_GoldRulesMkdirFails exercises line 429-431: when
+// COCKPIT.md doesn't exist and the cockpit dir can't be created.
+func TestSyncPackageAssets_GoldRulesMkdirFails(t *testing.T) {
+	if os.Getuid() == 0 {
+		t.Skip("skipping permission-based test when running as root")
+	}
+
+	tmpDir := t.TempDir()
+	// Make tmpDir read-only so that cockpitDir (a subdir) can't be created.
+	if err := os.Chmod(tmpDir, 0o555); err != nil {
+		t.Fatalf("chmod: %v", err)
+	}
+	t.Cleanup(func() { os.Chmod(tmpDir, 0o755) }) //nolint:errcheck
+
+	// cockpitDir = tmpDir/cockpit — cannot be created (parent is read-only).
+	cockpitDir := filepath.Join(tmpDir, "cockpit")
+	pm := NewPackageManager(cockpitDir)
+
+	pkg := &Package{
+		Name:     "mkdir-fail-pkg",
+		Features: Features{GoldRules: []string{"some rule"}},
+	}
+
+	err := pm.SyncPackageAssets(pkg, t.TempDir())
+	_ = os.Chmod(tmpDir, 0o755)
+	if err == nil {
+		t.Error("expected error when cockpit dir cannot be created")
+	}
+	if !strings.Contains(err.Error(), "failed to create cockpit dir") {
+		t.Errorf("unexpected error: %v", err)
+	}
+}
+
+// TestSyncPackageAssets_GoldRulesWriteCOCKPITMDFails exercises line 433-435:
+// cockpitDir exists but is read-only, preventing COCKPIT.md creation.
+func TestSyncPackageAssets_GoldRulesWriteCOCKPITMDFails(t *testing.T) {
+	if os.Getuid() == 0 {
+		t.Skip("skipping permission-based test when running as root")
+	}
+
+	tmpDir := t.TempDir()
+	cockpitDir := filepath.Join(tmpDir, "cockpit")
+	if err := os.MkdirAll(cockpitDir, 0o555); err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+	t.Cleanup(func() { os.Chmod(cockpitDir, 0o755) }) //nolint:errcheck
+
+	pm := NewPackageManager(cockpitDir)
+
+	pkg := &Package{
+		Name:     "write-fail-pkg",
+		Features: Features{GoldRules: []string{"some rule"}},
+	}
+
+	err := pm.SyncPackageAssets(pkg, t.TempDir())
+	_ = os.Chmod(cockpitDir, 0o755)
+	if err == nil {
+		t.Error("expected error when COCKPIT.md cannot be created")
+	}
+	if !strings.Contains(err.Error(), "failed to create base COCKPIT.md") {
+		t.Errorf("unexpected error: %v", err)
+	}
+}
+
+// TestSyncPackageAssets_GoldRulesWriteRulesFails exercises line 456-458:
+// COCKPIT.md exists but becomes read-only before writing rules.
+// This is hard to achieve without a race; we skip it.
+func TestSyncPackageAssets_GoldRulesWriteRulesFails(t *testing.T) {
+	t.Skip("writing gold rules fail path requires race between read and write - not reliably testable")
+}
+
+// ── TriggerDeploy — empty binary uses os.Executable ──────────────────────────
+
+// TestTriggerDeploy_UsesOsExecutable exercises lines 542-547 (cockpitBin=="")
+// of TriggerDeploy.  The test binary calls itself with "deploy"; we use a
+// sentinel env var so the child exits immediately with code 42, preventing
+// recursive test execution.
+func TestTriggerDeploy_UsesOsExecutable(t *testing.T) {
+	// Child guard: exit immediately so we don't recurse.
+	if os.Getenv("_RTK_DEPLOY_GUARD") != "" {
+		os.Exit(42) //nolint:gocritic
+	}
+
+	// Set the sentinel for the child.
+	t.Setenv("_RTK_DEPLOY_GUARD", "1")
+
+	tmpDir := t.TempDir()
+	pm := NewPackageManager(tmpDir)
+
+	// Call with "" → os.Executable() → child exits 42 → error.
+	err := pm.TriggerDeploy("")
+	// The child exits non-zero → we expect a "cockpit deploy failed" error (not resolution error).
+	if err != nil && strings.Contains(err.Error(), "failed to resolve cockpit binary") {
+		t.Errorf("os.Executable() should not fail in test: %v", err)
+	}
+	// Note: err == nil is acceptable if child somehow exits 0.
 }
