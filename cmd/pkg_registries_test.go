@@ -1,8 +1,38 @@
 package cmd
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 )
+
+// makeRegistryConfig creates a minimal config.yaml in tmpDir/.cockpit/ and
+// returns the cockpit directory path.
+func makeRegistryConfig(t *testing.T) string {
+	t.Helper()
+	tmpDir := t.TempDir()
+	t.Setenv("HOME", tmpDir)
+	cockpitDir := filepath.Join(tmpDir, ".cockpit")
+	if err := os.MkdirAll(cockpitDir, 0o755); err != nil {
+		t.Fatalf("MkdirAll cockpit: %v", err)
+	}
+	yaml := `version: "0.1.0"
+language: en-us
+log_level: info
+auto_update_check: false
+enabled_providers: []
+package_registries:
+  - name: default
+    url: https://github.com/lleitep3/cockpit-registry
+    branch: main
+    enabled: true
+    priority: 0
+`
+	if err := os.WriteFile(filepath.Join(cockpitDir, "config.yaml"), []byte(yaml), 0o644); err != nil {
+		t.Fatalf("WriteFile config: %v", err)
+	}
+	return cockpitDir
+}
 
 func TestNewPkgRegistriesCommand(t *testing.T) {
 	cmd := NewPkgRegistriesCommand()
@@ -139,5 +169,106 @@ func TestPkgRegistriesCommandHierarchy(t *testing.T) {
 		if !found {
 			t.Errorf("Expected subcommand '%s' not found", cmd)
 		}
+	}
+}
+
+// ── RunE execution tests ──────────────────────────────────────────────────
+
+func TestPkgRegistriesListCommand_Run(t *testing.T) {
+	makeRegistryConfig(t)
+	cmd := NewPkgRegistriesListCommand()
+	cmd.SetArgs([]string{})
+	if err := cmd.Execute(); err != nil {
+		t.Errorf("list execute error = %v", err)
+	}
+}
+
+func TestPkgRegistriesListCommand_Run_Enabled(t *testing.T) {
+	makeRegistryConfig(t)
+	cmd := NewPkgRegistriesListCommand()
+	cmd.SetArgs([]string{"--enabled"})
+	if err := cmd.Execute(); err != nil {
+		t.Errorf("list --enabled execute error = %v", err)
+	}
+}
+
+func TestPkgRegistriesAddCommand_Run(t *testing.T) {
+	makeRegistryConfig(t)
+	cmd := NewPkgRegistriesAddCommand()
+	cmd.SetArgs([]string{"my-reg", "https://github.com/example/reg"})
+	if err := cmd.Execute(); err != nil {
+		t.Errorf("add execute error = %v", err)
+	}
+}
+
+func TestPkgRegistriesRemoveCommand_Run_NotFound(t *testing.T) {
+	makeRegistryConfig(t)
+	cmd := NewPkgRegistriesRemoveCommand()
+	cmd.SetArgs([]string{"nonexistent"})
+	if err := cmd.Execute(); err == nil {
+		t.Error("remove nonexistent registry should return error")
+	}
+}
+
+func TestPkgRegistriesRemoveCommand_Run_Found(t *testing.T) {
+	makeRegistryConfig(t)
+	cmd := NewPkgRegistriesRemoveCommand()
+	cmd.SetArgs([]string{"default"})
+	if err := cmd.Execute(); err != nil {
+		t.Errorf("remove default registry error = %v", err)
+	}
+}
+
+func TestPkgRegistriesEnableCommand_Run_NotFound(t *testing.T) {
+	makeRegistryConfig(t)
+	cmd := NewPkgRegistriesEnableCommand()
+	cmd.SetArgs([]string{"nonexistent"})
+	if err := cmd.Execute(); err == nil {
+		t.Error("enable nonexistent registry should return error")
+	}
+}
+
+func TestPkgRegistriesEnableCommand_Run_Found(t *testing.T) {
+	makeRegistryConfig(t)
+	cmd := NewPkgRegistriesEnableCommand()
+	cmd.SetArgs([]string{"default"})
+	if err := cmd.Execute(); err != nil {
+		t.Errorf("enable default registry error = %v", err)
+	}
+}
+
+func TestPkgRegistriesDisableCommand_Run_NotFound(t *testing.T) {
+	makeRegistryConfig(t)
+	cmd := NewPkgRegistriesDisableCommand()
+	cmd.SetArgs([]string{"nonexistent"})
+	if err := cmd.Execute(); err == nil {
+		t.Error("disable nonexistent registry should return error")
+	}
+}
+
+func TestPkgRegistriesDisableCommand_Run_Found(t *testing.T) {
+	makeRegistryConfig(t)
+	cmd := NewPkgRegistriesDisableCommand()
+	cmd.SetArgs([]string{"default"})
+	if err := cmd.Execute(); err != nil {
+		t.Errorf("disable default registry error = %v", err)
+	}
+}
+
+func TestPkgRegistriesInfoCommand_Run_NotFound(t *testing.T) {
+	makeRegistryConfig(t)
+	cmd := NewPkgRegistriesInfoCommand()
+	cmd.SetArgs([]string{"nonexistent"})
+	if err := cmd.Execute(); err == nil {
+		t.Error("info nonexistent registry should return error")
+	}
+}
+
+func TestPkgRegistriesInfoCommand_Run_Found(t *testing.T) {
+	makeRegistryConfig(t)
+	cmd := NewPkgRegistriesInfoCommand()
+	cmd.SetArgs([]string{"default"})
+	if err := cmd.Execute(); err != nil {
+		t.Errorf("info default registry error = %v", err)
 	}
 }

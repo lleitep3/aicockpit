@@ -93,3 +93,28 @@ func TestVaultCommands(t *testing.T) {
 		}
 	})
 }
+
+// ── checkVaultAccess ──────────────────────────────────────────────────────
+
+func TestCheckVaultAccess_LockedByDefault(t *testing.T) {
+	// Redirect HOME so the lock manager finds no persisted lock file.
+	tmpDir := t.TempDir()
+	t.Setenv("HOME", tmpDir)
+
+	// The vault is locked by default (IsLocked: true) when no state file exists.
+	// checkVaultAccess must return an error in this state.
+	err := checkVaultAccess("get")
+	if err == nil {
+		t.Error("checkVaultAccess() expected error (vault locked by default), got nil")
+	}
+}
+
+// ── checkForUpdates ───────────────────────────────────────────────────────
+
+func TestCheckForUpdates_NonInteractive_AutoUpdateDisabled(t *testing.T) {
+	log, cfg, tr := newTestDeps(t)
+	cfg.AutoUpdateCheck = false
+	// With AutoUpdateCheck=false, ShouldCheckUpdate returns false → early return.
+	// Must not block on network or stdin.
+	checkForUpdates(log, cfg, tr)
+}
