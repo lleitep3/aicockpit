@@ -27,10 +27,11 @@ type GitHubRelease struct {
 
 // Service handles update checking and changelog generation
 type Service struct {
-	client     *http.Client
-	repoOwner  string
-	repoName   string
-	baseAPIURL string
+	client         *http.Client
+	repoOwner      string
+	repoName       string
+	baseAPIURL     string
+	currentVersion string // overrides version.GetVersion() when non-empty (used in tests)
 }
 
 // NewUpdateService creates a new update service
@@ -45,19 +46,33 @@ func NewUpdateService() *Service {
 	}
 }
 
-// NewUpdateServiceWithClient creates a new update service with custom HTTP client (for testing)
-func NewUpdateServiceWithClient(client *http.Client, baseURL string) *Service {
-	return &Service{
+// NewUpdateServiceWithClient creates a new update service with a custom HTTP client and base URL.
+// currentVersion overrides version.GetVersion() so tests can run without real ldflags builds.
+func NewUpdateServiceWithClient(client *http.Client, baseURL string, currentVersion ...string) *Service {
+	svc := &Service{
 		client:     client,
 		repoOwner:  defaultGithubRepoOwner,
 		repoName:   defaultGithubRepoName,
 		baseAPIURL: baseURL,
 	}
+	if len(currentVersion) > 0 {
+		svc.currentVersion = currentVersion[0]
+	}
+	return svc
 }
 
 // CheckForUpdates checks if a new version is available on GitHub
 func (s *Service) CheckForUpdates() (string, string, error) {
-	currentVersion := version.GetVersion()
+	currentVersion := s.currentVersion
+	if currentVersion == "" {
+		currentVersion = version.GetVersion()
+	}
+
+	// "dev" means a local build without ldflags — skip update check to avoid
+	// false positives when comparing "dev" against any real semver.
+	if currentVersion == "dev" {
+		return "", "", nil
+	}
 
 	url := fmt.Sprintf(s.baseAPIURL, s.repoOwner, s.repoName)
 
