@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Features
+No features
+
+### Bug Fixes
+No bug fixes
+
+### Performance
+No performance improvements
+
+### Breaking Changes
+No breaking changes
+
+### Documentation
+- add scheduler documentation for cockpit-scheduler package (#74)
+
+### Testing
+No test changes
+
+### Other Changes
+No other changes
+
+
 ## [0.4.4] - 2026-06-27
 
 ### Changed since v0.4.3
