@@ -359,17 +359,29 @@ func (pm *PackageManager) SyncPackageAssets(pkg *Package, installPath string) er
 			src := filepath.Join(installPath, f.Path)
 			dst := filepath.Join(pm.cockpitDir, group.dir, f.Name)
 
-			if _, err := os.Stat(src); os.IsNotExist(err) {
+			info, err := os.Stat(src)
+			if os.IsNotExist(err) {
 				fmt.Printf("  ⚠ Asset not found, skipping: %s\n", f.Path)
 				continue
 			}
-
-			if err := os.MkdirAll(dst, 0o755); err != nil {
-				return fmt.Errorf("failed to create asset dir %s: %w", dst, err)
+			if err != nil {
+				return fmt.Errorf("failed to stat asset %s: %w", f.Path, err)
 			}
 
-			if err := pm.copyDir(src, dst); err != nil {
-				return fmt.Errorf("failed to sync asset %s/%s: %w", group.dir, f.Name, err)
+			if info.IsDir() {
+				if err := os.MkdirAll(dst, 0o755); err != nil {
+					return fmt.Errorf("failed to create asset dir %s: %w", dst, err)
+				}
+				if err := pm.copyDir(src, dst); err != nil {
+					return fmt.Errorf("failed to sync asset %s/%s: %w", group.dir, f.Name, err)
+				}
+			} else {
+				if err := os.MkdirAll(filepath.Dir(dst), 0o755); err != nil {
+					return fmt.Errorf("failed to create asset parent dir %s: %w", filepath.Dir(dst), err)
+				}
+				if err := copyFile(src, dst); err != nil {
+					return fmt.Errorf("failed to sync asset %s/%s: %w", group.dir, f.Name, err)
+				}
 			}
 
 			fmt.Printf("  ✓ %s/%s synced to canonical dir\n", group.dir, f.Name)

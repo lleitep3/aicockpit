@@ -438,6 +438,99 @@ func TestSyncPackageAssets_NoFeatures(t *testing.T) {
 	}
 }
 
+func TestSyncPackageAssets_SingleFileFeature(t *testing.T) {
+	tmpDir := t.TempDir()
+	cockpitDir := filepath.Join(tmpDir, "cockpit")
+	pm := NewPackageManager(cockpitDir)
+
+	installPath := filepath.Join(tmpDir, "pkg-install")
+	// Create feature as a single file (not a directory)
+	skillsDir := filepath.Join(installPath, "skills")
+	if err := os.MkdirAll(skillsDir, 0o755); err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+	skillFile := filepath.Join(skillsDir, "SKILL.md")
+	if err := os.WriteFile(skillFile, []byte("# My Skill"), 0o644); err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+
+	pkg := &Package{
+		Name: "article-creator",
+		Features: Features{
+			Skills: []Feature{{Path: "skills/SKILL.md", Name: "article-creator"}},
+		},
+	}
+
+	if err := pm.SyncPackageAssets(pkg, installPath); err != nil {
+		t.Fatalf("SyncPackageAssets failed for single-file feature: %v", err)
+	}
+
+	// Destination should be the file itself (not a dir containing the file)
+	dst := filepath.Join(cockpitDir, "skills", "article-creator")
+	data, err := os.ReadFile(dst)
+	if err != nil {
+		t.Fatalf("expected synced file at %s, got error: %v", dst, err)
+	}
+	if string(data) != "# My Skill" {
+		t.Errorf("unexpected file content: %s", string(data))
+	}
+}
+
+func TestSyncPackageAssets_SingleFileAllAssetTypes(t *testing.T) {
+	tmpDir := t.TempDir()
+	cockpitDir := filepath.Join(tmpDir, "cockpit")
+	pm := NewPackageManager(cockpitDir)
+
+	installPath := filepath.Join(tmpDir, "pkg-install")
+
+	assetFiles := map[string]string{
+		"skills/SKILL.md":   "# Skill",
+		"rules/RULE.md":     "# Rule",
+		"agents/AGENT.md":   "# Agent",
+		"workflows/FLOW.md": "# Workflow",
+	}
+	for rel, content := range assetFiles {
+		p := filepath.Join(installPath, rel)
+		if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
+			t.Fatalf("setup: %v", err)
+		}
+		if err := os.WriteFile(p, []byte(content), 0o644); err != nil {
+			t.Fatalf("setup: %v", err)
+		}
+	}
+
+	pkg := &Package{
+		Name: "video",
+		Features: Features{
+			Skills:    []Feature{{Path: "skills/SKILL.md", Name: "video-skill"}},
+			Rules:     []Feature{{Path: "rules/RULE.md", Name: "video-rule"}},
+			Agents:    []Feature{{Path: "agents/AGENT.md", Name: "video-agent"}},
+			Workflows: []Feature{{Path: "workflows/FLOW.md", Name: "video-flow"}},
+		},
+	}
+
+	if err := pm.SyncPackageAssets(pkg, installPath); err != nil {
+		t.Fatalf("SyncPackageAssets failed: %v", err)
+	}
+
+	expected := map[string]string{
+		filepath.Join(cockpitDir, "skills", "video-skill"):   "# Skill",
+		filepath.Join(cockpitDir, "rules", "video-rule"):     "# Rule",
+		filepath.Join(cockpitDir, "agents", "video-agent"):   "# Agent",
+		filepath.Join(cockpitDir, "workflows", "video-flow"): "# Workflow",
+	}
+	for dst, want := range expected {
+		data, err := os.ReadFile(dst)
+		if err != nil {
+			t.Errorf("expected synced file at %s: %v", dst, err)
+			continue
+		}
+		if string(data) != want {
+			t.Errorf("file %s: expected %q, got %q", dst, want, string(data))
+		}
+	}
+}
+
 // ── RemovePackageAssets ──────────────────────────────────────────────────────
 
 func TestRemovePackageAssets_RemovesExistingAssets(t *testing.T) {
