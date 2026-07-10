@@ -10,7 +10,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// --- selectMultiple ---
+// --- helpers ---
 
 func makeOpts(names ...string) []providers.ProviderOption {
 	opts := make([]providers.ProviderOption, len(names))
@@ -20,6 +20,15 @@ func makeOpts(names ...string) []providers.ProviderOption {
 			displayName = strings.ToUpper(n[:1]) + n[1:]
 		}
 		opts[i] = providers.ProviderOption{Name: n, DisplayName: displayName}
+	}
+	return opts
+}
+
+func makeOptsWithDetection(detected map[string]bool, names ...string) []providers.ProviderOption {
+	opts := make([]providers.ProviderOption, len(names))
+	for i, n := range names {
+		displayName := strings.ToUpper(n[:1]) + n[1:]
+		opts[i] = providers.ProviderOption{Name: n, DisplayName: displayName, Detected: detected[n]}
 	}
 	return opts
 }
@@ -231,5 +240,110 @@ func TestUpdateConfigWithProviders_WriteError(t *testing.T) {
 	err := updateConfigWithProviders(path, []string{"antigravity"}, "en-us")
 	if err == nil {
 		t.Error("expected write error for read-only file")
+	}
+}
+
+// --- defaultProviderSelection ---
+
+func TestDefaultProviderSelection_UsesDetected(t *testing.T) {
+	opts := makeOptsWithDetection(
+		map[string]bool{"devin": true, "goose": true},
+		"antigravity", "devin", "goose",
+	)
+	got := defaultProviderSelection(opts)
+	if len(got) != 2 {
+		t.Fatalf("expected 2 detected providers, got %v", got)
+	}
+	// Both detected providers should be in the result
+	found := map[string]bool{}
+	for _, g := range got {
+		found[g] = true
+	}
+	if !found["devin"] || !found["goose"] {
+		t.Errorf("expected devin and goose, got %v", got)
+	}
+}
+
+func TestDefaultProviderSelection_FallsBackToFirst(t *testing.T) {
+	opts := makeOptsWithDetection(map[string]bool{}, "antigravity", "devin")
+	got := defaultProviderSelection(opts)
+	if len(got) != 1 || got[0] != "antigravity" {
+		t.Errorf("expected [antigravity], got %v", got)
+	}
+}
+
+func TestDefaultProviderSelection_Empty(t *testing.T) {
+	got := defaultProviderSelection([]providers.ProviderOption{})
+	if len(got) != 0 {
+		t.Errorf("expected empty, got %v", got)
+	}
+}
+
+// --- buildDefaultSuggestion ---
+
+func TestBuildDefaultSuggestion_WithDetected(t *testing.T) {
+	opts := makeOptsWithDetection(
+		map[string]bool{"devin": true},
+		"antigravity", "devin", "goose",
+	)
+	got := buildDefaultSuggestion(opts)
+	if got != "Devin" {
+		t.Errorf("expected 'Devin', got %q", got)
+	}
+}
+
+func TestBuildDefaultSuggestion_MultipleDetected(t *testing.T) {
+	opts := makeOptsWithDetection(
+		map[string]bool{"devin": true, "goose": true},
+		"devin", "goose",
+	)
+	got := buildDefaultSuggestion(opts)
+	if got != "Devin, Goose" {
+		t.Errorf("expected 'Devin, Goose', got %q", got)
+	}
+}
+
+func TestBuildDefaultSuggestion_NoneDetected(t *testing.T) {
+	opts := makeOptsWithDetection(map[string]bool{}, "antigravity", "devin")
+	got := buildDefaultSuggestion(opts)
+	if got != "Antigravity" {
+		t.Errorf("expected 'Antigravity' (first option fallback), got %q", got)
+	}
+}
+
+func TestBuildDefaultSuggestion_Empty(t *testing.T) {
+	got := buildDefaultSuggestion([]providers.ProviderOption{})
+	if got != "1" {
+		t.Errorf("expected '1', got %q", got)
+	}
+}
+
+// --- selectMultipleWithDefault ---
+
+func TestSelectMultipleWithDefault_EmptyInputUsesDetected(t *testing.T) {
+	opts := makeOptsWithDetection(
+		map[string]bool{"goose": true},
+		"antigravity", "devin", "goose",
+	)
+	var got []string
+	withStdin(t, "\n", func() {
+		got = selectMultipleWithDefault(opts)
+	})
+	if len(got) != 1 || got[0] != "goose" {
+		t.Errorf("expected [goose], got %v", got)
+	}
+}
+
+func TestSelectMultipleWithDefault_ExplicitSelectionOverridesDetection(t *testing.T) {
+	opts := makeOptsWithDetection(
+		map[string]bool{"goose": true},
+		"antigravity", "devin", "goose",
+	)
+	var got []string
+	withStdin(t, "1,2\n", func() {
+		got = selectMultipleWithDefault(opts)
+	})
+	if len(got) != 2 || got[0] != "antigravity" || got[1] != "devin" {
+		t.Errorf("expected [antigravity devin], got %v", got)
 	}
 }

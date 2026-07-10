@@ -266,3 +266,118 @@ func TestValidateConfig_EmptyProviders(t *testing.T) {
 		t.Error()
 	}
 }
+
+func TestDetectInstalled_BinaryInPath(t *testing.T) {
+	// "sh" is always present on Unix — use it as a known binary.
+	p := &Provider{
+		Name:      "test",
+		Workspace: "/nonexistent-path-that-does-not-exist",
+		Binary:    "sh",
+	}
+	if !p.DetectInstalled() {
+		t.Error("DetectInstalled() should return true when binary is in PATH")
+	}
+}
+
+func TestDetectInstalled_ConfigDirFallback(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	p := &Provider{
+		Name:      "test",
+		Workspace: tmpDir, // exists on disk
+		Binary:    "this-binary-definitely-does-not-exist-12345",
+	}
+	if !p.DetectInstalled() {
+		t.Error("DetectInstalled() should return true when workspace dir exists and binary is missing")
+	}
+}
+
+func TestDetectInstalled_NeitherFound(t *testing.T) {
+	p := &Provider{
+		Name:      "test",
+		Workspace: "/nonexistent-path-that-does-not-exist",
+		Binary:    "this-binary-definitely-does-not-exist-12345",
+	}
+	if p.DetectInstalled() {
+		t.Error("DetectInstalled() should return false when neither binary nor workspace exists")
+	}
+}
+
+func TestDetectInstalled_NoBinaryField(t *testing.T) {
+	tmpDir := t.TempDir()
+	p := &Provider{
+		Name:      "test",
+		Workspace: tmpDir,
+		// Binary not set — should fall through to config dir check
+	}
+	if !p.DetectInstalled() {
+		t.Error("DetectInstalled() should return true via config dir when Binary is empty")
+	}
+}
+
+func TestDetectInstalledProviders(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	cfg := &ProvidersConfig{
+		Providers: map[string]*Provider{
+			"present": {
+				Enabled:   true,
+				Name:      "Present",
+				Workspace: tmpDir, // dir exists
+			},
+			"absent": {
+				Enabled:   true,
+				Name:      "Absent",
+				Workspace: "/nonexistent-path-that-does-not-exist",
+				Binary:    "this-binary-definitely-does-not-exist-12345",
+			},
+			"disabled": {
+				Enabled:   false,
+				Name:      "Disabled",
+				Workspace: tmpDir, // dir exists but provider is disabled
+			},
+		},
+	}
+
+	detected := cfg.DetectInstalledProviders()
+	if len(detected) != 1 || detected[0] != "present" {
+		t.Errorf("DetectInstalledProviders() = %v, want [present]", detected)
+	}
+}
+
+func TestGetProviderOptionsWithDetection(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	cfg := &ProvidersConfig{
+		Providers: map[string]*Provider{
+			"alpha": {
+				Enabled:   true,
+				Name:      "Alpha",
+				Workspace: tmpDir,
+			},
+			"beta": {
+				Enabled:   true,
+				Name:      "Beta",
+				Workspace: "/nonexistent-path-that-does-not-exist",
+				Binary:    "this-binary-definitely-does-not-exist-12345",
+			},
+		},
+	}
+
+	opts := cfg.GetProviderOptionsWithDetection()
+	if len(opts) != 2 {
+		t.Fatalf("expected 2 options, got %d", len(opts))
+	}
+
+	byName := make(map[string]ProviderOption)
+	for _, o := range opts {
+		byName[o.Name] = o
+	}
+
+	if !byName["alpha"].Detected {
+		t.Error("alpha should be detected (workspace exists)")
+	}
+	if byName["beta"].Detected {
+		t.Error("beta should NOT be detected (workspace missing, binary missing)")
+	}
+}
