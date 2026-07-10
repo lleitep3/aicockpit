@@ -28,12 +28,7 @@ func NewDeployCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translat
 				return fmt.Errorf("failed to load providers configuration: %w", err)
 			}
 
-			// Collect enabled providers: use ai_providers.enabled list when available,
-			// falling back to the legacy single ai_provider field.
 			enabledProviders := cfg.GetEnabledProviders()
-			if len(enabledProviders) == 0 && cfg.AIProvider != "" {
-				enabledProviders = []string{cfg.AIProvider}
-			}
 			if len(enabledProviders) == 0 {
 				return fmt.Errorf("no AI providers configured. Run 'cockpit setup' first")
 			}

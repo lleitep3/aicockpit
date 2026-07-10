@@ -3,6 +3,7 @@ package providers
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 
 	"gopkg.in/yaml.v3"
@@ -25,7 +26,32 @@ type Provider struct {
 	Description string                    `yaml:"description"`
 	Workspace   string                    `yaml:"workspace"`
 	Version     string                    `yaml:"version"`
+	Binary      string                    `yaml:"binary,omitempty"`
 	Features    map[string]*FeatureConfig `yaml:"features"`
+}
+
+// DetectInstalled reports whether this provider appears to be installed on the
+// current machine. Detection uses two signals in order:
+//  1. Binary in PATH: if the provider declares a Binary name, exec.LookPath is used.
+//  2. Config directory: if the provider's Workspace path exists on disk, the
+//     provider is considered installed (useful for providers that ship no CLI).
+//
+// Returns true if either signal succeeds.
+func (p *Provider) DetectInstalled() bool {
+	// 1. Binary check (primary)
+	if p.Binary != "" {
+		if _, err := exec.LookPath(p.Binary); err == nil {
+			return true
+		}
+	}
+
+	// 2. Config directory check (fallback)
+	workspacePath := p.GetWorkspacePath()
+	if workspacePath == "" {
+		return false
+	}
+	_, err := os.Stat(workspacePath)
+	return err == nil
 }
 
 // FeatureConfig represents a feature configuration for a provider.
@@ -310,6 +336,7 @@ func (c *ProvidersConfig) ValidateConfig() error {
 type ProviderOption struct {
 	Name        string
 	DisplayName string
+	Detected    bool // true if the provider was found installed on this machine
 }
 
 // GetProviderOptions returns a list of enabled provider options.
@@ -324,6 +351,46 @@ func (c *ProvidersConfig) GetProviderOptions() []ProviderOption {
 			options = append(options, ProviderOption{
 				Name:        name,
 				DisplayName: provider.Name,
+			})
+		}
+	}
+
+	return options
+}
+
+// DetectInstalledProviders returns the names of all configured providers that
+// appear to be installed on the current machine (binary in PATH or workspace dir
+// exists). Only providers marked as enabled in providers.yaml are checked.
+func (c *ProvidersConfig) DetectInstalledProviders() []string {
+	var detected []string
+	if c.Providers == nil {
+		return detected
+	}
+
+	for name, provider := range c.Providers {
+		if provider.Enabled && provider.DetectInstalled() {
+			detected = append(detected, name)
+		}
+	}
+
+	return detected
+}
+
+// GetProviderOptionsWithDetection returns provider options enriched with
+// installation detection. The Detected field is set to true for providers
+// found on the current machine.
+func (c *ProvidersConfig) GetProviderOptionsWithDetection() []ProviderOption {
+	var options []ProviderOption
+	if c.Providers == nil {
+		return options
+	}
+
+	for name, provider := range c.Providers {
+		if provider.Enabled {
+			options = append(options, ProviderOption{
+				Name:        name,
+				DisplayName: provider.Name,
+				Detected:    provider.DetectInstalled(),
 			})
 		}
 	}

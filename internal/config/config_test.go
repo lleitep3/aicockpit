@@ -7,7 +7,6 @@ import (
 )
 
 func TestLoad(t *testing.T) {
-	// Set temporary home directory for testing
 	tmpDir := t.TempDir()
 	oldHome := os.Getenv("HOME")
 	os.Setenv("HOME", tmpDir)
@@ -21,13 +20,11 @@ func TestLoad(t *testing.T) {
 	if cfg.Version == "" {
 		t.Error("Version should not be empty")
 	}
-
 	if cfg.Language == "" {
 		t.Error("Language should not be empty")
 	}
-
-	if cfg.AIProvider == "" {
-		t.Error("AIProvider should not be empty")
+	if len(cfg.EnabledProviders) == 0 {
+		t.Error("EnabledProviders should not be empty after Load")
 	}
 }
 
@@ -65,17 +62,16 @@ func TestSave(t *testing.T) {
 	os.Setenv("HOME", tmpDir)
 	defer os.Setenv("HOME", oldHome)
 
-	// Create the .cockpit directory first
 	cockpitDir := GetCockpitDir()
 	if err := os.MkdirAll(cockpitDir, 0o755); err != nil {
 		t.Fatalf("Failed to create cockpit directory: %v", err)
 	}
 
 	cfg := &Config{
-		Version:    "0.1.0",
-		Language:   "en-us",
-		LogLevel:   "info",
-		AIProvider: "claude",
+		Version:          "0.1.0",
+		Language:         "en-us",
+		LogLevel:         "info",
+		EnabledProviders: []string{"devin"},
 	}
 
 	err := Save(cfg)
@@ -83,7 +79,6 @@ func TestSave(t *testing.T) {
 		t.Fatalf("Save failed: %v", err)
 	}
 
-	// Verify file was created
 	configPath := GetConfigPath()
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
 		t.Error("Config file was not created")
@@ -96,265 +91,202 @@ func TestUpdate(t *testing.T) {
 	os.Setenv("HOME", tmpDir)
 	defer os.Setenv("HOME", oldHome)
 
-	// Create the .cockpit directory first
 	cockpitDir := GetCockpitDir()
 	if err := os.MkdirAll(cockpitDir, 0o755); err != nil {
 		t.Fatalf("Failed to create cockpit directory: %v", err)
 	}
 
 	cfg := &Config{
-		Version:    "0.1.0",
-		Language:   "en-us",
-		LogLevel:   "info",
-		AIProvider: "claude",
+		Version:          "0.1.0",
+		Language:         "en-us",
+		LogLevel:         "info",
+		EnabledProviders: []string{"devin"},
 	}
 
 	updates := map[string]interface{}{
-		"language":    "pt-br",
-		"log_level":   "debug",
-		"ai_provider": "openai",
+		"language":  "pt-br",
+		"log_level": "debug",
 	}
 
-	err := cfg.Update(updates)
-	if err != nil {
+	if err := cfg.Update(updates); err != nil {
 		t.Fatalf("Update failed: %v", err)
 	}
 
 	if cfg.Language != "pt-br" {
 		t.Errorf("Expected language pt-br, got %s", cfg.Language)
 	}
-
 	if cfg.LogLevel != "debug" {
 		t.Errorf("Expected log_level debug, got %s", cfg.LogLevel)
 	}
-
-	if cfg.AIProvider != "openai" {
-		t.Errorf("Expected ai_provider openai, got %s", cfg.AIProvider)
-	}
 }
 
-func TestEnableProvider(t *testing.T) {
-	tmpDir := t.TempDir()
-	oldHome := os.Getenv("HOME")
-	os.Setenv("HOME", tmpDir)
-	defer os.Setenv("HOME", oldHome)
-
-	// Create the .cockpit directory first
-	cockpitDir := GetCockpitDir()
-	if err := os.MkdirAll(cockpitDir, 0o755); err != nil {
-		t.Fatalf("Failed to create cockpit directory: %v", err)
-	}
-
-	cfg := &Config{
-		Version:    "0.2.0",
-		Language:   "en-us",
-		LogLevel:   "info",
-		AIProvider: "devin",
-	}
-
-	// Enable providers
-	if err := cfg.EnableProvider("devin"); err != nil {
-		t.Fatalf("EnableProvider failed: %v", err)
-	}
-
-	if err := cfg.EnableProvider("goose"); err != nil {
-		t.Fatalf("EnableProvider failed: %v", err)
-	}
-
-	if err := cfg.EnableProvider("claude-code"); err != nil {
-		t.Fatalf("EnableProvider failed: %v", err)
-	}
-
-	// Verify providers are enabled
-	if !cfg.IsProviderEnabled("devin") {
-		t.Error("devin should be enabled")
-	}
-
-	if !cfg.IsProviderEnabled("goose") {
-		t.Error("goose should be enabled")
-	}
-
-	if !cfg.IsProviderEnabled("claude-code") {
-		t.Error("claude-code should be enabled")
-	}
-
-	// Verify enabled providers list
-	enabled := cfg.GetEnabledProviders()
-	if len(enabled) != 3 {
-		t.Errorf("Expected 3 enabled providers, got %d", len(enabled))
-	}
-}
-
-func TestDisableProvider(t *testing.T) {
-	tmpDir := t.TempDir()
-	oldHome := os.Getenv("HOME")
-	os.Setenv("HOME", tmpDir)
-	defer os.Setenv("HOME", oldHome)
-
-	// Create the .cockpit directory first
-	cockpitDir := GetCockpitDir()
-	if err := os.MkdirAll(cockpitDir, 0o755); err != nil {
-		t.Fatalf("Failed to create cockpit directory: %v", err)
-	}
-
-	cfg := &Config{
-		Version:    "0.2.0",
-		Language:   "en-us",
-		LogLevel:   "info",
-		AIProvider: "devin",
-	}
-
-	// Enable providers
-	cfg.EnableProvider("devin")
-	cfg.EnableProvider("goose")
-	cfg.EnableProvider("claude-code")
-
-	// Disable one provider
-	if err := cfg.DisableProvider("goose"); err != nil {
-		t.Fatalf("DisableProvider failed: %v", err)
-	}
-
-	// Verify provider is disabled
-	if cfg.IsProviderEnabled("goose") {
-		t.Error("goose should be disabled")
-	}
-
-	// Verify other providers are still enabled
-	if !cfg.IsProviderEnabled("devin") {
-		t.Error("devin should still be enabled")
-	}
-
-	if !cfg.IsProviderEnabled("claude-code") {
-		t.Error("claude-code should still be enabled")
-	}
-
-	// Verify enabled providers list
-	enabled := cfg.GetEnabledProviders()
-	if len(enabled) != 2 {
-		t.Errorf("Expected 2 enabled providers, got %d", len(enabled))
-	}
-}
-
-func TestSetProviderPath(t *testing.T) {
-	tmpDir := t.TempDir()
-	oldHome := os.Getenv("HOME")
-	os.Setenv("HOME", tmpDir)
-	defer os.Setenv("HOME", oldHome)
-
-	// Create the .cockpit directory first
-	cockpitDir := GetCockpitDir()
-	if err := os.MkdirAll(cockpitDir, 0o755); err != nil {
-		t.Fatalf("Failed to create cockpit directory: %v", err)
-	}
-
-	cfg := &Config{
-		Version:    "0.2.0",
-		Language:   "en-us",
-		LogLevel:   "info",
-		AIProvider: "devin",
-	}
-
-	// Set provider paths
-	customPath := filepath.Join(tmpDir, "custom-devin")
-	if err := cfg.SetProviderPath("devin", customPath); err != nil {
-		t.Fatalf("SetProviderPath failed: %v", err)
-	}
-
-	// Verify path is set
-	path := cfg.GetProviderPath("devin")
-	if path != customPath {
-		t.Errorf("Expected path %s, got %s", customPath, path)
-	}
-}
-
-func TestGetProviderPathDefaults(t *testing.T) {
-	tmpDir := t.TempDir()
-	oldHome := os.Getenv("HOME")
-	os.Setenv("HOME", tmpDir)
-	defer os.Setenv("HOME", oldHome)
-
-	cfg := &Config{
-		Version:    "0.2.0",
-		Language:   "en-us",
-		LogLevel:   "info",
-		AIProvider: "devin",
-	}
-
-	// Test default paths
+func TestGetEnabledProviders(t *testing.T) {
 	tests := []struct {
-		provider string
-		expected string
+		name     string
+		cfg      Config
+		expected []string
 	}{
-		{"devin", filepath.Join(tmpDir, ".cockpit")},
-		{"goose", filepath.Join(tmpDir, ".goose")},
-		{"claude-code", filepath.Join(tmpDir, ".claude-code")},
-		{"github-copilot", filepath.Join(tmpDir, ".github-copilot")},
+		{
+			name:     "nil slice returns empty",
+			cfg:      Config{EnabledProviders: nil},
+			expected: []string{},
+		},
+		{
+			name:     "returns configured providers",
+			cfg:      Config{EnabledProviders: []string{"devin", "goose"}},
+			expected: []string{"devin", "goose"},
+		},
+		{
+			name:     "single provider",
+			cfg:      Config{EnabledProviders: []string{"antigravity"}},
+			expected: []string{"antigravity"},
+		},
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.provider, func(t *testing.T) {
-			path := cfg.GetProviderPath(tt.provider)
-			if path != tt.expected {
-				t.Errorf("Expected path %s, got %s", tt.expected, path)
+		t.Run(tt.name, func(t *testing.T) {
+			got := tt.cfg.GetEnabledProviders()
+			if len(got) != len(tt.expected) {
+				t.Errorf("Expected %v, got %v", tt.expected, got)
+				return
+			}
+			for i := range got {
+				if got[i] != tt.expected[i] {
+					t.Errorf("Expected %v, got %v", tt.expected, got)
+				}
 			}
 		})
 	}
 }
 
-func TestMultiProviderConfiguration(t *testing.T) {
+func TestLegacyMigration_AIProvidersEnabled(t *testing.T) {
 	tmpDir := t.TempDir()
 	oldHome := os.Getenv("HOME")
 	os.Setenv("HOME", tmpDir)
 	defer os.Setenv("HOME", oldHome)
 
-	// Create the .cockpit directory first
 	cockpitDir := GetCockpitDir()
 	if err := os.MkdirAll(cockpitDir, 0o755); err != nil {
 		t.Fatalf("Failed to create cockpit directory: %v", err)
 	}
 
-	cfg := &Config{
-		Version:    "0.2.0",
-		Language:   "en-us",
-		LogLevel:   "info",
-		AIProvider: "devin",
+	// Write a legacy config using old ai_providers.enabled format
+	legacyYAML := `version: "0.3.0"
+language: en-us
+log_level: info
+ai_provider: devin
+ai_providers:
+  enabled:
+    - devin
+    - goose
+`
+	if err := os.WriteFile(GetConfigPath(), []byte(legacyYAML), 0o644); err != nil {
+		t.Fatalf("Failed to write legacy config: %v", err)
 	}
 
-	// Enable all providers
-	providers := []string{"devin", "goose", "claude-code", "github-copilot"}
-	for _, provider := range providers {
-		if err := cfg.EnableProvider(provider); err != nil {
-			t.Fatalf("EnableProvider failed for %s: %v", provider, err)
-		}
+	cfg, err := Load()
+	if err != nil {
+		t.Fatalf("Load failed: %v", err)
 	}
 
-	// Verify all providers are enabled
-	enabled := cfg.GetEnabledProviders()
-	if len(enabled) != 4 {
-		t.Errorf("Expected 4 enabled providers, got %d", len(enabled))
+	// Should have migrated ai_providers.enabled → EnabledProviders
+	if len(cfg.EnabledProviders) != 2 {
+		t.Errorf("Expected 2 providers after migration, got %d: %v", len(cfg.EnabledProviders), cfg.EnabledProviders)
+	}
+}
+
+func TestLegacyMigration_SingularAIProvider(t *testing.T) {
+	tmpDir := t.TempDir()
+	oldHome := os.Getenv("HOME")
+	os.Setenv("HOME", tmpDir)
+	defer os.Setenv("HOME", oldHome)
+
+	cockpitDir := GetCockpitDir()
+	if err := os.MkdirAll(cockpitDir, 0o755); err != nil {
+		t.Fatalf("Failed to create cockpit directory: %v", err)
 	}
 
-	// Verify each provider is enabled
-	for _, provider := range providers {
-		if !cfg.IsProviderEnabled(provider) {
-			t.Errorf("%s should be enabled", provider)
-		}
+	// Write a config with only the old singular ai_provider field
+	legacyYAML := `version: "0.2.0"
+language: en-us
+log_level: info
+ai_provider: goose
+`
+	if err := os.WriteFile(GetConfigPath(), []byte(legacyYAML), 0o644); err != nil {
+		t.Fatalf("Failed to write legacy config: %v", err)
 	}
 
-	// Set custom paths for all providers
-	for _, provider := range providers {
-		customPath := filepath.Join(tmpDir, "custom-"+provider)
-		if err := cfg.SetProviderPath(provider, customPath); err != nil {
-			t.Fatalf("SetProviderPath failed for %s: %v", provider, err)
-		}
+	cfg, err := Load()
+	if err != nil {
+		t.Fatalf("Load failed: %v", err)
 	}
 
-	// Verify all paths are set correctly
-	for _, provider := range providers {
-		expectedPath := filepath.Join(tmpDir, "custom-"+provider)
-		path := cfg.GetProviderPath(provider)
-		if path != expectedPath {
-			t.Errorf("Expected path %s for %s, got %s", expectedPath, provider, path)
-		}
+	// Should have migrated ai_provider → EnabledProviders
+	if len(cfg.EnabledProviders) != 1 || cfg.EnabledProviders[0] != "goose" {
+		t.Errorf("Expected [goose] after migration, got %v", cfg.EnabledProviders)
+	}
+}
+
+func TestNewConfigFormat(t *testing.T) {
+	tmpDir := t.TempDir()
+	oldHome := os.Getenv("HOME")
+	os.Setenv("HOME", tmpDir)
+	defer os.Setenv("HOME", oldHome)
+
+	cockpitDir := GetCockpitDir()
+	if err := os.MkdirAll(cockpitDir, 0o755); err != nil {
+		t.Fatalf("Failed to create cockpit directory: %v", err)
+	}
+
+	// Write a config in the new format
+	newYAML := `version: "0.5.0"
+language: pt-br
+log_level: debug
+enabled_providers:
+  - devin
+  - antigravity
+  - goose
+`
+	if err := os.WriteFile(GetConfigPath(), []byte(newYAML), 0o644); err != nil {
+		t.Fatalf("Failed to write new config: %v", err)
+	}
+
+	cfg, err := Load()
+	if err != nil {
+		t.Fatalf("Load failed: %v", err)
+	}
+
+	if len(cfg.EnabledProviders) != 3 {
+		t.Errorf("Expected 3 providers, got %d: %v", len(cfg.EnabledProviders), cfg.EnabledProviders)
+	}
+	if cfg.Language != "pt-br" {
+		t.Errorf("Expected pt-br, got %s", cfg.Language)
+	}
+}
+
+func TestShouldCheckUpdate(t *testing.T) {
+	tests := []struct {
+		name            string
+		autoUpdate      bool
+		lastCheck       string
+		expectShouldRun bool
+	}{
+		{"disabled auto update", false, "", false},
+		{"no last check", true, "", true},
+		{"invalid timestamp", true, "not-a-date", true},
+		{"recent check", true, "2099-01-01T00:00:00Z", false},
+		{"old check", true, "2000-01-01T00:00:00Z", true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg := &Config{
+				AutoUpdateCheck: tt.autoUpdate,
+				LastUpdateCheck: tt.lastCheck,
+			}
+			if got := cfg.ShouldCheckUpdate(); got != tt.expectShouldRun {
+				t.Errorf("ShouldCheckUpdate() = %v, want %v", got, tt.expectShouldRun)
+			}
+		})
 	}
 }

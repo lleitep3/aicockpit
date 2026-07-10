@@ -10,7 +10,8 @@ providers:
     enabled: true
     name: "Antigravity"
     description: "Autonomous AI agent by Google DeepMind"
-    workspace: "~"
+    workspace: "~/.gemini"
+    binary: "antigravity"
     version: "1.0.0"
     features:
       skills:
@@ -39,7 +40,8 @@ providers:
     enabled: true
     name: "Devin"
     description: "Autonomous AI software engineer by Cognition"
-    workspace: "~"
+    workspace: "~/.config/devin"
+    binary: "devin"
     version: "1.0.0"
     features:
       entrypoint:
@@ -76,7 +78,8 @@ providers:
     enabled: true
     name: "Goose"
     description: "Open-source AI agent by Block"
-    workspace: "~"
+    workspace: "~/.config/goose"
+    binary: "goose"
     version: "1.0.1"
     features:
       agents:

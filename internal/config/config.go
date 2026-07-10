@@ -16,28 +16,11 @@ type Config struct {
 	Version           string                    `yaml:"version"`
 	Language          string                    `yaml:"language"`
 	LogLevel          string                    `yaml:"log_level"`
-	AIProvider        string                    `yaml:"ai_provider"`
-	AIProviders       ProvidersConfig           `yaml:"ai_providers"`
+	EnabledProviders  []string                  `yaml:"enabled_providers"`
 	KB                KBConfig                  `yaml:"kb"`
 	PackageRegistries []packages.RegistryConfig `yaml:"package_registries"`
 	LastUpdateCheck   string                    `yaml:"last_update_check"`
 	AutoUpdateCheck   bool                      `yaml:"auto_update_check"`
-}
-
-// ProvidersConfig represents configuration for multiple AI providers.
-type ProvidersConfig struct {
-	Enabled       []string        `yaml:"enabled"`
-	Devin         *ProviderConfig `yaml:"devin"`
-	Goose         *ProviderConfig `yaml:"goose"`
-	ClaudeCode    *ProviderConfig `yaml:"claude_code"`
-	GitHubCopilot *ProviderConfig `yaml:"github_copilot"`
-}
-
-// ProviderConfig represents configuration for a single AI provider.
-type ProviderConfig struct {
-	Enabled bool     `yaml:"enabled"`
-	Path    string   `yaml:"path"`
-	KB      KBConfig `yaml:"kb"`
 }
 
 // KBConfig represents the Knowledge Base configuration.
@@ -46,14 +29,11 @@ type KBConfig struct {
 }
 
 var defaultConfig = Config{
-	Version:         version.Version,
-	Language:        "en-us",
-	LogLevel:        "info",
-	AIProvider:      "antigravity",
-	AutoUpdateCheck: true,
-	AIProviders: ProvidersConfig{
-		Enabled: []string{"antigravity", "devin", "goose"},
-	},
+	Version:          version.Version,
+	Language:         "en-us",
+	LogLevel:         "info",
+	AutoUpdateCheck:  true,
+	EnabledProviders: []string{"antigravity", "devin", "goose"},
 	KB: KBConfig{
 		Roots: []string{filepath.Join(GetCockpitDir(), "kb")},
 	},
@@ -93,10 +73,13 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("failed to read config: %w", err)
 	}
 
-	var cfg Config
-	if err := yaml.Unmarshal(data, &cfg); err != nil {
+	// Try to parse with a legacy-aware wrapper to migrate old fields
+	var raw legacyConfig
+	if err := yaml.Unmarshal(data, &raw); err != nil {
 		return nil, fmt.Errorf("failed to parse config: %w", err)
 	}
+
+	cfg := raw.toConfig()
 
 	// Set defaults for missing values
 	if cfg.Version == "" {
@@ -108,20 +91,56 @@ func Load() (*Config, error) {
 	if cfg.LogLevel == "" {
 		cfg.LogLevel = defaultConfig.LogLevel
 	}
-	if cfg.AIProvider == "" {
-		cfg.AIProvider = defaultConfig.AIProvider
-	}
-	if len(cfg.AIProviders.Enabled) == 0 {
-		cfg.AIProviders.Enabled = defaultConfig.AIProviders.Enabled
-	}
-	if cfg.LastUpdateCheck == "" {
-		cfg.LastUpdateCheck = defaultConfig.LastUpdateCheck
+	if len(cfg.EnabledProviders) == 0 {
+		cfg.EnabledProviders = defaultConfig.EnabledProviders
 	}
 	if !cfg.AutoUpdateCheck {
 		cfg.AutoUpdateCheck = defaultConfig.AutoUpdateCheck
 	}
 
 	return &cfg, nil
+}
+
+// legacyConfig is used only during Load to transparently migrate old config fields.
+type legacyConfig struct {
+	Version           string                    `yaml:"version"`
+	Language          string                    `yaml:"language"`
+	LogLevel          string                    `yaml:"log_level"`
+	EnabledProviders  []string                  `yaml:"enabled_providers"`
+	KB                KBConfig                  `yaml:"kb"`
+	PackageRegistries []packages.RegistryConfig `yaml:"package_registries"`
+	LastUpdateCheck   string                    `yaml:"last_update_check"`
+	AutoUpdateCheck   bool                      `yaml:"auto_update_check"`
+	// Legacy fields — read-only, never written back
+	AIProvider  string `yaml:"ai_provider"`
+	AIProviders struct {
+		Enabled []string `yaml:"enabled"`
+	} `yaml:"ai_providers"`
+}
+
+func (l *legacyConfig) toConfig() Config {
+	cfg := Config{
+		Version:           l.Version,
+		Language:          l.Language,
+		LogLevel:          l.LogLevel,
+		EnabledProviders:  l.EnabledProviders,
+		KB:                l.KB,
+		PackageRegistries: l.PackageRegistries,
+		LastUpdateCheck:   l.LastUpdateCheck,
+		AutoUpdateCheck:   l.AutoUpdateCheck,
+	}
+
+	// Migrate from ai_providers.enabled → enabled_providers
+	if len(cfg.EnabledProviders) == 0 && len(l.AIProviders.Enabled) > 0 {
+		cfg.EnabledProviders = l.AIProviders.Enabled
+	}
+
+	// Migrate from legacy singular ai_provider → enabled_providers
+	if len(cfg.EnabledProviders) == 0 && l.AIProvider != "" {
+		cfg.EnabledProviders = []string{l.AIProvider}
+	}
+
+	return cfg
 }
 
 // createDefault creates the default configuration and directory structure.
@@ -149,11 +168,10 @@ func createDefault() (*Config, error) {
 	}
 
 	cfg := &Config{
-		Version:     defaultConfig.Version,
-		Language:    defaultConfig.Language,
-		LogLevel:    defaultConfig.LogLevel,
-		AIProvider:  defaultConfig.AIProvider,
-		AIProviders: defaultConfig.AIProviders,
+		Version:          defaultConfig.Version,
+		Language:         defaultConfig.Language,
+		LogLevel:         defaultConfig.LogLevel,
+		EnabledProviders: defaultConfig.EnabledProviders,
 	}
 
 	// Save config
@@ -192,10 +210,6 @@ func (c *Config) Update(updates map[string]interface{}) error {
 			if v, ok := value.(string); ok {
 				c.LogLevel = v
 			}
-		case "ai_provider":
-			if v, ok := value.(string); ok {
-				c.AIProvider = v
-			}
 		}
 	}
 
@@ -207,128 +221,13 @@ func (c *Config) Save() error {
 	return Save(c)
 }
 
-// EnableProvider enables an AI provider.
-func (c *Config) EnableProvider(provider string) error {
-	if c.AIProviders.Enabled == nil {
-		c.AIProviders.Enabled = []string{}
-	}
-
-	// Check if already enabled
-	for _, p := range c.AIProviders.Enabled {
-		if p == provider {
-			return nil // Already enabled
-		}
-	}
-
-	c.AIProviders.Enabled = append(c.AIProviders.Enabled, provider)
-	return Save(c)
-}
-
-// DisableProvider disables an AI provider.
-func (c *Config) DisableProvider(provider string) error {
-	if c.AIProviders.Enabled == nil {
-		return nil
-	}
-
-	var newEnabled []string
-	for _, p := range c.AIProviders.Enabled {
-		if p != provider {
-			newEnabled = append(newEnabled, p)
-		}
-	}
-
-	c.AIProviders.Enabled = newEnabled
-	return Save(c)
-}
-
-// IsProviderEnabled checks if a provider is enabled.
-func (c *Config) IsProviderEnabled(provider string) bool {
-	if c.AIProviders.Enabled == nil {
-		return false
-	}
-
-	for _, p := range c.AIProviders.Enabled {
-		if p == provider {
-			return true
-		}
-	}
-
-	return false
-}
-
-// GetEnabledProviders returns all enabled providers.
+// GetEnabledProviders returns the list of enabled provider names.
+// Provider capabilities and workspace paths live in providers.yaml, not here.
 func (c *Config) GetEnabledProviders() []string {
-	if c.AIProviders.Enabled == nil {
+	if c.EnabledProviders == nil {
 		return []string{}
 	}
-	return c.AIProviders.Enabled
-}
-
-// SetProviderPath sets the path for a provider.
-func (c *Config) SetProviderPath(provider, path string) error {
-	if c.AIProviders.Devin == nil && provider == "devin" {
-		c.AIProviders.Devin = &ProviderConfig{}
-	}
-	if c.AIProviders.Goose == nil && provider == "goose" {
-		c.AIProviders.Goose = &ProviderConfig{}
-	}
-	if c.AIProviders.ClaudeCode == nil && provider == "claude-code" {
-		c.AIProviders.ClaudeCode = &ProviderConfig{}
-	}
-	if c.AIProviders.GitHubCopilot == nil && provider == "github-copilot" {
-		c.AIProviders.GitHubCopilot = &ProviderConfig{}
-	}
-
-	switch provider {
-	case "devin":
-		if c.AIProviders.Devin != nil {
-			c.AIProviders.Devin.Path = path
-		}
-	case "goose":
-		if c.AIProviders.Goose != nil {
-			c.AIProviders.Goose.Path = path
-		}
-	case "claude-code":
-		if c.AIProviders.ClaudeCode != nil {
-			c.AIProviders.ClaudeCode.Path = path
-		}
-	case "github-copilot":
-		if c.AIProviders.GitHubCopilot != nil {
-			c.AIProviders.GitHubCopilot.Path = path
-		}
-	default:
-		return fmt.Errorf("unknown provider: %s", provider)
-	}
-
-	return Save(c)
-}
-
-// GetProviderPath gets the path for a provider.
-func (c *Config) GetProviderPath(provider string) string {
-	switch provider {
-	case "devin":
-		if c.AIProviders.Devin != nil {
-			return c.AIProviders.Devin.Path
-		}
-		return filepath.Join(os.Getenv("HOME"), ".cockpit")
-	case "goose":
-		if c.AIProviders.Goose != nil {
-			return c.AIProviders.Goose.Path
-		}
-		return filepath.Join(os.Getenv("HOME"), ".goose")
-	case "claude-code":
-		if c.AIProviders.ClaudeCode != nil {
-			return c.AIProviders.ClaudeCode.Path
-		}
-		return filepath.Join(os.Getenv("HOME"), ".claude-code")
-	case "github-copilot":
-		if c.AIProviders.GitHubCopilot != nil {
-			return c.AIProviders.GitHubCopilot.Path
-		}
-		return filepath.Join(os.Getenv("HOME"), ".github-copilot")
-	default:
-		return ""
-	}
+	return c.EnabledProviders
 }
 
 // SetLastUpdateCheck sets the last update check timestamp.
