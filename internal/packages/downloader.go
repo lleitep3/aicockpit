@@ -2,6 +2,7 @@ package packages
 
 import (
 	"archive/zip"
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -9,7 +10,11 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 )
+
+// defaultDownloadTimeout is the timeout applied when no context is provided.
+const defaultDownloadTimeout = 60 * time.Second
 
 // PackageDownloader handles downloading packages from registries.
 type PackageDownloader struct {
@@ -50,6 +55,7 @@ func getGitHubToken() string {
 
 // DownloadPackageFromGitHub downloads a package from GitHub as a ZIP file.
 // It extracts only the package directory from the repository.
+// If ctx is nil, a default timeout of defaultDownloadTimeout is applied.
 //
 // Example:
 //
@@ -58,14 +64,20 @@ func getGitHubToken() string {
 //	branch: "main"
 //	packageName: "hello-world"
 //	destDir: "/home/user/.cockpit/packages/hello-world"
-func (pd *PackageDownloader) DownloadPackageFromGitHub(owner, repo, branch, packageName, destDir string) error {
+func (pd *PackageDownloader) DownloadPackageFromGitHub(ctx context.Context, owner, repo, branch, packageName, destDir string) error {
+	if ctx == nil {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(context.Background(), defaultDownloadTimeout)
+		defer cancel()
+	}
+
 	// Construct GitHub API URL for downloading the repository as ZIP
 	// Format: https://github.com/{owner}/{repo}/archive/refs/heads/{branch}.zip
 	downloadURL := fmt.Sprintf("https://github.com/%s/%s/archive/refs/heads/%s.zip", owner, repo, branch)
 
 	// Download the ZIP file
 	fmt.Printf("Downloading package from: %s\n", downloadURL)
-	req, err := http.NewRequest("GET", downloadURL, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, downloadURL, nil)
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}
@@ -200,9 +212,16 @@ func (pd *PackageDownloader) extractPackageFromZip(zipPath, packageName, destDir
 
 // DownloadPackageFromURL downloads a package from a custom URL.
 // Useful for non-GitHub registries.
-func (pd *PackageDownloader) DownloadPackageFromURL(downloadURL, packageName, destDir string) error {
+// If ctx is nil, a default timeout of defaultDownloadTimeout is applied.
+func (pd *PackageDownloader) DownloadPackageFromURL(ctx context.Context, downloadURL, packageName, destDir string) error {
+	if ctx == nil {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(context.Background(), defaultDownloadTimeout)
+		defer cancel()
+	}
+
 	fmt.Printf("Downloading package from: %s\n", downloadURL)
-	req, err := http.NewRequest("GET", downloadURL, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, downloadURL, nil)
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}
