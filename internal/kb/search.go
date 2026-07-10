@@ -127,14 +127,34 @@ func (ds *DefaultScorer) ScoreKeyword(query string, doc *Document) float64 {
 	return totalScore
 }
 
-// ScoreSemantic is not implemented for keyword searcher.
-func (ds *DefaultScorer) ScoreSemantic(query string, doc *Document) float64 {
+// ScoreSemantic returns 0 because local vector-embedding search is not yet
+// implemented.  When a real embedding backend is wired in, this method should
+// compute cosine-similarity (or equivalent) between the query and doc vectors.
+//
+// TODO: implement vector embedding similarity (e.g. via a local model or
+// external embedding API) and update CombineScores weights accordingly.
+func (ds *DefaultScorer) ScoreSemantic(_ string, _ *Document) float64 {
 	return 0
 }
 
-// CombineScores combines keyword and semantic scores.
+// CombineScores returns the final relevance score for a document.
+//
+// When ScoreSemantic is not implemented (returns 0 for every document) the
+// original formula  keywordScore*0.4 + semanticScore*0.6  would silently cap
+// every result at 40 % of its true keyword relevance, making ranking
+// meaningless.  Until a real semantic scorer exists, we fall back to the
+// keyword score alone so the BM25 ranking is not degraded.
+//
+// Once ScoreSemantic is implemented, restore the hybrid formula:
+//
+//	return (keywordScore * 0.4) + (semanticScore * 0.6)
 func (ds *DefaultScorer) CombineScores(keywordScore, semanticScore float64) float64 {
-	// 40% keyword, 60% semantic
+	if semanticScore == 0 {
+		// Semantic scoring not yet available — use keyword score only to avoid
+		// artificially penalising every result by 60 %.
+		return keywordScore
+	}
+	// Hybrid: 40 % lexical (BM25) + 60 % semantic (embedding similarity).
 	return (keywordScore * 0.4) + (semanticScore * 0.6)
 }
 
