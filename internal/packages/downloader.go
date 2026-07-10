@@ -55,7 +55,8 @@ func getGitHubToken() string {
 
 // DownloadPackageFromGitHub downloads a package from GitHub as a ZIP file.
 // It extracts only the package directory from the repository.
-// If ctx is nil, a default timeout of defaultDownloadTimeout is applied.
+// Pass a context with a deadline/timeout to control the request lifetime;
+// use context.TODO() or wrap with context.WithTimeout at the call site.
 //
 // Example:
 //
@@ -65,9 +66,9 @@ func getGitHubToken() string {
 //	packageName: "hello-world"
 //	destDir: "/home/user/.cockpit/packages/hello-world"
 func (pd *PackageDownloader) DownloadPackageFromGitHub(ctx context.Context, owner, repo, branch, packageName, destDir string) error {
-	if ctx == nil {
+	if _, ok := ctx.Deadline(); !ok {
 		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(context.Background(), defaultDownloadTimeout)
+		ctx, cancel = context.WithTimeout(ctx, defaultDownloadTimeout)
 		defer cancel()
 	}
 
@@ -212,11 +213,12 @@ func (pd *PackageDownloader) extractPackageFromZip(zipPath, packageName, destDir
 
 // DownloadPackageFromURL downloads a package from a custom URL.
 // Useful for non-GitHub registries.
-// If ctx is nil, a default timeout of defaultDownloadTimeout is applied.
+// Pass a context with a deadline/timeout to control the request lifetime;
+// if the context has no deadline, defaultDownloadTimeout is applied automatically.
 func (pd *PackageDownloader) DownloadPackageFromURL(ctx context.Context, downloadURL, packageName, destDir string) error {
-	if ctx == nil {
+	if _, ok := ctx.Deadline(); !ok {
 		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(context.Background(), defaultDownloadTimeout)
+		ctx, cancel = context.WithTimeout(ctx, defaultDownloadTimeout)
 		defer cancel()
 	}
 
