@@ -2,7 +2,7 @@ package version
 
 // Version is the application version
 // This is automatically updated by the release workflow
-const Version = "0.4.8"
+const Version = "0.4.9"
 
 // GetVersion returns the current application version
 func GetVersion() string {
