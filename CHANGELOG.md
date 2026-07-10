@@ -20,7 +20,7 @@ No performance improvements
 No breaking changes
 
 ### Documentation
-No documentation changes
+- update CHANGELOG.md for changes since v0.4.17 [skip ci] (#137)
 
 ### Testing
 No test changes
