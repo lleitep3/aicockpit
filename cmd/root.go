@@ -3,6 +3,7 @@ package cmd
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 	"time"
@@ -13,6 +14,7 @@ import (
 	"github.com/lleitep3/aicockpit/internal/update"
 	"github.com/lleitep3/aicockpit/internal/version"
 	"github.com/spf13/cobra"
+	"golang.org/x/term"
 )
 
 // NewRootCommand creates the root command for the CLI.
@@ -59,9 +61,18 @@ func NewRootCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translator
 	return rootCmd
 }
 
-// checkForUpdates checks if a new version is available and prompts the user
+// checkForUpdates checks if a new version is available and prompts the user.
+// In non-interactive environments (no TTY) the update notification is logged
+// but stdin is never read, so the CLI never hangs in scripts or CI pipelines.
 func checkForUpdates(log *logging.Manager, cfg *config.Config, t *i18n.Translator) {
-	// Check if we should perform an update check
+	interactive := term.IsTerminal(int(os.Stdin.Fd()))
+	checkForUpdatesWithReader(log, cfg, t, os.Stdin, interactive)
+}
+
+// checkForUpdatesWithReader is the testable core of checkForUpdates.
+// It receives an explicit reader and interactivity flag so tests can inject
+// a fake stdin without requiring a real TTY.
+func checkForUpdatesWithReader(log *logging.Manager, cfg *config.Config, t *i18n.Translator, stdin io.Reader, interactive bool) {
 	if !cfg.ShouldCheckUpdate() {
 		return
 	}
@@ -86,12 +97,19 @@ func checkForUpdates(log *logging.Manager, cfg *config.Config, t *i18n.Translato
 	}
 
 	currentVersion := version.GetVersion()
+
+	// Non-interactive: log the available update and return without blocking stdin
+	if !interactive {
+		log.LogInfo(fmt.Sprintf("update available: %s (current: %s) — run 'cockpit update' to upgrade", latestVersion, currentVersion), nil)
+		return
+	}
+
 	fmt.Println()
 	fmt.Printf(t.T("update.available")+"\n", latestVersion, currentVersion)
 	fmt.Printf(t.T("update.changelog")+"\n", releaseURL)
 	fmt.Print(t.T("update.prompt"))
 
-	reader := bufio.NewReader(os.Stdin)
+	reader := bufio.NewReader(stdin)
 	input, _ := reader.ReadString('\n')
 	input = strings.TrimSpace(strings.ToLower(input))
 
