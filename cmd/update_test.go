@@ -14,10 +14,10 @@ func TestNewUpdateCommand(t *testing.T) {
 		t.Fatalf("failed to create logger: %v", err)
 	}
 	cfg := &config.Config{
-		Version:    "0.1.0",
-		Language:   "en-us",
-		LogLevel:   "info",
-		AIProvider: "antigravity",
+		Version:          "0.1.0",
+		Language:         "en-us",
+		LogLevel:         "info",
+		EnabledProviders: []string{"antigravity"},
 	}
 	translator := i18n.New("en-us")
 

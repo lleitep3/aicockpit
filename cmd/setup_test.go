@@ -131,6 +131,7 @@ func makeTestConfig(t *testing.T, content string) string {
 }
 
 func TestUpdateConfigWithProviders_Basic(t *testing.T) {
+	// Start from a legacy config with old fields; they should be removed after update.
 	configContent := `ai_provider: old
 language: en-us
 ai_providers:
@@ -150,11 +151,22 @@ ai_providers:
 		t.Fatal(err)
 	}
 
-	if m["ai_provider"] != "antigravity" {
-		t.Errorf("ai_provider = %v, want antigravity", m["ai_provider"])
+	// New format: enabled_providers list
+	providers, ok := m["enabled_providers"].([]interface{})
+	if !ok || len(providers) != 2 {
+		t.Errorf("enabled_providers = %v, want [antigravity goose]", m["enabled_providers"])
+	} else if providers[0] != "antigravity" {
+		t.Errorf("first provider = %v, want antigravity", providers[0])
 	}
 	if m["language"] != "pt-br" {
 		t.Errorf("language = %v, want pt-br", m["language"])
+	}
+	// Legacy fields must be absent
+	if _, exists := m["ai_provider"]; exists {
+		t.Error("ai_provider should have been removed (legacy migration)")
+	}
+	if _, exists := m["ai_providers"]; exists {
+		t.Error("ai_providers should have been removed (legacy migration)")
 	}
 }
 
@@ -175,8 +187,12 @@ language: en-us
 		t.Fatal(err)
 	}
 
-	if m["ai_provider"] != "devin" {
-		t.Errorf("ai_provider = %v, want devin", m["ai_provider"])
+	providers, ok := m["enabled_providers"].([]interface{})
+	if !ok || len(providers) != 1 || providers[0] != "devin" {
+		t.Errorf("enabled_providers = %v, want [devin]", m["enabled_providers"])
+	}
+	if _, exists := m["ai_provider"]; exists {
+		t.Error("ai_provider should have been removed (legacy migration)")
 	}
 }
 

@@ -67,9 +67,9 @@ providers:
 	}
 
 	cfg := &config.Config{
-		Version:    "1.0.0",
-		Language:   "en-us",
-		AIProvider: "antigravity",
+		Version:          "1.0.0",
+		Language:         "en-us",
+		EnabledProviders: []string{"antigravity"},
 	}
 	translator := i18n.New("en-us")
 

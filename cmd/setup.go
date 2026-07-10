@@ -96,7 +96,7 @@ func runSetup(log *logging.Manager, cfg *config.Config, t *i18n.Translator) erro
 		return fmt.Errorf("at least one provider must be selected")
 	}
 
-	cfg.AIProvider = selectedNames[0] // first selection is the primary provider
+	cfg.EnabledProviders = selectedNames
 	fmt.Printf("✓ AI providers selected: %s\n", strings.Join(selectedNames, ", "))
 
 	// Update config with selected providers and language
@@ -205,20 +205,15 @@ func updateConfigWithProviders(configPath string, providerNames []string, langua
 		return fmt.Errorf("failed to parse config: %w", err)
 	}
 
-	// Primary provider (first selected) for backward compatibility
-	configMap["ai_provider"] = providerNames[0]
-
 	// Language
 	configMap["language"] = language
 
-	// ai_providers section
-	if aiProviders, ok := configMap["ai_providers"].(map[string]interface{}); ok {
-		aiProviders["enabled"] = providerNames
-	} else {
-		configMap["ai_providers"] = map[string]interface{}{
-			"enabled": providerNames,
-		}
-	}
+	// enabled_providers replaces the old ai_provider / ai_providers.enabled fields
+	configMap["enabled_providers"] = providerNames
+
+	// Remove legacy fields if present (migration)
+	delete(configMap, "ai_provider")
+	delete(configMap, "ai_providers")
 
 	// Marshal back to YAML
 	updatedData, err := yaml.Marshal(configMap)

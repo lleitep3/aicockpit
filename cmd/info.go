@@ -37,7 +37,7 @@ func runInfo(log *logging.Manager, cfg *config.Config, t *i18n.Translator) error
 	fmt.Printf("%s: %s\n", t.T("version"), cfg.Version)
 	fmt.Printf("%s: %s\n", t.T("language"), cfg.Language)
 	fmt.Printf("%s: %s\n", t.T("log_level"), cfg.LogLevel)
-	fmt.Printf("%s: %s\n", t.T("ai_provider"), cfg.AIProvider)
+	fmt.Printf("%s: %s\n", t.T("ai_provider"), strings.Join(cfg.GetEnabledProviders(), ", "))
 	fmt.Println()
 	fmt.Printf("%s: %s\n", t.T("info.dir"), cockpitDir)
 	fmt.Printf("%s: %s\n", t.T("info.config"), configPath)
