@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 )
 
 func createTestPackage(t *testing.T, dir string) string {
@@ -358,6 +359,68 @@ func TestRunPackageHooks_NoDescription(t *testing.T) {
 	err := pm.RunPackageHooks(tmpDir, hooks)
 	if err != nil {
 		t.Errorf("RunPackageHooks failed: %v", err)
+	}
+}
+
+func TestRunPackageHooks_PathTraversal(t *testing.T) {
+	packageDir := t.TempDir()
+	pm := NewPackageManager("")
+
+	outsideDir := t.TempDir()
+	evilPath := filepath.Join(outsideDir, "evil.sh")
+	if err := os.WriteFile(evilPath, []byte("#!/bin/sh\necho pwned"), 0o644); err != nil {
+		t.Fatalf("failed to create evil script: %v", err)
+	}
+
+	hooks := []Hook{{Script: "../" + filepath.Base(outsideDir) + "/evil.sh"}}
+	err := pm.RunPackageHooks(packageDir, hooks)
+	if err == nil {
+		t.Error("expected error for path traversal hook, got nil")
+	}
+}
+
+func TestRunPackageHooks_AbsolutePath(t *testing.T) {
+	packageDir := t.TempDir()
+	pm := NewPackageManager("")
+
+	hooks := []Hook{{Script: "/tmp/evil.sh"}}
+	err := pm.RunPackageHooks(packageDir, hooks)
+	if err == nil {
+		t.Error("expected error for absolute hook script path, got nil")
+	}
+}
+
+func TestRunPackageHooks_EmptyScript(t *testing.T) {
+	packageDir := t.TempDir()
+	pm := NewPackageManager("")
+
+	hooks := []Hook{{Script: "   "}}
+	err := pm.RunPackageHooks(packageDir, hooks)
+	if err == nil {
+		t.Error("expected error for empty hook script path, got nil")
+	}
+}
+
+func TestRunPackageHooks_Timeout(t *testing.T) {
+	oldTimeout := defaultHookTimeout
+	defaultHookTimeout = 1 * time.Millisecond
+	defer func() { defaultHookTimeout = oldTimeout }()
+
+	packageDir := t.TempDir()
+	pm := NewPackageManager("")
+
+	scriptPath := filepath.Join(packageDir, "sleep.sh")
+	if err := os.WriteFile(scriptPath, []byte("#!/bin/sh\nsleep 10"), 0o644); err != nil {
+		t.Fatalf("failed to create sleep script: %v", err)
+	}
+
+	hooks := []Hook{{Script: "sleep.sh"}}
+	err := pm.RunPackageHooks(packageDir, hooks)
+	if err == nil {
+		t.Error("expected timeout error for long-running hook, got nil")
+	}
+	if !strings.Contains(err.Error(), "timed out") {
+		t.Errorf("expected timeout in error message, got: %v", err)
 	}
 }
 
