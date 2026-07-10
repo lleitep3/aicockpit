@@ -11,6 +11,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/lleitep3/aicockpit/internal/resilience"
 )
 
 // defaultDownloadTimeout is the timeout applied when no context is provided.
@@ -22,21 +24,24 @@ var githubBaseURL = "https://github.com"
 
 // PackageDownloader handles downloading packages from registries.
 type PackageDownloader struct {
-	httpClient *http.Client
-	gitToken   string
+	httpClient  *http.Client
+	retryClient *resilience.RetryableClient
+	gitToken    string
 }
 
 // NewPackageDownloader creates a new package downloader.
 func NewPackageDownloader() *PackageDownloader {
+	httpClient := &http.Client{}
 	downloader := &PackageDownloader{
-		httpClient: &http.Client{},
+		httpClient:  httpClient,
+		retryClient: resilience.NewRetryableClient(httpClient, resilience.DefaultConfig(), nil),
 	}
 
 	// Try to get GitHub token from gh CLI
 	downloader.gitToken = getGitHubToken()
 
 	// Configure redirect handling to preserve auth headers
-	downloader.httpClient.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+	httpClient.CheckRedirect = func(req *http.Request, via []*http.Request) error {
 		// Preserve Authorization header on redirects
 		if len(via) > 0 && via[0].Header.Get("Authorization") != "" {
 			req.Header.Set("Authorization", via[0].Header.Get("Authorization"))
@@ -99,7 +104,7 @@ func (pd *PackageDownloader) DownloadPackageFromGitHub(ctx context.Context, owne
 		req.Header.Set("Authorization", fmt.Sprintf("token %s", pd.gitToken))
 	}
 
-	resp, err := pd.httpClient.Do(req)
+	resp, err := pd.retryClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to download package: %w", err)
 	}
@@ -244,7 +249,7 @@ func (pd *PackageDownloader) DownloadPackageFromURL(ctx context.Context, downloa
 		req.Header.Set("Authorization", fmt.Sprintf("token %s", pd.gitToken))
 	}
 
-	resp, err := pd.httpClient.Do(req)
+	resp, err := pd.retryClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to download package: %w", err)
 	}
