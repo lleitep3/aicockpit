@@ -188,8 +188,9 @@ func SavePackage(packagePath string, pkg *Package) error {
 	return nil
 }
 
-// Validate validates the package manifest.
-func (p *Package) Validate() error {
+// Validate validates the package manifest and checks that all declared feature
+// paths exist within packagePath.
+func (p *Package) Validate(packagePath string) error {
 	// Check required fields
 	if p.Name == "" {
 		return fmt.Errorf("package name is required")
@@ -224,8 +225,8 @@ func (p *Package) Validate() error {
 		return fmt.Errorf("package must have at least one feature")
 	}
 
-	// Validate features exist
-	if err := p.validateFeatures(); err != nil {
+	// Validate features exist on disk
+	if err := p.validateFeatures(packagePath); err != nil {
 		return err
 	}
 
@@ -241,10 +242,42 @@ func (p *Package) Validate() error {
 	return nil
 }
 
-// validateFeatures validates that all feature files exist.
-func (p *Package) validateFeatures() error {
-	// Note: This is a basic validation. In real usage, we'd check against
-	// the actual package directory structure.
+// validateFeatures checks that every declared feature path exists within packagePath.
+// An empty packagePath skips the filesystem check (used in unit tests that build
+// Package structs without a real directory).
+func (p *Package) validateFeatures(packagePath string) error {
+	if packagePath == "" {
+		return nil
+	}
+
+	type group struct {
+		features []Feature
+		kind     string
+	}
+	groups := []group{
+		{p.Features.Skills, "skills"},
+		{p.Features.Rules, "rules"},
+		{p.Features.Agents, "agents"},
+		{p.Features.Modules, "modules"},
+		{p.Features.Workflows, "workflows"},
+	}
+
+	for _, g := range groups {
+		for _, f := range g.features {
+			fullPath := filepath.Join(packagePath, f.Path)
+			if _, err := os.Stat(fullPath); os.IsNotExist(err) {
+				return fmt.Errorf("%s feature path does not exist: %s", g.kind, f.Path)
+			}
+		}
+	}
+
+	for _, kb := range p.Features.KB {
+		fullPath := filepath.Join(packagePath, kb.Path)
+		if _, err := os.Stat(fullPath); os.IsNotExist(err) {
+			return fmt.Errorf("kb feature path does not exist: %s", kb.Path)
+		}
+	}
+
 	return nil
 }
 

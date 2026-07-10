@@ -32,7 +32,7 @@ func (pm *PackageManager) InstallPackage(sourcePath string, config map[string]in
 	}
 
 	// Validate package
-	if err := pkg.Validate(); err != nil {
+	if err := pkg.Validate(sourcePath); err != nil {
 		return fmt.Errorf("package validation failed: %w", err)
 	}
 
@@ -231,7 +231,7 @@ func (pm *PackageManager) ValidatePackage(packagePath string) error {
 		return err
 	}
 
-	return pkg.Validate()
+	return pkg.Validate(packagePath)
 }
 
 // copyPackageFiles copies package files from source to destination.
