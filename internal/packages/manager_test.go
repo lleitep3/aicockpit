@@ -674,7 +674,7 @@ func TestCopyDir_CopiesNestedStructure(t *testing.T) {
 	}
 
 	if err := pm.copyDir(src, dst); err != nil {
-		t.Fatalf("copyDir failed: %v", err)
+		t.Fatalf("pm.copyDir failed: %v", err)
 	}
 
 	for _, rel := range []string{"root.txt", filepath.Join("sub", "child.txt")} {
@@ -1631,7 +1631,7 @@ installation:
 		t.Fatalf("InstallPackage v1: %v", err)
 	}
 
-	// Build v2 source where skill file is unreadable → copyPackageFiles fails.
+	// Build v2 source where skill file is unreadable → pm.copyPackageFiles fails.
 	v2Dir := filepath.Join(tmpDir, "cpfail-pkg-v2")
 	if err := os.MkdirAll(filepath.Join(v2Dir, "skills"), 0o755); err != nil {
 		t.Fatalf("setup v2: %v", err)
@@ -1664,7 +1664,7 @@ installation:
 		t.Fatalf("setup v2: %v", err)
 	}
 
-	// Make skill file unreadable so copyPackageFiles returns an error.
+	// Make skill file unreadable so pm.copyPackageFiles returns an error.
 	if err := os.Chmod(v2Skill, 0o000); err != nil {
 		t.Fatalf("chmod: %v", err)
 	}
@@ -1843,7 +1843,7 @@ func TestCopyPackageFiles_SkipsManifest(t *testing.T) {
 	}
 
 	if err := pm.copyPackageFiles(src, dst); err != nil {
-		t.Fatalf("copyPackageFiles failed: %v", err)
+		t.Fatalf("pm.copyPackageFiles failed: %v", err)
 	}
 
 	// Manifest must NOT be in dst (we save it separately).
@@ -1942,7 +1942,7 @@ func TestCopyPackageFiles_SubdirRecursion(t *testing.T) {
 	}
 
 	if err := pm.copyPackageFiles(src, dst); err != nil {
-		t.Fatalf("copyPackageFiles failed: %v", err)
+		t.Fatalf("pm.copyPackageFiles failed: %v", err)
 	}
 
 	if _, err := os.Stat(filepath.Join(dst, "subdir", "file.md")); err != nil {
@@ -1967,7 +1967,7 @@ func TestBackupPackage_Success(t *testing.T) {
 
 	dst := filepath.Join(tmpDir, "backup")
 	if err := pm.backupPackage(src, dst); err != nil {
-		t.Fatalf("backupPackage failed: %v", err)
+		t.Fatalf("pm.backupPackage failed: %v", err)
 	}
 
 	data, err := os.ReadFile(filepath.Join(dst, "data.txt"))
@@ -1979,7 +1979,7 @@ func TestBackupPackage_Success(t *testing.T) {
 	}
 }
 
-// TestBackupPackage_MkdirError exercises the MkdirAll error branch in backupPackage.
+// TestBackupPackage_MkdirError exercises the MkdirAll error branch in pm.backupPackage.
 // We use a file as the parent of dst to make MkdirAll fail.
 func TestBackupPackage_MkdirError(t *testing.T) {
 	if os.Getuid() == 0 {
@@ -2010,7 +2010,7 @@ func TestBackupPackage_MkdirError(t *testing.T) {
 
 // ── copyDir — additional error branches ──────────────────────────────────────
 
-// TestCopyDir_ReadFileError exercises the os.ReadFile error branch inside copyDir.
+// TestCopyDir_ReadFileError exercises the os.ReadFile error branch inside pm.copyDir.
 func TestCopyDir_ReadFileError(t *testing.T) {
 	if os.Getuid() == 0 {
 		t.Skip("skipping permission-based test when running as root")
@@ -2038,7 +2038,7 @@ func TestCopyDir_ReadFileError(t *testing.T) {
 	err := pm.copyDir(src, dst)
 	_ = os.Chmod(unreadable, 0o644)
 	if err == nil {
-		t.Error("expected error for unreadable file in copyDir")
+		t.Error("expected error for unreadable file in pm.copyDir")
 	}
 }
 
@@ -2073,9 +2073,9 @@ func TestCopyDir_SubdirMkdirError(t *testing.T) {
 	}
 }
 
-// TestCopyDir_RecursiveFail exercises line 576-578: copyDir recursive call fails.
+// TestCopyDir_RecursiveFail exercises line 576-578: pm.copyDir recursive call fails.
 // We create src/subdir/deepdir — dst/subdir exists but is read-only so MkdirAll
-// for dst/subdir/deepdir fails, causing the recursive copyDir call to return error.
+// for dst/subdir/deepdir fails, causing the recursive pm.copyDir call to return error.
 func TestCopyDir_RecursiveFail(t *testing.T) {
 	if os.Getuid() == 0 {
 		t.Skip("skipping permission-based test when running as root")
@@ -2108,11 +2108,11 @@ func TestCopyDir_RecursiveFail(t *testing.T) {
 	err := pm.copyDir(src, dst)
 	_ = os.Chmod(dstSubdir, 0o755)
 	if err == nil {
-		t.Error("expected error when nested MkdirAll fails in recursive copyDir")
+		t.Error("expected error when nested MkdirAll fails in recursive pm.copyDir")
 	}
 }
 
-// TestCopyDir_WriteFileFail exercises line 584-586: os.WriteFile fails in copyDir.
+// TestCopyDir_WriteFileFail exercises line 584-586: os.WriteFile fails in pm.copyDir.
 // src has a plain file; dst exists but is read-only.
 func TestCopyDir_WriteFileFail(t *testing.T) {
 	if os.Getuid() == 0 {
@@ -2140,7 +2140,7 @@ func TestCopyDir_WriteFileFail(t *testing.T) {
 	err := pm.copyDir(src, dst)
 	_ = os.Chmod(dst, 0o755)
 	if err == nil {
-		t.Error("expected error when WriteFile fails in copyDir")
+		t.Error("expected error when WriteFile fails in pm.copyDir")
 	}
 }
 
@@ -2160,7 +2160,7 @@ func TestCopyDir_EmptySrc(t *testing.T) {
 	}
 
 	if err := pm.copyDir(src, dst); err != nil {
-		t.Fatalf("copyDir on empty src should not fail: %v", err)
+		t.Fatalf("pm.copyDir on empty src should not fail: %v", err)
 	}
 }
 
@@ -2249,9 +2249,9 @@ func TestSyncPackageAssets_KBFileAsset(t *testing.T) {
 }
 
 // TestSyncPackageAssets_KBDirAsset exercises the KB directory copy path.
-// kb.Path points to a directory. The current implementation calls copyDir(src, dst)
+// kb.Path points to a directory. The current implementation calls pm.copyDir(src, dst)
 // where dst = <cockpitDir>/kb/packages/<pkg>/<base(path)>.
-// copyDir writes files as dst/<entry>, so dst must be pre-created by MkdirAll(dst).
+// pm.copyDir writes files as dst/<entry>, so dst must be pre-created by MkdirAll(dst).
 // The implementation uses MkdirAll(filepath.Dir(dst)) which creates the parent
 // but not dst itself — so this tests the actual code path that runs.
 func TestSyncPackageAssets_KBDirAsset(t *testing.T) {
@@ -2260,7 +2260,7 @@ func TestSyncPackageAssets_KBDirAsset(t *testing.T) {
 	pm := NewPackageManager(cockpitDir)
 
 	installPath := filepath.Join(tmpDir, "pkg-install")
-	// Create an EMPTY kb directory — copyDir on an empty dir succeeds even
+	// Create an EMPTY kb directory — pm.copyDir on an empty dir succeeds even
 	// without dst existing because there are no entries to write.
 	kbDir := filepath.Join(installPath, "kb", "guides")
 	if err := os.MkdirAll(kbDir, 0o755); err != nil {
@@ -2270,7 +2270,7 @@ func TestSyncPackageAssets_KBDirAsset(t *testing.T) {
 	pkg := &Package{
 		Name: "kb-dir-pkg",
 		Features: Features{
-			// Empty source dir: copyDir succeeds (no files to write → no dst needed).
+			// Empty source dir: pm.copyDir succeeds (no files to write → no dst needed).
 			KB: []KBFeature{{Path: "kb/guides", Type: "guide"}},
 		},
 	}
@@ -2435,7 +2435,7 @@ func TestUninstallPackage_LoadManifestFails(t *testing.T) {
 // ── UpgradePackage — success path covers remaining branches ───────────────────
 
 // TestUpgradePackage_SuccessWithAssets exercises the full upgrade happy-path
-// including RemovePackageAssets, backupPackage, copyPackageFiles, SavePackage,
+// including RemovePackageAssets, pm.backupPackage, pm.copyPackageFiles, SavePackage,
 // and SyncPackageAssets — covering lines 131-145, 161-185.
 func TestUpgradePackage_SuccessWithAssets(t *testing.T) {
 	tmpDir := t.TempDir()
@@ -2638,7 +2638,7 @@ func TestCopyPackageFiles_SkipsManifestDir(t *testing.T) {
 	}
 
 	if err := pm.copyPackageFiles(src, dst); err != nil {
-		t.Fatalf("copyPackageFiles failed: %v", err)
+		t.Fatalf("pm.copyPackageFiles failed: %v", err)
 	}
 
 	// The cockpit-package.yml dir must NOT be in dst.
@@ -2663,7 +2663,7 @@ func TestCopyFile_StatErrorUnreachable(t *testing.T) {
 	t.Skip("copyFile Stat error after ReadFile success is unreachable on normal filesystems")
 }
 
-// ── SyncPackageAssets — dir asset with MkdirAll + copyDir ────────────────────
+// ── SyncPackageAssets — dir asset with MkdirAll + pm.copyDir ────────────────────
 
 // TestSyncPackageAssets_DirAssetCopied exercises the info.IsDir() == true
 // branch for regular (non-KB) assets (lines 371-377).
@@ -2772,7 +2772,7 @@ func TestListInstalledPackages_MkdirAllFails(t *testing.T) {
 	}
 }
 
-// TestUninstallPackage_BackupFails exercises line 85-87: backupPackage fails
+// TestUninstallPackage_BackupFails exercises line 85-87: pm.backupPackage fails
 // when the backup destination directory can't be created.
 func TestUninstallPackage_BackupFails(t *testing.T) {
 	if os.Getuid() == 0 {
@@ -2824,7 +2824,7 @@ func TestSyncPackageAssets_KBDir(t *testing.T) {
 	pm := NewPackageManager(cockpitDir)
 
 	pkgDir := t.TempDir()
-	// Create an EMPTY KB dir asset — copyDir on empty dir succeeds without
+	// Create an EMPTY KB dir asset — pm.copyDir on empty dir succeeds without
 	// needing dst to exist (no entries to write).
 	kbSrc := filepath.Join(pkgDir, "kb-docs")
 	if err := os.MkdirAll(kbSrc, 0o755); err != nil {
@@ -2884,7 +2884,7 @@ func TestCopyDir_MissingSrc(t *testing.T) {
 	pm := NewPackageManager(tmpDir)
 	err := pm.copyDir("/nonexistent/src-dir", filepath.Join(tmpDir, "dst"))
 	if err == nil {
-		t.Error("copyDir() with missing src should error")
+		t.Error("pm.copyDir() with missing src should error")
 	}
 }
 
