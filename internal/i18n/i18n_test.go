@@ -16,7 +16,7 @@ func TestNew(t *testing.T) {
 }
 
 func TestT(t *testing.T) {
-	tr := Get()
+	tr := New("en-us")
 
 	tests := []struct {
 		key      string
@@ -36,7 +36,7 @@ func TestT(t *testing.T) {
 }
 
 func TestTWithArgs(t *testing.T) {
-	tr := Get()
+	tr := New("en-us")
 
 	result := tr.T("setup.saved", "/home/user/.cockpit/config.yaml")
 	expected := "Configuration saved to /home/user/.cockpit/config.yaml"
@@ -47,7 +47,7 @@ func TestTWithArgs(t *testing.T) {
 }
 
 func TestSetLanguage(t *testing.T) {
-	tr := Get()
+	tr := New("en-us")
 	tr.SetLanguage("pt-br")
 
 	if tr.language != "pt-br" {
@@ -61,32 +61,40 @@ func TestSetLanguage(t *testing.T) {
 	if result != expected {
 		t.Errorf("Expected %s, got %s", expected, result)
 	}
-
-	// Reset to English for other tests
-	tr.SetLanguage("en-us")
 }
 
 func TestFallbackToEnglish(t *testing.T) {
-	tr := Get()
-	tr.SetLanguage("pt-br")
+	tr := New("pt-br")
 
 	// Use a key that exists in both languages
 	result := tr.T("welcome")
 	if result == "welcome" {
 		t.Error("Should have translated the key")
 	}
-
-	// Reset to English for other tests
-	tr.SetLanguage("en-us")
 }
 
 func TestMissingKey(t *testing.T) {
-	tr := Get()
+	tr := New("en-us")
 
 	result := tr.T("nonexistent.key")
 	expected := "nonexistent.key"
 
 	if result != expected {
 		t.Errorf("For missing key, expected %s, got %s", expected, result)
+	}
+}
+
+func TestNewReturnsIndependentInstances(t *testing.T) {
+	tr1 := New("en-us")
+	tr2 := New("pt-br")
+
+	if tr1 == tr2 {
+		t.Error("New() must return independent instances, not a shared singleton")
+	}
+	if tr1.language != "en-us" {
+		t.Errorf("tr1.language = %s, want en-us", tr1.language)
+	}
+	if tr2.language != "pt-br" {
+		t.Errorf("tr2.language = %s, want pt-br", tr2.language)
 	}
 }

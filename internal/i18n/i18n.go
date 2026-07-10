@@ -12,28 +12,13 @@ type Translator struct {
 	mu       sync.RWMutex
 }
 
-var (
-	instance *Translator
-	once     sync.Once
-)
-
-// New creates a new translator instance (singleton pattern).
+// New creates a new Translator for the given language.
+// Each call returns a fresh, independent instance — no global state.
 func New(language string) *Translator {
-	once.Do(func() {
-		instance = &Translator{
-			language: language,
-			messages: initMessages(),
-		}
-	})
-	return instance
-}
-
-// Get returns the translator instance.
-func Get() *Translator {
-	if instance == nil {
-		instance = New("en-us")
+	return &Translator{
+		language: language,
+		messages: initMessages(),
 	}
-	return instance
 }
 
 // SetLanguage changes the current language.
