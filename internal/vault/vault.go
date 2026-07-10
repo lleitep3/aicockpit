@@ -1,10 +1,11 @@
 package vault
 
 import (
+	"encoding/json"
 	"fmt"
-	"os/exec"
-	"runtime"
-	"strings"
+	"os"
+	"path/filepath"
+	"sync"
 
 	"github.com/zalando/go-keyring"
 )
@@ -29,20 +30,87 @@ type Manager interface {
 // osVault is the internal implementation that uses the operating system's native keychain.
 // This is intentionally unexported (lowercase) to prevent direct access from external packages.
 // External packages should use NamespacedVault or CommandHandler for security.
-type osVault struct{}
+//
+// Because go-keyring provides no enumeration API, osVault maintains a lightweight
+// JSON index of all keys it has ever written.  The index lives in the user's
+// cockpit directory and is the source-of-truth for ClearAllSecrets.
+type osVault struct {
+	indexPath string
+	mu        sync.Mutex
+}
 
 // newOSVault creates a new osVault instance (internal use only).
 func newOSVault() *osVault {
-	return &osVault{}
+	return &osVault{indexPath: defaultIndexPath()}
 }
 
-// Set securely stores the value in the OS keychain.
-func (v *osVault) Set(key string, value string) error {
-	err := keyring.Set(serviceName, key, value)
+func defaultIndexPath() string {
+	home, err := os.UserHomeDir()
 	if err != nil {
-		return fmt.Errorf("failed to save secret to vault: %w", err)
+		return filepath.Join(os.TempDir(), ".cockpit_vault_index.json")
+	}
+	return filepath.Join(home, ".cockpit", ".vault_index.json")
+}
+
+// loadIndex reads the persisted key set from disk.
+// Returns an empty set when the file does not exist yet.
+func (v *osVault) loadIndex() (map[string]struct{}, error) {
+	data, err := os.ReadFile(v.indexPath)
+	if os.IsNotExist(err) {
+		return make(map[string]struct{}), nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to read vault index: %w", err)
+	}
+	var keys []string
+	if err := json.Unmarshal(data, &keys); err != nil {
+		// Corrupt index — start fresh rather than blocking the vault entirely.
+		return make(map[string]struct{}), nil
+	}
+	set := make(map[string]struct{}, len(keys))
+	for _, k := range keys {
+		set[k] = struct{}{}
+	}
+	return set, nil
+}
+
+// saveIndex persists the key set to disk atomically.
+func (v *osVault) saveIndex(set map[string]struct{}) error {
+	keys := make([]string, 0, len(set))
+	for k := range set {
+		keys = append(keys, k)
+	}
+	data, err := json.Marshal(keys)
+	if err != nil {
+		return fmt.Errorf("failed to marshal vault index: %w", err)
+	}
+	if err := os.MkdirAll(filepath.Dir(v.indexPath), 0o700); err != nil {
+		return fmt.Errorf("failed to create vault index directory: %w", err)
+	}
+	tmp := v.indexPath + ".tmp"
+	if err := os.WriteFile(tmp, data, 0o600); err != nil {
+		return fmt.Errorf("failed to write vault index: %w", err)
+	}
+	if err := os.Rename(tmp, v.indexPath); err != nil {
+		os.Remove(tmp) //nolint:errcheck
+		return fmt.Errorf("failed to commit vault index: %w", err)
 	}
 	return nil
+}
+
+// Set securely stores the value in the OS keychain and records the key in the index.
+func (v *osVault) Set(key string, value string) error {
+	if err := keyring.Set(serviceName, key, value); err != nil {
+		return fmt.Errorf("failed to save secret to vault: %w", err)
+	}
+	v.mu.Lock()
+	defer v.mu.Unlock()
+	set, err := v.loadIndex()
+	if err != nil {
+		return err
+	}
+	set[key] = struct{}{}
+	return v.saveIndex(set)
 }
 
 // Get retrieves the value from the OS keychain.
@@ -54,11 +122,47 @@ func (v *osVault) Get(key string) (string, error) {
 	return val, nil
 }
 
-// Delete removes the value from the OS keychain.
+// Delete removes the value from the OS keychain and strikes the key from the index.
 func (v *osVault) Delete(key string) error {
-	err := keyring.Delete(serviceName, key)
-	if err != nil {
+	if err := keyring.Delete(serviceName, key); err != nil {
 		return fmt.Errorf("failed to delete secret from vault: %w", err)
+	}
+	v.mu.Lock()
+	defer v.mu.Unlock()
+	set, err := v.loadIndex()
+	if err != nil {
+		return err
+	}
+	delete(set, key)
+	return v.saveIndex(set)
+}
+
+// ClearAllSecrets deletes every key recorded in the index, then removes the
+// index file itself.  Any individual delete failure is collected and returned
+// as a combined error so the caller knows which keys could not be removed.
+func (v *osVault) ClearAllSecrets() error {
+	v.mu.Lock()
+	defer v.mu.Unlock()
+
+	set, err := v.loadIndex()
+	if err != nil {
+		return err
+	}
+
+	var errs []string
+	for key := range set {
+		if err := keyring.Delete(serviceName, key); err != nil {
+			errs = append(errs, fmt.Sprintf("delete %q: %v", key, err))
+		}
+	}
+
+	if len(errs) > 0 {
+		return fmt.Errorf("ClearAllSecrets: %d key(s) could not be deleted: %v", len(errs), errs)
+	}
+
+	// Remove the index file — vault is now empty.
+	if err := os.Remove(v.indexPath); err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("failed to remove vault index: %w", err)
 	}
 	return nil
 }
@@ -68,74 +172,5 @@ func (v *osVault) Delete(key string) error {
 // This method is maintained for backward compatibility but should be avoided in new code.
 // Direct access to OSVault allows bypassing namespace isolation and security controls.
 func NewOSVault() Manager {
-	return &osVault{}
-}
-
-// ClearAllSecrets removes all secrets from the vault (factory reset)
-func (v *osVault) ClearAllSecrets() error {
-	// Note: go-keyring doesn't provide a way to list all keys
-	// This is a limitation of the underlying keyring systems
-	// For a true factory reset, we would need platform-specific implementations
-
-	// For Linux with gnome-keyring, we could use secret-tool
-	// For macOS with Keychain, we could use security command
-	// For Windows with Credential Manager, we could use cmdkey
-
-	// For now, we'll provide a platform-specific implementation
-	return clearAllSecretsPlatform()
-}
-
-// clearAllSecretsPlatform provides platform-specific implementation
-func clearAllSecretsPlatform() error {
-	if runtime.GOOS == "linux" {
-		return clearAllSecretsLinux()
-	} else if runtime.GOOS == "darwin" {
-		return clearAllSecretsMacOS()
-	} else if runtime.GOOS == "windows" {
-		return clearAllSecretsWindows()
-	}
-
-	return fmt.Errorf("unsupported platform: %s", runtime.GOOS)
-}
-
-// clearAllSecretsLinux clears secrets using secret-tool (gnome-keyring)
-func clearAllSecretsLinux() error {
-	// Try to use secret-tool to list and delete all aicockpit secrets
-	cmd := exec.Command("secret-tool", "search", "service", "aicockpit")
-	output, err := cmd.Output()
-	if err != nil {
-		// secret-tool might not be available
-		return fmt.Errorf("secret-tool not available: %w", err)
-	}
-
-	// Parse output and delete each secret
-	lines := strings.Split(string(output), "\n")
-	for _, line := range lines {
-		if strings.Contains(line, "aicockpit") {
-			// Extract the label/attribute to delete
-			// This is simplified - in production you'd need better parsing
-			parts := strings.Fields(line)
-			if len(parts) > 0 {
-				label := parts[len(parts)-1]
-				deleteCmd := exec.Command("secret-tool", "clear", "service", "aicockpit", "label", label)
-				deleteCmd.Run()
-			}
-		}
-	}
-
-	return nil
-}
-
-// clearAllSecretsMacOS clears secrets using security command
-func clearAllSecretsMacOS() error {
-	// Use security command to delete all aicockpit entries
-	cmd := exec.Command("security", "delete-generic-password", "-s", "aicockpit")
-	return cmd.Run()
-}
-
-// clearAllSecretsWindows clears secrets using cmdkey
-func clearAllSecretsWindows() error {
-	// Use cmdkey to delete all aicockpit entries
-	cmd := exec.Command("cmdkey", "/delete:aicockpit")
-	return cmd.Run()
+	return &osVault{indexPath: defaultIndexPath()}
 }
