@@ -11,6 +11,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 No features
 
 ### Bug Fixes
+- add context with timeout to package downloader (#95)
+
+### Performance
+No performance improvements
+
+### Breaking Changes
+No breaking changes
+
+### Documentation
+No documentation changes
+
+### Testing
+No test changes
+
+### Other Changes
+No other changes
+
+
+## [0.4.8] - 2026-07-10
+
+### Changed since v0.4.7
+
+
+### Features
+No features
+
+### Bug Fixes
 - skip update prompt stdin read in non-interactive environments (#91)
 
 ### Performance
@@ -27,6 +54,7 @@ No test changes
 
 ### Other Changes
 No other changes
+
 
 
 ## [0.4.7] - 2026-07-10

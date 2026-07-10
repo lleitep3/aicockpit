@@ -270,7 +270,7 @@ func TestDownloadPackageFromURL_WithExplicitContext(t *testing.T) {
 	}
 }
 
-func TestDownloadPackageFromURL_WithNilContext(t *testing.T) {
+func TestDownloadPackageFromURL_WithNoDeadlineContext(t *testing.T) {
 	const pkg = "hello-world"
 	srv := newTestZipServer(t, pkg)
 	defer srv.Close()
@@ -280,10 +280,10 @@ func TestDownloadPackageFromURL_WithNilContext(t *testing.T) {
 
 	downloader := NewPackageDownloader()
 
-	// nil ctx must trigger the internal defaultDownloadTimeout path without panicking.
-	err := downloader.DownloadPackageFromURL(nil, srv.URL+"/pkg.zip", pkg, destDir)
+	// context.TODO() has no deadline — the function must apply defaultDownloadTimeout internally.
+	err := downloader.DownloadPackageFromURL(context.TODO(), srv.URL+"/pkg.zip", pkg, destDir)
 	if err != nil {
-		t.Fatalf("expected no error with nil context, got: %v", err)
+		t.Fatalf("expected no error with no-deadline context, got: %v", err)
 	}
 }
 

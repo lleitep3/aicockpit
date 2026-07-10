@@ -20,7 +20,7 @@ func TestCheckForUpdates_NewVersionAvailable(t *testing.T) {
 	}))
 	defer server.Close()
 
-	service := NewUpdateServiceWithClient(server.Client(), server.URL+"/repos/%s/%s/releases/latest")
+	service := NewUpdateServiceWithClient(server.Client(), server.URL+"/repos/%s/%s/releases/latest", "0.1.0")
 
 	latestVersion, url, err := service.CheckForUpdates()
 	if err != nil {
@@ -49,7 +49,7 @@ func TestCheckForUpdates_NoNewVersion(t *testing.T) {
 	}))
 	defer server.Close()
 
-	service := NewUpdateServiceWithClient(server.Client(), server.URL+"/repos/%s/%s/releases/latest")
+	service := NewUpdateServiceWithClient(server.Client(), server.URL+"/repos/%s/%s/releases/latest", "9.9.9")
 
 	latestVersion, url, err := service.CheckForUpdates()
 	if err != nil {
@@ -71,7 +71,7 @@ func TestCheckForUpdates_APIError(t *testing.T) {
 	}))
 	defer server.Close()
 
-	service := NewUpdateServiceWithClient(server.Client(), server.URL+"/repos/%s/%s/releases/latest")
+	service := NewUpdateServiceWithClient(server.Client(), server.URL+"/repos/%s/%s/releases/latest", "0.1.0")
 
 	_, _, err := service.CheckForUpdates()
 	if err == nil {
@@ -148,7 +148,7 @@ func TestGetReleaseNotes(t *testing.T) {
 	}))
 	defer server.Close()
 
-	service := NewUpdateServiceWithClient(server.Client(), server.URL+"/repos/%s/%s/releases/latest")
+	service := NewUpdateServiceWithClient(server.Client(), server.URL+"/repos/%s/%s/releases/latest", "0.1.0")
 
 	notes, err := service.GetReleaseNotes("0.2.0")
 	if err != nil {
@@ -166,7 +166,7 @@ func TestGetReleaseNotes_NotFound(t *testing.T) {
 	}))
 	defer server.Close()
 
-	service := NewUpdateServiceWithClient(server.Client(), server.URL+"/repos/%s/%s/releases/latest")
+	service := NewUpdateServiceWithClient(server.Client(), server.URL+"/repos/%s/%s/releases/latest", "0.1.0")
 
 	_, err := service.GetReleaseNotes("0.2.0")
 	if err == nil {
