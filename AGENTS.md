@@ -93,6 +93,16 @@ go test ./...
 - [x] Sem secrets commitados
 ```
 
+**MANDATORY: The PR body must contain ALL six sections below, in order. The `validate-pr` CI check fails if any section is missing.**
+
+Required sections (exact heading text):
+1. `## Descrição / Description`
+2. `## Tipo de Mudança / Type of Change`
+3. `## Impacto na Versão (Semantic Versioning)`
+4. `## Evidências / Evidence`
+5. `## Comandos para Teste / Test Commands`
+6. `## Checklist de Qualidade / Quality Checklist`
+
 **Usage example with `gh pr create`:**
 ```bash
 gh pr create --title "feat(x): ..." --body "$(cat <<'EOF'
@@ -101,6 +111,19 @@ gh pr create --title "feat(x): ..." --body "$(cat <<'EOF'
 ## Tipo de Mudança / Type of Change
 - [x] Nova Feature
 ...
+## Impacto na Versão (Semantic Versioning)
+- [x] MINOR
+## Evidências / Evidence
+...
+## Comandos para Teste / Test Commands
+\`\`\`bash
+go test ./...
+\`\`\`
+## Checklist de Qualidade / Quality Checklist
+- [x] Testes adicionados/atualizados
+- [x] Cobertura >= 90%
+- [x] Sem erros de lint
+- [x] Sem secrets commitados
 EOF
 )"
 ```
