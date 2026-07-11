@@ -3,8 +3,10 @@ package cmd
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/lleitep3/aicockpit/internal/config"
+	"github.com/lleitep3/aicockpit/internal/events"
 	"github.com/lleitep3/aicockpit/internal/packages"
 	"github.com/lleitep3/aicockpit/internal/services"
 	"github.com/spf13/cobra"
@@ -153,6 +155,20 @@ func NewPkgInstallCommand(svc services.PackageService, cfg *config.Config) *cobr
 					fmt.Printf("  ⚠ Deploy warning: %v\n", err)
 				}
 			}
+
+			// Emit package installed event
+			svc.EmitEvent(events.Event{
+				Topic: events.TopicPackageInstalled,
+				Payload: events.PackageInstalledPayload{
+					PackageName:  packageName,
+					Version:      pkgEntry.Version,
+					Author:       pkgEntry.Author,
+					Description:  pkgEntry.Description,
+					InstallPath:  installPath,
+					RegistryName: registryName,
+					Timestamp:    time.Now(),
+				},
+			})
 
 			// Install dependencies if requested
 			if withDependencies && len(downloadedPkg.Dependencies) > 0 {

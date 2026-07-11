@@ -4,6 +4,7 @@
 package services
 
 import (
+	"github.com/lleitep3/aicockpit/internal/events"
 	"github.com/lleitep3/aicockpit/internal/packages"
 )
 
@@ -36,6 +37,10 @@ type PackageService interface {
 	SyncPackageAssets(pkg *packages.Package, installPath string) error
 	RemovePackageAssets(pkg *packages.Package) error
 	TriggerDeploy(cockpitBin string) error
+
+	// Events
+	// EmitEvent publishes an event on the underlying bus. No-op if bus is nil.
+	EmitEvent(e events.Event)
 }
 
 // DefaultPackageService is the production implementation of PackageService.
@@ -44,15 +49,32 @@ type DefaultPackageService struct {
 	pm    *packages.PackageManager
 	rm    *packages.RegistryManager
 	cache *packages.RegistryCache
+	bus   *events.Bus // may be nil (no-op when nil)
 }
 
 // NewPackageService creates a DefaultPackageService backed by the given cockpit directory.
-func NewPackageService(cockpitDir string) PackageService {
+// If bus is nil, no events are emitted.
+func NewPackageService(cockpitDir string, bus *events.Bus) PackageService {
 	return &DefaultPackageService{
 		pm:    packages.NewPackageManager(cockpitDir),
 		rm:    packages.NewRegistryManager(cockpitDir),
 		cache: packages.NewRegistryCache(cockpitDir),
+		bus:   bus,
 	}
+}
+
+// publish dispatches e on the bus. It is a no-op when bus is nil.
+// Errors from the bus are intentionally discarded — event failures must
+// never abort package operations.
+func (s *DefaultPackageService) publish(e events.Event) {
+	if s.bus != nil {
+		s.bus.Publish(e) //nolint:errcheck
+	}
+}
+
+// EmitEvent publishes an event on the underlying bus. No-op if bus is nil.
+func (s *DefaultPackageService) EmitEvent(e events.Event) {
+	s.publish(e)
 }
 
 func (s *DefaultPackageService) SearchPackages(query string, registries []packages.RegistryConfig) ([]packages.PackageIndexEntry, error) {
