@@ -2,6 +2,8 @@ package vault
 
 import (
 	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/zalando/go-keyring"
@@ -154,5 +156,72 @@ func TestNamespacedVaultFromEnv(t *testing.T) {
 	namespace := vault.GetNamespace()
 	if namespace != testAppID {
 		t.Errorf("Expected namespace %q, got %q", testAppID, namespace)
+	}
+}
+
+func newTestNamespacedVault(t *testing.T, appID string) *NamespacedVault {
+	t.Helper()
+	keyring.MockInit()
+	vault := NewNamespacedVault(appID)
+	vault.osVault.indexPath = filepath.Join(t.TempDir(), ".vault_index.json")
+	return vault
+}
+
+func TestNamespacedVault_ListSecrets(t *testing.T) {
+	vault := newTestNamespacedVault(t, "list-test")
+
+	_, err := vault.ListSecrets()
+	if err == nil {
+		t.Fatal("expected error from ListSecrets")
+	}
+	if !strings.Contains(err.Error(), "listing secrets not supported") {
+		t.Errorf("unexpected error message: %v", err)
+	}
+}
+
+func TestNamespacedVault_ClearAllSecrets(t *testing.T) {
+	vault := newTestNamespacedVault(t, "clear-test")
+
+	key := "secret-key"
+	value := "secret-value"
+	if err := vault.Set(key, value); err != nil {
+		t.Fatalf("Set: %v", err)
+	}
+
+	if err := vault.ClearAllSecrets(); err != nil {
+		t.Fatalf("ClearAllSecrets: %v", err)
+	}
+
+	if _, err := vault.Get(key); err == nil {
+		t.Error("secret should be removed after ClearAllSecrets")
+	}
+}
+
+func TestNamespacedVaultFromEnv_Fallback(t *testing.T) {
+	oldValue := os.Getenv("COCKPIT_APP_ID")
+	os.Unsetenv("COCKPIT_APP_ID")
+	defer func() {
+		if oldValue != "" {
+			os.Setenv("COCKPIT_APP_ID", oldValue)
+		}
+	}()
+
+	vault := NewNamespacedVaultFromEnv()
+	if vault == nil {
+		t.Fatal("Expected vault, got nil")
+	}
+	if vault.GetNamespace() == "" {
+		t.Error("Expected non-empty namespace from process fallback")
+	}
+}
+
+func TestSanitizeNamespace_LongName(t *testing.T) {
+	long := make([]byte, 100)
+	for i := range long {
+		long[i] = 'a'
+	}
+	result := sanitizeNamespace(string(long))
+	if len(result) != 64 {
+		t.Errorf("expected length 64, got %d", len(result))
 	}
 }

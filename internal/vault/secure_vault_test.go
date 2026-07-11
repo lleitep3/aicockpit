@@ -137,6 +137,21 @@ func TestSecureVault(t *testing.T) {
 	})
 }
 
+func TestSecureVault_Get_NotFound(t *testing.T) {
+	keyring.MockInit()
+	os.Setenv("COCKPIT_DEV_MODE", "true")
+	defer os.Unsetenv("COCKPIT_DEV_MODE")
+
+	sv, err := NewSecureVault("secure-test")
+	if err != nil {
+		t.Fatalf("NewSecureVault: %v", err)
+	}
+
+	if _, err := sv.Get("nonexistent-key"); err == nil {
+		t.Error("expected error when secret does not exist")
+	}
+}
+
 func TestExtractAppIDFromPath(t *testing.T) {
 	testCases := []struct {
 		input    string

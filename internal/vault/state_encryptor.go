@@ -21,14 +21,18 @@ type EncryptedState struct {
 	Salt      string `json:"salt"` // Add salt for key derivation
 }
 
+const defaultLockStatePath = "/home/lleite/.cockpit/vault/lock_state.json"
+
 // StateEncryptor handles encryption and signing of lock state
 type StateEncryptor struct {
 	masterPassword *MasterPassword
+	path           string
 }
 
 func NewStateEncryptor() *StateEncryptor {
 	return &StateEncryptor{
 		masterPassword: NewMasterPassword(),
+		path:           defaultLockStatePath,
 	}
 }
 
@@ -91,12 +95,12 @@ func (se *StateEncryptor) EncryptAndSign(state *LockState) error {
 		return fmt.Errorf("failed to marshal encrypted state: %w", err)
 	}
 
-	return os.WriteFile("/home/lleite/.cockpit/vault/lock_state.json", encryptedJSON, 0600)
+	return os.WriteFile(se.path, encryptedJSON, 0600)
 }
 
 // loadSalt loads the salt from existing encrypted state
 func (se *StateEncryptor) loadSalt() string {
-	data, err := os.ReadFile("/home/lleite/.cockpit/vault/lock_state.json")
+	data, err := os.ReadFile(se.path)
 	if err != nil {
 		return "" // File doesn't exist
 	}
@@ -112,7 +116,7 @@ func (se *StateEncryptor) loadSalt() string {
 // DecryptAndVerify decrypts and verifies the lock state
 func (se *StateEncryptor) DecryptAndVerify() (*LockState, error) {
 	// Read encrypted file
-	encryptedData, err := os.ReadFile("/home/lleite/.cockpit/vault/lock_state.json")
+	encryptedData, err := os.ReadFile(se.path)
 	if err != nil {
 		if os.IsNotExist(err) {
 			// File doesn't exist, return default state

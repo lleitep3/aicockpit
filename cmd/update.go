@@ -29,10 +29,17 @@ func NewUpdateCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translat
 }
 
 func runUpdate(log *logging.Manager, cfg *config.Config, t *i18n.Translator) error {
+	return runUpdateWithDeps(log, cfg, t, update.NewUpdateService(), os.Stdin)
+}
+
+// performUpdateFunc is the function used to perform the actual update. Tests can override this.
+var performUpdateFunc = performUpdate
+
+// runUpdateWithDeps is the testable core of runUpdate.
+func runUpdateWithDeps(log *logging.Manager, cfg *config.Config, t *i18n.Translator, svc updateChecker, stdin *os.File) error {
 	fmt.Println(t.T("update.checking"))
 
-	updateService := update.NewUpdateService()
-	latestVersion, releaseURL, err := updateService.CheckForUpdates()
+	latestVersion, releaseURL, err := svc.CheckForUpdates()
 	if err != nil {
 		return fmt.Errorf(t.T("update.check_failed"), err)
 	}
@@ -48,7 +55,7 @@ func runUpdate(log *logging.Manager, cfg *config.Config, t *i18n.Translator) err
 	fmt.Printf(t.T("update.changelog")+"\n", releaseURL)
 	fmt.Print(t.T("update.prompt"))
 
-	reader := bufio.NewReader(os.Stdin)
+	reader := bufio.NewReader(stdin)
 	input, _ := reader.ReadString('\n')
 	input = strings.TrimSpace(strings.ToLower(input))
 
@@ -60,7 +67,7 @@ func runUpdate(log *logging.Manager, cfg *config.Config, t *i18n.Translator) err
 	fmt.Printf(t.T("update.updating")+"\n", latestVersion)
 
 	// Perform the update
-	if err := performUpdate(latestVersion); err != nil {
+	if err := performUpdateFunc(latestVersion); err != nil {
 		return fmt.Errorf(t.T("update.failed"), err)
 	}
 
@@ -74,7 +81,7 @@ func runUpdate(log *logging.Manager, cfg *config.Config, t *i18n.Translator) err
 
 	// Ask if user wants to run setup
 	fmt.Print("Would you like to run setup now? (y/n): ")
-	reader = bufio.NewReader(os.Stdin)
+	reader = bufio.NewReader(stdin)
 	input, _ = reader.ReadString('\n')
 	input = strings.TrimSpace(strings.ToLower(input))
 
@@ -126,8 +133,15 @@ func performUpdate(targetVersion string) error {
 	return nil
 }
 
+// runCommandFunc is the function used to run commands. Tests can override this.
+var runCommandFunc = runCommandDefault
+
 // runCommand executes a shell command
 func runCommand(name string, args ...string) error {
+	return runCommandFunc(name, args...)
+}
+
+func runCommandDefault(name string, args ...string) error {
 	cmd := exec.Command(name, args...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

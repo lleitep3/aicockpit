@@ -55,3 +55,15 @@ func TestRunDoctor_MissingDirs(t *testing.T) {
 		t.Errorf("runDoctor() with missing dirs should return nil, got %v", err)
 	}
 }
+
+func TestNewDoctorCommand_Execute(t *testing.T) {
+	log, cfg, tr := newTestDeps(t)
+	tmpDir := t.TempDir()
+	t.Setenv("HOME", tmpDir)
+
+	cmd := NewDoctorCommand(log, cfg, tr)
+	// Execute via cobra — exercises the RunE lambda
+	if err := cmd.Execute(); err != nil {
+		t.Errorf("doctor Execute error = %v", err)
+	}
+}

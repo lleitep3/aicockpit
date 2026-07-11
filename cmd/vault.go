@@ -66,9 +66,12 @@ func checkVaultAccess(operation string) error {
 	return nil
 }
 
+// osExecutable is the function used to get the current executable path. Tests can override.
+var osExecutable = os.Executable
+
 // getCurrentProcessName returns the current process/package name
 func getCurrentProcessName() string {
-	exePath, err := os.Executable()
+	exePath, err := osExecutable()
 	if err != nil {
 		return "unknown"
 	}

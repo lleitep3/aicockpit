@@ -8,6 +8,49 @@ import (
 	"github.com/zalando/go-keyring"
 )
 
+func TestNewOSVault(t *testing.T) {
+	keyring.MockInit()
+
+	manager := NewOSVault()
+	if manager == nil {
+		t.Fatal("expected Manager, got nil")
+	}
+
+	v, ok := manager.(*osVault)
+	if !ok {
+		t.Fatalf("expected *osVault, got %T", manager)
+	}
+	v.indexPath = filepath.Join(t.TempDir(), ".vault_index.json")
+
+	key := "osvault-key"
+	value := "osvault-value"
+	if err := manager.Set(key, value); err != nil {
+		t.Fatalf("Set: %v", err)
+	}
+
+	got, err := manager.Get(key)
+	if err != nil {
+		t.Fatalf("Get: %v", err)
+	}
+	if got != value {
+		t.Errorf("expected %q, got %q", value, got)
+	}
+
+	if err := manager.Delete(key); err != nil {
+		t.Fatalf("Delete: %v", err)
+	}
+
+	if err := manager.Set("k2", "v2"); err != nil {
+		t.Fatalf("Set: %v", err)
+	}
+	if err := manager.ClearAllSecrets(); err != nil {
+		t.Fatalf("ClearAllSecrets: %v", err)
+	}
+	if _, err := manager.Get("k2"); err == nil {
+		t.Error("secret should be removed after ClearAllSecrets")
+	}
+}
+
 // newTestVault returns an osVault with an index file isolated to the test's
 // temp directory so tests never share state.
 func newTestVault(t *testing.T) *osVault {
@@ -130,6 +173,45 @@ func TestOSVault_ClearAllSecrets_EmptyVault(t *testing.T) {
 	v := newTestVault(t)
 	if err := v.ClearAllSecrets(); err != nil {
 		t.Errorf("ClearAllSecrets on empty vault: %v", err)
+	}
+}
+
+func TestOSVault_SaveIndex_Error(t *testing.T) {
+	keyring.MockInit()
+	v := &osVault{indexPath: "/dev/null/.vault_index.json"}
+
+	if err := v.Set("k", "v"); err == nil {
+		t.Fatal("expected error when index path cannot be created")
+	}
+}
+
+func TestOSVault_Delete_SaveIndexError(t *testing.T) {
+	v := newTestVault(t)
+
+	if err := v.Set("k", "v"); err != nil {
+		t.Fatalf("Set: %v", err)
+	}
+
+	v.indexPath = "/dev/null/.vault_index.json"
+	if err := v.Delete("k"); err == nil {
+		t.Fatal("expected error when index cannot be saved")
+	}
+}
+
+func TestOSVault_ClearAllSecrets_WithDeleteFailure(t *testing.T) {
+	v := newTestVault(t)
+
+	if err := v.Set("stubborn", "value"); err != nil {
+		t.Fatalf("Set: %v", err)
+	}
+	// Remove the secret from the keyring while keeping it in the index so
+	// ClearAllSecrets encounters a delete failure.
+	if err := keyring.Delete(serviceName, "stubborn"); err != nil {
+		t.Fatalf("Delete: %v", err)
+	}
+
+	if err := v.ClearAllSecrets(); err == nil {
+		t.Fatal("expected ClearAllSecrets to report delete failure")
 	}
 }
 

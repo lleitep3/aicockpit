@@ -54,3 +54,14 @@ func TestRunInfo_NoPackages(t *testing.T) {
 		t.Errorf("runInfo() with empty cockpit dir error = %v", err)
 	}
 }
+
+func TestNewInfoCommand_Execute(t *testing.T) {
+	log, cfg, tr := newTestDeps(t)
+	tmpDir := t.TempDir()
+	t.Setenv("HOME", tmpDir)
+
+	cmd := NewInfoCommand(log, cfg, tr)
+	if err := cmd.Execute(); err != nil {
+		t.Errorf("info Execute error = %v", err)
+	}
+}

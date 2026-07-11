@@ -18,6 +18,11 @@ func NewDeployer() *Deployer {
 // to the active providers. cockpitBin is the path to the cockpit binary; if empty,
 // the current process binary is used via os.Executable.
 func (d *Deployer) Trigger(cockpitBin string) error {
+	// Allow tests to skip deploy to avoid re-invoking the test binary
+	if os.Getenv("COCKPIT_SKIP_DEPLOY") == "1" {
+		return nil
+	}
+
 	if cockpitBin == "" {
 		bin, err := os.Executable()
 		if err != nil {
