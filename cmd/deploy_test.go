@@ -112,3 +112,80 @@ func TestNewDeployCommand_NoProviders(t *testing.T) {
 		t.Error("deploy with no providers should return error")
 	}
 }
+
+func TestNewDeployCommand_NoProvidersYaml(t *testing.T) {
+	tmpDir := t.TempDir()
+	t.Setenv("HOME", tmpDir)
+
+	// Create cockpit dir but no providers.yaml
+	cockpitDir := filepath.Join(tmpDir, ".cockpit")
+	if err := os.MkdirAll(cockpitDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	logMgr, _ := logging.NewManager(filepath.Join(tmpDir, "logs"))
+	cfg := &config.Config{
+		Version:          "1.0.0",
+		Language:         "en-us",
+		EnabledProviders: []string{"antigravity"},
+	}
+	tr := i18n.New("en-us")
+
+	cmd := NewDeployCommand(logMgr, cfg, tr)
+	if err := cmd.Execute(); err == nil {
+		t.Error("deploy with missing providers.yaml should return error")
+	}
+}
+
+func TestNewDeployCommand_PartialFailure(t *testing.T) {
+	tmpDir := t.TempDir()
+	t.Setenv("HOME", tmpDir)
+
+	cwd, _ := os.Getwd()
+	defer os.Chdir(cwd)
+	os.Chdir(tmpDir)
+
+	cockpitHome := filepath.Join(tmpDir, ".cockpit")
+	if err := os.MkdirAll(filepath.Join(cockpitHome, "rules"), 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	// Write providers.yaml with a provider that has bad workspace
+	providersYaml := `
+version: "1.0"
+providers:
+  bad-provider:
+    enabled: true
+    name: "Bad Provider"
+    workspace: "/nonexistent/path/xyz"
+    features:
+      rules:
+        enabled: true
+        path: ".bad-provider/rules.md"
+`
+	if err := os.WriteFile(filepath.Join(cockpitHome, "providers.yaml"), []byte(providersYaml), 0644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(cockpitHome, "rules", "rule.md"), []byte("rule"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	logMgr, _ := logging.NewManager(filepath.Join(tmpDir, "logs"))
+	cfg := &config.Config{
+		Version:          "1.0.0",
+		Language:         "en-us",
+		EnabledProviders: []string{"bad-provider"},
+	}
+	tr := i18n.New("en-us")
+
+	cmd := NewDeployCommand(logMgr, cfg, tr)
+	var buf bytes.Buffer
+	cmd.SetOut(&buf)
+	cmd.SetErr(&buf)
+
+	// Should fail because bad workspace path
+	err := cmd.Execute()
+	if err == nil {
+		t.Error("deploy with bad workspace should return error")
+	}
+}

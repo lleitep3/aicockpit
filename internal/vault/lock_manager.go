@@ -43,6 +43,7 @@ func NewLockManager(storagePath string) *LockManager {
 		storagePath: storagePath,
 		encryptor:   NewStateEncryptor(),
 	}
+	lm.encryptor.path = storagePath
 
 	lm.load()
 	return lm

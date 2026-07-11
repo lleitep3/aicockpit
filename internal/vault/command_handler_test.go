@@ -1,6 +1,7 @@
 package vault
 
 import (
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -188,6 +189,126 @@ func TestCommandHandlerConfig(t *testing.T) {
 			t.Error("Expected removed command to be disallowed")
 		}
 	})
+}
+
+func newTestCommandHandler(t *testing.T) *CommandHandler {
+	t.Helper()
+	keyring.MockInit()
+	handler := NewCommandHandler()
+	handler.vault.indexPath = filepath.Join(t.TempDir(), ".vault_index.json")
+	return handler
+}
+
+func TestCommandHandler_SetAllowedCommands(t *testing.T) {
+	handler := newTestCommandHandler(t)
+
+	handler.SetAllowedCommands([]string{"whoami", "pwd"})
+
+	if handler.isCommandAllowed("echo") {
+		t.Error("echo should not be allowed after SetAllowedCommands")
+	}
+	if !handler.isCommandAllowed("whoami") {
+		t.Error("whoami should be allowed")
+	}
+	if !handler.isCommandAllowed("pwd") {
+		t.Error("pwd should be allowed")
+	}
+}
+
+func TestCommandHandler_SetAuditLog(t *testing.T) {
+	handler := newTestCommandHandler(t)
+
+	var audited bool
+	handler.SetAuditLog(func(command string, keys []string, success bool) {
+		audited = true
+		if command != "disallowed_cmd" {
+			t.Errorf("expected command disallowed_cmd, got %q", command)
+		}
+		if success {
+			t.Error("expected audit to record failure for disallowed command")
+		}
+	})
+
+	_, err := handler.ExecuteWithSecret("disallowed_cmd", []string{"test"}, nil)
+	if err == nil {
+		t.Fatal("expected error for disallowed command")
+	}
+	if !audited {
+		t.Error("custom audit log function was not called")
+	}
+}
+
+func TestCommandHandler_ClearAllSecrets(t *testing.T) {
+	handler := newTestCommandHandler(t)
+
+	if err := handler.vault.Set("clear-key", "clear-value"); err != nil {
+		t.Fatalf("Set: %v", err)
+	}
+
+	if err := handler.ClearAllSecrets(); err != nil {
+		t.Fatalf("ClearAllSecrets: %v", err)
+	}
+
+	if _, err := handler.vault.Get("clear-key"); err == nil {
+		t.Error("secret should be removed after ClearAllSecrets")
+	}
+}
+
+func TestCommandHandler_ExecuteWithSecretForOutput_Error(t *testing.T) {
+	handler := newTestCommandHandler(t)
+
+	_, err := handler.ExecuteWithSecretForOutput(
+		"disallowed_cmd",
+		[]string{"test"},
+		nil,
+	)
+	if err == nil {
+		t.Fatal("expected error when command is not allowed")
+	}
+}
+
+func TestCommandHandler_IsCommandAllowed(t *testing.T) {
+	handler := newTestCommandHandler(t)
+
+	if !handler.isCommandAllowed("echo") {
+		t.Error("echo should be allowed")
+	}
+	if !handler.isCommandAllowed("/usr/bin/echo") {
+		t.Error("absolute unix path should be allowed")
+	}
+	if !handler.isCommandAllowed("C:\\Windows\\System32\\echo") {
+		t.Error("windows-style path should be allowed")
+	}
+	if handler.isCommandAllowed("") {
+		t.Error("empty command should not be allowed")
+	}
+	if handler.isCommandAllowed("notallowed") {
+		t.Error("notallowed should not be allowed")
+	}
+}
+
+func TestCommandHandler_SanitizeOutput_SecretMissing(t *testing.T) {
+	handler := newTestCommandHandler(t)
+
+	output := handler.sanitizeOutput("sensitive output", []SecretInjection{
+		{SecretKey: "missing-secret", Placeholder: "{{SECRET}}"},
+	})
+
+	if output != "sensitive output" {
+		t.Errorf("expected output unchanged, got %q", output)
+	}
+}
+
+func TestCommandHandler_ExecuteWithSecret_CommandFails(t *testing.T) {
+	handler := newTestCommandHandler(t)
+
+	_, err := handler.ExecuteWithSecret("git", []string{"--not-a-valid-git-option-xyz"}, nil)
+	if err == nil {
+		t.Fatal("expected error when allowed command exits non-zero")
+	}
+	if !strings.Contains(err.Error(), "command execution failed") {
+		t.Errorf("unexpected error: %v", err)
+	}
 }
 
 func TestSecretInjection(t *testing.T) {

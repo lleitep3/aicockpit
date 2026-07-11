@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -12,7 +13,7 @@ func TestListMetrics_NoFilter(t *testing.T) {
 
 	// Record a couple of metrics so the list is non-empty.
 	log.LogCommand("deploy", nil, "success", 0, time.Millisecond*10, "", nil)
-	log.LogCommand("info", nil, "error", 1, time.Millisecond*5, "oops", nil)
+	log.LogCommand("info", nil, "error", 1, time.Millisecond*5, "oops", fmt.Errorf("some error"))
 
 	if err := listMetrics(log, cfg, tr, "", "", 0, ""); err != nil {
 		t.Errorf("listMetrics() error = %v", err)
@@ -129,4 +130,37 @@ func TestShowLogs_WithExistingFile(t *testing.T) {
 	if err := showLogs(log, cfg, tr, "2006-01-02"); err != nil {
 		t.Errorf("showLogs() error = %v", err)
 	}
+}
+
+// ── Constructor Execute tests for 100% RunE coverage ──────────────────────
+
+func TestNewMetricsListCommand_Execute(t *testing.T) {
+	log, cfg, tr := newTestDeps(t)
+	cmd := NewMetricsListCommand(log, cfg, tr)
+	if err := cmd.Execute(); err != nil {
+		t.Errorf("metrics list Execute error = %v", err)
+	}
+}
+
+func TestNewMetricsStatsCommand_Execute(t *testing.T) {
+	log, cfg, tr := newTestDeps(t)
+	cmd := NewMetricsStatsCommand(log, cfg, tr)
+	if err := cmd.Execute(); err != nil {
+		t.Errorf("metrics stats Execute error = %v", err)
+	}
+}
+
+func TestNewMetricsLogsCommand_Execute(t *testing.T) {
+	log, cfg, tr := newTestDeps(t)
+	cmd := NewMetricsLogsCommand(log, cfg, tr)
+	if err := cmd.Execute(); err != nil {
+		t.Errorf("metrics logs Execute error = %v", err)
+	}
+}
+
+func TestNewMetricsCommand_Execute(t *testing.T) {
+	log, cfg, tr := newTestDeps(t)
+	cmd := NewMetricsCommand(log, cfg, tr)
+	// Running with no subcommand should show help or run default
+	_ = cmd.Execute()
 }

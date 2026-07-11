@@ -12,6 +12,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// promptPassword is the function used to read passwords. It defaults to vault.PromptPassword
+// but can be overridden in tests.
+var promptPassword = vault.PromptPassword
+
 func NewVaultLockCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translator) *cobra.Command {
 	var reasonFlag string
 
@@ -250,7 +254,7 @@ func NewVaultSetMasterPasswordCommand(log *logging.Manager, cfg *config.Config, 
 
 			// Prompt for new password
 			fmt.Print("Enter new master password: ")
-			password1, err := vault.PromptPassword()
+			password1, err := promptPassword()
 			if err != nil {
 				return fmt.Errorf("failed to read password: %w", err)
 			}
@@ -261,7 +265,7 @@ func NewVaultSetMasterPasswordCommand(log *logging.Manager, cfg *config.Config, 
 
 			// Confirm password
 			fmt.Print("Confirm master password: ")
-			password2, err := vault.PromptPassword()
+			password2, err := promptPassword()
 			if err != nil {
 				return fmt.Errorf("failed to read password: %w", err)
 			}
@@ -335,7 +339,7 @@ func NewVaultChangeMasterPasswordCommand(log *logging.Manager, cfg *config.Confi
 
 			// Prompt for old password
 			fmt.Print("Enter current master password: ")
-			oldPassword, err := vault.PromptPassword()
+			oldPassword, err := promptPassword()
 			if err != nil {
 				return fmt.Errorf("failed to read password: %w", err)
 			}
@@ -347,7 +351,7 @@ func NewVaultChangeMasterPasswordCommand(log *logging.Manager, cfg *config.Confi
 
 			// Prompt for new password
 			fmt.Print("Enter new master password: ")
-			newPassword1, err := vault.PromptPassword()
+			newPassword1, err := promptPassword()
 			if err != nil {
 				return fmt.Errorf("failed to read password: %w", err)
 			}
@@ -358,7 +362,7 @@ func NewVaultChangeMasterPasswordCommand(log *logging.Manager, cfg *config.Confi
 
 			// Confirm new password
 			fmt.Print("Confirm new master password: ")
-			newPassword2, err := vault.PromptPassword()
+			newPassword2, err := promptPassword()
 			if err != nil {
 				return fmt.Errorf("failed to read password: %w", err)
 			}

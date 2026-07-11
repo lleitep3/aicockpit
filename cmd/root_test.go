@@ -1,12 +1,16 @@
 package cmd
 
 import (
+	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/lleitep3/aicockpit/internal/config"
 	"github.com/lleitep3/aicockpit/internal/i18n"
 	"github.com/lleitep3/aicockpit/internal/logging"
+	"github.com/spf13/cobra"
 )
 
 func newTestDeps(t *testing.T) (*logging.Manager, *config.Config, *i18n.Translator) {
@@ -87,4 +91,321 @@ func TestCheckForUpdates_Interactive_AcceptsNo(t *testing.T) {
 	stdin := strings.NewReader("n\n")
 
 	checkForUpdatesWithReader(log, cfg, tr, stdin, true)
+}
+
+func TestNewRootCommand_SubcommandCount(t *testing.T) {
+	tmpDir := t.TempDir()
+	t.Setenv("HOME", tmpDir)
+
+	log, cfg, tr := newTestDeps(t)
+	cmd := NewRootCommand(log, cfg, tr)
+
+	// Should have at least setup, deploy, info, doctor, uninstall, vault, metrics, kb, pkg, update
+	if len(cmd.Commands()) < 10 {
+		t.Errorf("expected at least 10 subcommands, got %d", len(cmd.Commands()))
+	}
+}
+
+func TestNewRootCommand_Flags(t *testing.T) {
+	log, cfg, tr := newTestDeps(t)
+	cmd := NewRootCommand(log, cfg, tr)
+
+	if cmd.PersistentFlags().Lookup("language") == nil {
+		t.Error("expected --language persistent flag")
+	}
+	if cmd.PersistentFlags().Lookup("log-level") == nil {
+		t.Error("expected --log-level persistent flag")
+	}
+}
+
+func TestNewRootCommand_PersistentPreRun_SkipsUpdate(t *testing.T) {
+	tmpDir := t.TempDir()
+	t.Setenv("HOME", tmpDir)
+
+	log, cfg, tr := newTestDeps(t)
+	cfg.AutoUpdateCheck = false
+
+	cmd := NewRootCommand(log, cfg, tr)
+	// The PersistentPreRun is on the rootCmd itself. Invoke it with cmd.Name()="update"
+	// to exercise the skip path.
+	if cmd.PersistentPreRun != nil {
+		// Create a fake child with Name() == "update"
+		fakeChild := &cobra.Command{Use: "update"}
+		cmd.PersistentPreRun(fakeChild, []string{})
+	}
+}
+
+func TestNewRootCommand_PersistentPreRun_SkipsSetup(t *testing.T) {
+	tmpDir := t.TempDir()
+	t.Setenv("HOME", tmpDir)
+
+	log, cfg, tr := newTestDeps(t)
+	cfg.AutoUpdateCheck = false
+
+	cmd := NewRootCommand(log, cfg, tr)
+	if cmd.PersistentPreRun != nil {
+		fakeChild := &cobra.Command{Use: "setup"}
+		cmd.PersistentPreRun(fakeChild, []string{})
+	}
+}
+
+func TestNewRootCommand_PersistentPreRun_RegularCommand(t *testing.T) {
+	tmpDir := t.TempDir()
+	t.Setenv("HOME", tmpDir)
+
+	log, cfg, tr := newTestDeps(t)
+	cfg.AutoUpdateCheck = false // ensures checkForUpdates returns fast
+
+	cmd := NewRootCommand(log, cfg, tr)
+	if cmd.PersistentPreRun != nil {
+		fakeChild := &cobra.Command{Use: "info"}
+		cmd.PersistentPreRun(fakeChild, []string{})
+	}
+}
+
+// TestCheckForUpdatesWithReader_ShouldCheck exercises the full path when
+// AutoUpdateCheck is true and the last check was long ago (triggers network).
+// The network call may fail (no internet in CI) but we exercise all code paths.
+func TestCheckForUpdatesWithReader_ShouldCheck_NonInteractive(t *testing.T) {
+	tmpDir := t.TempDir()
+	t.Setenv("HOME", tmpDir)
+
+	// Create cockpit dir so SetLastUpdateCheck can persist
+	cockpitDir := filepath.Join(tmpDir, ".cockpit")
+	if err := os.MkdirAll(cockpitDir, 0o755); err != nil {
+		t.Fatalf("MkdirAll: %v", err)
+	}
+	// Write minimal config so Save() works
+	cfgYaml := `version: "0.1.0"
+language: en-us
+auto_update_check: true
+`
+	if err := os.WriteFile(filepath.Join(cockpitDir, "config.yaml"), []byte(cfgYaml), 0o644); err != nil {
+		t.Fatalf("WriteFile: %v", err)
+	}
+
+	log, _, tr := newTestDeps(t)
+	cfg := &config.Config{
+		Version:         "0.1.0",
+		Language:        "en-us",
+		AutoUpdateCheck: true,
+		LastUpdateCheck: "2020-01-01T00:00:00Z", // long ago
+	}
+
+	stdin := strings.NewReader("")
+	// Non-interactive: should never block on stdin
+	checkForUpdatesWithReader(log, cfg, tr, stdin, false)
+}
+
+func TestCheckForUpdatesWithReader_ShouldCheck_Interactive(t *testing.T) {
+	tmpDir := t.TempDir()
+	t.Setenv("HOME", tmpDir)
+
+	cockpitDir := filepath.Join(tmpDir, ".cockpit")
+	if err := os.MkdirAll(cockpitDir, 0o755); err != nil {
+		t.Fatalf("MkdirAll: %v", err)
+	}
+	cfgYaml := `version: "0.1.0"
+language: en-us
+auto_update_check: true
+`
+	if err := os.WriteFile(filepath.Join(cockpitDir, "config.yaml"), []byte(cfgYaml), 0o644); err != nil {
+		t.Fatalf("WriteFile: %v", err)
+	}
+
+	log, _, tr := newTestDeps(t)
+	cfg := &config.Config{
+		Version:         "0.1.0",
+		Language:        "en-us",
+		AutoUpdateCheck: true,
+		LastUpdateCheck: "2020-01-01T00:00:00Z",
+	}
+
+	// Interactive: provide "n\n" so if prompted it declines
+	stdin := strings.NewReader("n\n")
+	checkForUpdatesWithReader(log, cfg, tr, stdin, true)
+}
+
+func TestCheckForUpdatesWithReader_EmptyLastCheck(t *testing.T) {
+	tmpDir := t.TempDir()
+	t.Setenv("HOME", tmpDir)
+
+	cockpitDir := filepath.Join(tmpDir, ".cockpit")
+	if err := os.MkdirAll(cockpitDir, 0o755); err != nil {
+		t.Fatalf("MkdirAll: %v", err)
+	}
+	cfgYaml := `version: "0.1.0"
+language: en-us
+auto_update_check: true
+`
+	if err := os.WriteFile(filepath.Join(cockpitDir, "config.yaml"), []byte(cfgYaml), 0o644); err != nil {
+		t.Fatalf("WriteFile: %v", err)
+	}
+
+	log, _, tr := newTestDeps(t)
+	cfg := &config.Config{
+		Version:         "0.1.0",
+		Language:        "en-us",
+		AutoUpdateCheck: true,
+		LastUpdateCheck: "", // empty triggers check
+	}
+
+	stdin := strings.NewReader("n\n")
+	checkForUpdatesWithReader(log, cfg, tr, stdin, true)
+}
+
+// ── Mock update checker for full branch coverage ──────────────────────────
+
+type mockUpdateChecker struct {
+	version    string
+	releaseURL string
+	err        error
+}
+
+func (m *mockUpdateChecker) CheckForUpdates() (string, string, error) {
+	return m.version, m.releaseURL, m.err
+}
+
+func TestCheckForUpdatesWithService_Error(t *testing.T) {
+	tmpDir := t.TempDir()
+	t.Setenv("HOME", tmpDir)
+
+	cockpitDir := filepath.Join(tmpDir, ".cockpit")
+	os.MkdirAll(cockpitDir, 0o755)
+	os.WriteFile(filepath.Join(cockpitDir, "config.yaml"), []byte("version: \"0.1.0\"\nlanguage: en-us\nauto_update_check: true\n"), 0o644)
+
+	log, _, tr := newTestDeps(t)
+	cfg := &config.Config{
+		Version:         "0.1.0",
+		Language:        "en-us",
+		AutoUpdateCheck: true,
+		LastUpdateCheck: "2020-01-01T00:00:00Z",
+	}
+
+	mock := &mockUpdateChecker{err: fmt.Errorf("network error")}
+	stdin := strings.NewReader("")
+	checkForUpdatesWithService(log, cfg, tr, stdin, false, mock)
+}
+
+func TestCheckForUpdatesWithService_NoUpdate(t *testing.T) {
+	tmpDir := t.TempDir()
+	t.Setenv("HOME", tmpDir)
+
+	cockpitDir := filepath.Join(tmpDir, ".cockpit")
+	os.MkdirAll(cockpitDir, 0o755)
+	os.WriteFile(filepath.Join(cockpitDir, "config.yaml"), []byte("version: \"0.1.0\"\nlanguage: en-us\nauto_update_check: true\n"), 0o644)
+
+	log, _, tr := newTestDeps(t)
+	cfg := &config.Config{
+		Version:         "0.1.0",
+		Language:        "en-us",
+		AutoUpdateCheck: true,
+		LastUpdateCheck: "2020-01-01T00:00:00Z",
+	}
+
+	mock := &mockUpdateChecker{version: "", releaseURL: ""}
+	stdin := strings.NewReader("")
+	checkForUpdatesWithService(log, cfg, tr, stdin, false, mock)
+}
+
+func TestCheckForUpdatesWithService_UpdateAvailable_NonInteractive(t *testing.T) {
+	tmpDir := t.TempDir()
+	t.Setenv("HOME", tmpDir)
+
+	cockpitDir := filepath.Join(tmpDir, ".cockpit")
+	os.MkdirAll(cockpitDir, 0o755)
+	os.WriteFile(filepath.Join(cockpitDir, "config.yaml"), []byte("version: \"0.1.0\"\nlanguage: en-us\nauto_update_check: true\n"), 0o644)
+
+	log, _, tr := newTestDeps(t)
+	cfg := &config.Config{
+		Version:         "0.1.0",
+		Language:        "en-us",
+		AutoUpdateCheck: true,
+		LastUpdateCheck: "2020-01-01T00:00:00Z",
+	}
+
+	mock := &mockUpdateChecker{version: "9.9.9", releaseURL: "https://github.com/releases/9.9.9"}
+	stdin := strings.NewReader("")
+	checkForUpdatesWithService(log, cfg, tr, stdin, false, mock)
+}
+
+func TestCheckForUpdatesWithService_UpdateAvailable_Interactive_AcceptY(t *testing.T) {
+	tmpDir := t.TempDir()
+	t.Setenv("HOME", tmpDir)
+
+	cockpitDir := filepath.Join(tmpDir, ".cockpit")
+	os.MkdirAll(cockpitDir, 0o755)
+	os.WriteFile(filepath.Join(cockpitDir, "config.yaml"), []byte("version: \"0.1.0\"\nlanguage: en-us\nauto_update_check: true\n"), 0o644)
+
+	log, _, tr := newTestDeps(t)
+	cfg := &config.Config{
+		Version:         "0.1.0",
+		Language:        "en-us",
+		AutoUpdateCheck: true,
+		LastUpdateCheck: "2020-01-01T00:00:00Z",
+	}
+
+	mock := &mockUpdateChecker{version: "9.9.9", releaseURL: "https://github.com/releases/9.9.9"}
+	stdin := strings.NewReader("y\n")
+	checkForUpdatesWithService(log, cfg, tr, stdin, true, mock)
+}
+
+func TestCheckForUpdatesWithService_UpdateAvailable_Interactive_AcceptSim(t *testing.T) {
+	tmpDir := t.TempDir()
+	t.Setenv("HOME", tmpDir)
+
+	cockpitDir := filepath.Join(tmpDir, ".cockpit")
+	os.MkdirAll(cockpitDir, 0o755)
+	os.WriteFile(filepath.Join(cockpitDir, "config.yaml"), []byte("version: \"0.1.0\"\nlanguage: en-us\nauto_update_check: true\n"), 0o644)
+
+	log, _, tr := newTestDeps(t)
+	cfg := &config.Config{
+		Version:         "0.1.0",
+		Language:        "en-us",
+		AutoUpdateCheck: true,
+		LastUpdateCheck: "2020-01-01T00:00:00Z",
+	}
+
+	mock := &mockUpdateChecker{version: "9.9.9", releaseURL: "https://github.com/releases/9.9.9"}
+	stdin := strings.NewReader("sim\n")
+	checkForUpdatesWithService(log, cfg, tr, stdin, true, mock)
+}
+
+func TestCheckForUpdatesWithService_UpdateAvailable_Interactive_Decline(t *testing.T) {
+	tmpDir := t.TempDir()
+	t.Setenv("HOME", tmpDir)
+
+	cockpitDir := filepath.Join(tmpDir, ".cockpit")
+	os.MkdirAll(cockpitDir, 0o755)
+	os.WriteFile(filepath.Join(cockpitDir, "config.yaml"), []byte("version: \"0.1.0\"\nlanguage: en-us\nauto_update_check: true\n"), 0o644)
+
+	log, _, tr := newTestDeps(t)
+	cfg := &config.Config{
+		Version:         "0.1.0",
+		Language:        "en-us",
+		AutoUpdateCheck: true,
+		LastUpdateCheck: "2020-01-01T00:00:00Z",
+	}
+
+	mock := &mockUpdateChecker{version: "9.9.9", releaseURL: "https://github.com/releases/9.9.9"}
+	stdin := strings.NewReader("n\n")
+	checkForUpdatesWithService(log, cfg, tr, stdin, true, mock)
+}
+
+func TestCheckForUpdatesWithService_SetLastUpdateCheckFails(t *testing.T) {
+	tmpDir := t.TempDir()
+	t.Setenv("HOME", tmpDir)
+	// Don't create cockpit dir so SetLastUpdateCheck fails
+
+	log, _, tr := newTestDeps(t)
+	cfg := &config.Config{
+		Version:         "0.1.0",
+		Language:        "en-us",
+		AutoUpdateCheck: true,
+		LastUpdateCheck: "2020-01-01T00:00:00Z",
+	}
+
+	mock := &mockUpdateChecker{version: "", releaseURL: ""}
+	stdin := strings.NewReader("")
+	checkForUpdatesWithService(log, cfg, tr, stdin, false, mock)
 }

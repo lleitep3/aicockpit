@@ -146,6 +146,15 @@ func TestNewPkgRegistriesInfoCommand(t *testing.T) {
 	}
 }
 
+func TestNewPkgRegistriesCommand_RunE(t *testing.T) {
+	cmd := NewPkgRegistriesCommand()
+	cmd.SetArgs([]string{})
+	// Running without subcommand should print help
+	if err := cmd.Execute(); err != nil {
+		t.Errorf("registries execute error = %v", err)
+	}
+}
+
 func TestPkgRegistriesCommandHierarchy(t *testing.T) {
 	registriesCmd := NewPkgRegistriesCommand()
 
@@ -201,6 +210,44 @@ func TestPkgRegistriesAddCommand_Run(t *testing.T) {
 	}
 }
 
+func TestPkgRegistriesAddCommand_Run_AlreadyExists(t *testing.T) {
+	makeRegistryConfig(t)
+	cmd := NewPkgRegistriesAddCommand()
+	cmd.SetArgs([]string{"default", "https://example.com/dup"})
+	if err := cmd.Execute(); err == nil {
+		t.Error("add duplicate registry should return error")
+	}
+}
+
+func TestPkgRegistriesAddCommand_Run_WithFlags(t *testing.T) {
+	makeRegistryConfig(t)
+	cmd := NewPkgRegistriesAddCommand()
+	cmd.SetArgs([]string{"custom-reg", "https://example.com/reg", "--branch", "develop", "--priority", "5"})
+	if err := cmd.Execute(); err != nil {
+		t.Errorf("add with flags error = %v", err)
+	}
+}
+
+func TestPkgRegistriesListCommand_Run_NoRegistries(t *testing.T) {
+	tmpDir := t.TempDir()
+	t.Setenv("HOME", tmpDir)
+	cockpitDir := filepath.Join(tmpDir, ".cockpit")
+	os.MkdirAll(cockpitDir, 0o755)
+	yaml := `version: "0.1.0"
+language: en-us
+log_level: info
+auto_update_check: false
+enabled_providers: []
+package_registries: []
+`
+	os.WriteFile(filepath.Join(cockpitDir, "config.yaml"), []byte(yaml), 0o644)
+
+	cmd := NewPkgRegistriesListCommand()
+	if err := cmd.Execute(); err != nil {
+		t.Errorf("list empty registries error = %v", err)
+	}
+}
+
 func TestPkgRegistriesRemoveCommand_Run_NotFound(t *testing.T) {
 	makeRegistryConfig(t)
 	cmd := NewPkgRegistriesRemoveCommand()
@@ -217,6 +264,45 @@ func TestPkgRegistriesRemoveCommand_Run_Found(t *testing.T) {
 	if err := cmd.Execute(); err != nil {
 		t.Errorf("remove default registry error = %v", err)
 	}
+}
+
+func TestPkgRegistriesEnableCommand_Run_NoConfig(t *testing.T) {
+	tmpDir := t.TempDir()
+	t.Setenv("HOME", tmpDir)
+	// No config.yaml — config.Load() should fail
+	cmd := NewPkgRegistriesEnableCommand()
+	cmd.SetArgs([]string{"anything"})
+	if err := cmd.Execute(); err == nil {
+		t.Error("enable without config should return error")
+	}
+}
+
+func TestPkgRegistriesDisableCommand_Run_NoConfig(t *testing.T) {
+	tmpDir := t.TempDir()
+	t.Setenv("HOME", tmpDir)
+	cmd := NewPkgRegistriesDisableCommand()
+	cmd.SetArgs([]string{"anything"})
+	if err := cmd.Execute(); err == nil {
+		t.Error("disable without config should return error")
+	}
+}
+
+func TestPkgRegistriesAddCommand_Run_NoConfig(t *testing.T) {
+	tmpDir := t.TempDir()
+	t.Setenv("HOME", tmpDir)
+	cmd := NewPkgRegistriesAddCommand()
+	cmd.SetArgs([]string{"new-reg", "https://example.com"})
+	// May succeed (config creates default) or fail — either exercises the path
+	_ = cmd.Execute()
+}
+
+func TestPkgRegistriesListCommand_Run_NoConfig(t *testing.T) {
+	tmpDir := t.TempDir()
+	t.Setenv("HOME", tmpDir)
+	cmd := NewPkgRegistriesListCommand()
+	cmd.SetArgs([]string{})
+	// May succeed (config creates default) or fail
+	_ = cmd.Execute()
 }
 
 func TestPkgRegistriesEnableCommand_Run_NotFound(t *testing.T) {

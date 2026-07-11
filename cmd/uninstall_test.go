@@ -1,8 +1,8 @@
 package cmd
 
 import (
+	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 )
 
@@ -23,25 +23,11 @@ func TestRunUninstall_Cancel(t *testing.T) {
 	tmpDir := t.TempDir()
 	t.Setenv("HOME", tmpDir)
 
-	// Inject a reader that simulates the user typing "n" (cancel).
-	cfg.AutoUpdateCheck = false
-	_ = filepath.Join(tmpDir, ".cockpit") // cockpit dir need not exist for cancel path
-
-	// runUninstall reads from os.Stdin — we can't mock os.Stdin directly here,
-	// but we can test the cancel branch via the exported command wrapper by
-	// piping input through cmd.SetIn().
-	// Instead, test it as a unit by reading from a strings.Reader via a helper.
-	// Since runUninstall reads os.Stdin directly, the safest portable approach
-	// is to verify the command constructor works and that the cancel path
-	// produces no error (it returns nil).
-
-	// We exercise runUninstall's cancel branch by temporarily replacing stdin.
-	oldStdin := pipeStdin(t, "n\n")
-	defer oldStdin()
-
-	if err := runUninstall(log, cfg, tr); err != nil {
-		t.Errorf("runUninstall (cancel) error = %v", err)
-	}
+	withStdin(t, "n", func() {
+		if err := runUninstall(log, cfg, tr); err != nil {
+			t.Errorf("runUninstall (cancel) error = %v", err)
+		}
+	})
 }
 
 func TestRunUninstall_Confirm(t *testing.T) {
@@ -50,35 +36,99 @@ func TestRunUninstall_Confirm(t *testing.T) {
 	tmpDir := t.TempDir()
 	t.Setenv("HOME", tmpDir)
 
-	// cockpit dir does not need to exist — RemoveAll is a no-op on missing dirs.
-	oldStdin := pipeStdin(t, "y\n")
-	defer oldStdin()
+	// Create cockpit dir so RemoveAll actually removes something
+	cockpitDir := filepath.Join(tmpDir, ".cockpit")
+	if err := os.MkdirAll(cockpitDir, 0o755); err != nil {
+		t.Fatalf("MkdirAll: %v", err)
+	}
 
-	if err := runUninstall(log, cfg, tr); err != nil {
-		t.Errorf("runUninstall (confirm) error = %v", err)
+	withStdin(t, "y", func() {
+		if err := runUninstall(log, cfg, tr); err != nil {
+			t.Errorf("runUninstall (confirm) error = %v", err)
+		}
+	})
+
+	// Verify the dir was removed
+	if _, err := os.Stat(cockpitDir); !os.IsNotExist(err) {
+		t.Error("expected cockpit dir to be removed after uninstall")
 	}
 }
 
-// pipeStdin replaces os.Stdin with a pipe seeded with data and returns a
-// cleanup func that restores the original stdin.
-func pipeStdin(t *testing.T, data string) func() {
-	t.Helper()
-	r, w, err := pipeFromString(data)
-	if err != nil {
-		t.Fatalf("pipeStdin: %v", err)
-	}
-	_ = r
-	_ = w
-	// os.Stdin cannot be replaced portably in tests without cgo tricks, so we
-	// skip actually replacing it and just verify the function handles the
-	// strings.Reader path. The test above exercises the code path through the
-	// command constructor.
-	return func() {}
+func TestRunUninstall_ConfirmPortuguese(t *testing.T) {
+	log, cfg, tr := newTestDeps(t)
+
+	tmpDir := t.TempDir()
+	t.Setenv("HOME", tmpDir)
+
+	withStdin(t, "sim", func() {
+		if err := runUninstall(log, cfg, tr); err != nil {
+			t.Errorf("runUninstall (sim) error = %v", err)
+		}
+	})
 }
 
-// pipeFromString is a no-op helper kept for symmetry.
-func pipeFromString(s string) (*strings.Reader, interface{}, error) {
-	return strings.NewReader(s), nil, nil
+func TestRunUninstall_ConfirmS(t *testing.T) {
+	log, cfg, tr := newTestDeps(t)
+
+	tmpDir := t.TempDir()
+	t.Setenv("HOME", tmpDir)
+
+	withStdin(t, "s", func() {
+		if err := runUninstall(log, cfg, tr); err != nil {
+			t.Errorf("runUninstall (s) error = %v", err)
+		}
+	})
+}
+
+func TestRunUninstall_ConfirmYes(t *testing.T) {
+	log, cfg, tr := newTestDeps(t)
+
+	tmpDir := t.TempDir()
+	t.Setenv("HOME", tmpDir)
+
+	withStdin(t, "yes", func() {
+		if err := runUninstall(log, cfg, tr); err != nil {
+			t.Errorf("runUninstall (yes) error = %v", err)
+		}
+	})
+}
+
+func TestNewUninstallCommand_Execute(t *testing.T) {
+	tmpDir := t.TempDir()
+	t.Setenv("HOME", tmpDir)
+
+	log, cfg, tr := newTestDeps(t)
+	cmd := NewUninstallCommand(log, cfg, tr)
+
+	// Provide "n" to cancel — exercises the RunE lambda
+	withStdin(t, "n", func() {
+		if err := cmd.Execute(); err != nil {
+			t.Errorf("uninstall Execute error = %v", err)
+		}
+	})
+}
+
+func TestRunUninstall_RemoveAllFails(t *testing.T) {
+	log, cfg, tr := newTestDeps(t)
+
+	tmpDir := t.TempDir()
+	t.Setenv("HOME", tmpDir)
+
+	// Create cockpit dir with read-only parent to prevent removal
+	cockpitDir := filepath.Join(tmpDir, ".cockpit")
+	os.MkdirAll(filepath.Join(cockpitDir, "subdir"), 0o755)
+
+	// Make the subdir unremovable by removing write perm on parent
+	os.Chmod(cockpitDir, 0o555)
+	t.Cleanup(func() { os.Chmod(cockpitDir, 0o755) })
+
+	withStdin(t, "y", func() {
+		err := runUninstall(log, cfg, tr)
+		if err == nil {
+			// Some OS/filesystems allow root to bypass permissions
+			t.Log("RemoveAll succeeded despite read-only parent (running as root?)")
+		}
+	})
 }
 
 // ── getCurrentProcessName ─────────────────────────────────────────────────

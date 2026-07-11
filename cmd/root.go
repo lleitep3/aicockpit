@@ -69,16 +69,25 @@ func checkForUpdates(log *logging.Manager, cfg *config.Config, t *i18n.Translato
 	checkForUpdatesWithReader(log, cfg, t, os.Stdin, interactive)
 }
 
+// updateChecker is an interface for checking updates, allowing test injection.
+type updateChecker interface {
+	CheckForUpdates() (string, string, error)
+}
+
 // checkForUpdatesWithReader is the testable core of checkForUpdates.
 // It receives an explicit reader and interactivity flag so tests can inject
 // a fake stdin without requiring a real TTY.
 func checkForUpdatesWithReader(log *logging.Manager, cfg *config.Config, t *i18n.Translator, stdin io.Reader, interactive bool) {
+	checkForUpdatesWithService(log, cfg, t, stdin, interactive, update.NewUpdateService())
+}
+
+// checkForUpdatesWithService is the fully injectable core that accepts an updateChecker.
+func checkForUpdatesWithService(log *logging.Manager, cfg *config.Config, t *i18n.Translator, stdin io.Reader, interactive bool, svc updateChecker) {
 	if !cfg.ShouldCheckUpdate() {
 		return
 	}
 
-	updateService := update.NewUpdateService()
-	latestVersion, releaseURL, err := updateService.CheckForUpdates()
+	latestVersion, releaseURL, err := svc.CheckForUpdates()
 	if err != nil {
 		// Don't fail the command if update check fails, just log it
 		log.LogWarn(fmt.Sprintf(t.T("update.check_failed"), err), nil)
