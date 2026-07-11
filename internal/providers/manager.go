@@ -27,6 +27,17 @@ func NewProviderManager(config *ProvidersConfig) *ProviderManager {
 	return pm
 }
 
+// NewProviderManagerWithPlugins creates a ProviderManager, registers default
+// compilers, and additionally discovers and registers any YAML-based provider
+// adapters from <cockpitDir>/providers/.
+func NewProviderManagerWithPlugins(config *ProvidersConfig, cockpitDir string) *ProviderManager {
+	pm := NewProviderManager(config)
+	pluginsDir := filepath.Join(cockpitDir, "providers")
+	loader := NewPluginLoader(pluginsDir)
+	loader.DiscoverAndRegister(pm) //nolint:errcheck // plugin load errors are non-fatal
+	return pm
+}
+
 // Register registers a new compiler strategy.
 func (pm *ProviderManager) Register(compiler Compiler) {
 	pm.compilers[compiler.Name()] = compiler
