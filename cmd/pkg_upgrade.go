@@ -6,11 +6,12 @@ import (
 
 	"github.com/lleitep3/aicockpit/internal/config"
 	"github.com/lleitep3/aicockpit/internal/packages"
+	"github.com/lleitep3/aicockpit/internal/services"
 	"github.com/spf13/cobra"
 )
 
 // NewPkgUpgradeCommand creates the pkg upgrade command.
-func NewPkgUpgradeCommand() *cobra.Command {
+func NewPkgUpgradeCommand(svc services.PackageService, cfg *config.Config) *cobra.Command {
 	var (
 		source string
 		force  bool
@@ -32,28 +33,16 @@ func NewPkgUpgradeCommand() *cobra.Command {
 				version = parts[1]
 			}
 
-			// Load config
-			cfg, err := config.Load()
-			if err != nil {
-				return fmt.Errorf("failed to load config: %w", err)
-			}
-
-			cockpitDir := config.GetCockpitDir()
-			pm := packages.NewPackageManager(cockpitDir)
-
-			if !pm.PackageExists(packageName) {
+			if !svc.PackageExists(packageName) {
 				return fmt.Errorf("package not installed: %s", packageName)
 			}
 
-			oldPkg, err := pm.GetInstalledPackage(packageName)
+			oldPkg, err := svc.GetInstalledPackage(packageName)
 			if err != nil {
 				return fmt.Errorf("failed to load installed package: %w", err)
 			}
 
 			fmt.Printf("Current version: %s\n", oldPkg.Version)
-
-			// Create registry manager
-			rm := packages.NewRegistryManager(cockpitDir)
 
 			// Get registries to search
 			var registriesToSearch []packages.RegistryConfig
@@ -74,7 +63,7 @@ func NewPkgUpgradeCommand() *cobra.Command {
 			}
 
 			fmt.Printf("Searching for package: %s\n", packageName)
-			pkgEntry, registryName, err := rm.GetPackage(packageName, registriesToSearch)
+			pkgEntry, registryName, err := svc.GetPackage(packageName, registriesToSearch)
 			if err != nil {
 				return fmt.Errorf("package not found in registry: %s", packageName)
 			}
@@ -90,14 +79,13 @@ func NewPkgUpgradeCommand() *cobra.Command {
 
 			fmt.Printf("Upgrading to version: %s\n", pkgEntry.Version)
 
-			cache := packages.NewRegistryCache(config.GetCockpitDir())
-			packageCachePath, err := cache.GetPackageFromCache(registryName, packageName)
+			packageCachePath, err := svc.GetPackageFromCache(registryName, packageName)
 			if err != nil {
 				return fmt.Errorf("failed to find package in cache: %w", err)
 			}
 
 			fmt.Printf("\nPerforming upgrade...\n")
-			if err := pm.UpgradePackage(packageName, packageCachePath); err != nil {
+			if err := svc.UpgradePackage(packageName, packageCachePath); err != nil {
 				return fmt.Errorf("failed to upgrade package: %w", err)
 			}
 
@@ -105,7 +93,7 @@ func NewPkgUpgradeCommand() *cobra.Command {
 
 			// Redeploy to active providers
 			fmt.Printf("\nRedeploying to active providers...\n")
-			if err := pm.TriggerDeploy(""); err != nil {
+			if err := svc.TriggerDeploy(""); err != nil {
 				fmt.Printf("  ⚠ Deploy warning: %v\n", err)
 			}
 

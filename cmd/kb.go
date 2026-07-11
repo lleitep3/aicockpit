@@ -4,15 +4,19 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"path/filepath"
 
 	"github.com/lleitep3/aicockpit/internal/config"
 	"github.com/lleitep3/aicockpit/internal/i18n"
 	"github.com/lleitep3/aicockpit/internal/kb"
 	"github.com/lleitep3/aicockpit/internal/logging"
-	"github.com/lleitep3/aicockpit/internal/packages"
+	"github.com/lleitep3/aicockpit/internal/services"
 	"github.com/spf13/cobra"
 )
+
+// newKBServiceFunc can be replaced in tests.
+var newKBServiceFunc = func(roots []string, cockpitDir string, log *logging.Manager) services.KBService {
+	return services.NewKBService(roots, cockpitDir, log)
+}
 
 // NewKBCommand creates the kb command for knowledge base operations.
 func NewKBCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translator) *cobra.Command {
@@ -49,13 +53,14 @@ func NewKBSearchCommand(log *logging.Manager, cfg *config.Config, t *i18n.Transl
 		RunE: func(cmd *cobra.Command, args []string) error {
 			query := args[0]
 
-			pm := packages.NewPackageManager(config.GetCockpitDir())
+			svc := newKBServiceFunc(cfg.KB.Roots, config.GetCockpitDir(), log)
+
 			if !forceBM25 {
 				ctx := cmd.Context()
 				if ctx == nil {
 					ctx = context.Background()
 				}
-				res, err := kb.RunSearchExtensions(ctx, pm, query)
+				res, err := svc.RunSearchExtensions(ctx, query)
 				if err == nil {
 					fmt.Println(res)
 					return nil
@@ -69,14 +74,8 @@ func NewKBSearchCommand(log *logging.Manager, cfg *config.Config, t *i18n.Transl
 				return nil
 			}
 
-			// Create index path
-			indexPath := filepath.Join(config.GetCockpitDir(), ".kb-index.json")
-
-			// Create manager
-			manager := kb.NewManagerWithLogger(roots, indexPath, log)
-
 			// Perform search
-			results, err := manager.Search(query)
+			results, err := svc.Search(query)
 			if err != nil {
 				return fmt.Errorf("search failed: %w", err)
 			}
@@ -128,14 +127,10 @@ func NewKBListCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translat
 				return nil
 			}
 
-			// Create index path
-			indexPath := filepath.Join(config.GetCockpitDir(), ".kb-index.json")
-
-			// Create manager
-			manager := kb.NewManagerWithLogger(roots, indexPath, log)
+			svc := newKBServiceFunc(roots, config.GetCockpitDir(), log)
 
 			// Load all documents
-			documents, err := manager.ListDocuments()
+			documents, err := svc.ListDocuments()
 			if err != nil {
 				return fmt.Errorf("failed to load documents: %w", err)
 			}
@@ -173,7 +168,7 @@ func NewKBAddCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translato
 			filePath := args[0]
 
 			// Get KB directory
-			kbDir := filepath.Join(config.GetCockpitDir(), "kb")
+			kbDir := config.GetCockpitDir() + "/kb"
 
 			// For now, just show a message
 			// Full implementation would copy file and validate
@@ -199,7 +194,7 @@ func NewKBRemoveCommand(log *logging.Manager, cfg *config.Config, t *i18n.Transl
 			id := args[0]
 
 			// Get KB directory
-			kbDir := filepath.Join(config.GetCockpitDir(), "kb")
+			kbDir := config.GetCockpitDir() + "/kb"
 
 			// For now, just show a message
 			// Full implementation would find and delete document
@@ -240,20 +235,15 @@ func NewKBRootAddCommand(log *logging.Manager, cfg *config.Config, t *i18n.Trans
 		RunE: func(cmd *cobra.Command, args []string) error {
 			rootPath := args[0]
 
-			// Create index path
-			indexPath := filepath.Join(config.GetCockpitDir(), ".kb-index.json")
-
-			// Create manager with current roots
-			manager := kb.NewManagerWithLogger(cfg.KB.Roots, indexPath, log)
+			svc := newKBServiceFunc(cfg.KB.Roots, config.GetCockpitDir(), log)
 
 			// Add root
-			err := manager.AddRoot(rootPath)
-			if err != nil {
+			if err := svc.AddRoot(rootPath); err != nil {
 				return fmt.Errorf("failed to add root: %w", err)
 			}
 
-			// Update config
-			cfg.KB.Roots = manager.GetRoots()
+			// Update config with new roots
+			cfg.KB.Roots = svc.GetRoots()
 			if err := cfg.Save(); err != nil {
 				return fmt.Errorf("failed to save config: %w", err)
 			}
@@ -261,17 +251,15 @@ func NewKBRootAddCommand(log *logging.Manager, cfg *config.Config, t *i18n.Trans
 			fmt.Printf("Added knowledge base root: %s\n", rootPath)
 
 			fmt.Println("Rebuilding index automatically...")
-			err = manager.RebuildIndex()
-			if err != nil {
+			if err := svc.RebuildIndex(); err != nil {
 				fmt.Printf("Warning: failed to rebuild BM25 index: %v\n", err)
 			}
 
-			pm := packages.NewPackageManager(config.GetCockpitDir())
 			ctx := cmd.Context()
 			if ctx == nil {
 				ctx = context.Background()
 			}
-			_ = kb.RunIndexExtensions(ctx, pm, cfg.KB.Roots, false)
+			_ = svc.RunIndexExtensions(ctx, cfg.KB.Roots, false)
 
 			return nil
 		},
@@ -290,20 +278,15 @@ func NewKBRootRemoveCommand(log *logging.Manager, cfg *config.Config, t *i18n.Tr
 		RunE: func(cmd *cobra.Command, args []string) error {
 			rootPath := args[0]
 
-			// Create index path
-			indexPath := filepath.Join(config.GetCockpitDir(), ".kb-index.json")
-
-			// Create manager with current roots
-			manager := kb.NewManagerWithLogger(cfg.KB.Roots, indexPath, log)
+			svc := newKBServiceFunc(cfg.KB.Roots, config.GetCockpitDir(), log)
 
 			// Remove root
-			err := manager.RemoveRoot(rootPath)
-			if err != nil {
+			if err := svc.RemoveRoot(rootPath); err != nil {
 				return fmt.Errorf("failed to remove root: %w", err)
 			}
 
-			// Update config
-			cfg.KB.Roots = manager.GetRoots()
+			// Update config with new roots
+			cfg.KB.Roots = svc.GetRoots()
 			if err := cfg.Save(); err != nil {
 				return fmt.Errorf("failed to save config: %w", err)
 			}
@@ -358,21 +341,16 @@ func NewKBRebuildCacheCommand(log *logging.Manager, cfg *config.Config, t *i18n.
 				return nil
 			}
 
-			// Create index path
-			indexPath := filepath.Join(config.GetCockpitDir(), ".kb-index.json")
-
-			// Create manager
-			manager := kb.NewManagerWithLogger(roots, indexPath, log)
+			svc := newKBServiceFunc(roots, config.GetCockpitDir(), log)
 
 			// Rebuild index
 			fmt.Println("Rebuilding knowledge base index...")
-			err := manager.RebuildIndex()
-			if err != nil {
+			if err := svc.RebuildIndex(); err != nil {
 				return fmt.Errorf("failed to rebuild index: %w", err)
 			}
 
 			// Get last update time
-			lastUpdate, err := manager.GetLastIndexUpdate()
+			lastUpdate, err := svc.GetLastIndexUpdate()
 			if err != nil {
 				return fmt.Errorf("failed to get index update time: %w", err)
 			}
@@ -381,12 +359,11 @@ func NewKBRebuildCacheCommand(log *logging.Manager, cfg *config.Config, t *i18n.
 			fmt.Printf("Last updated: %s\n", lastUpdate.Format("2006-01-02 15:04:05"))
 
 			if runExtensions {
-				pm := packages.NewPackageManager(config.GetCockpitDir())
 				ctx := cmd.Context()
 				if ctx == nil {
 					ctx = context.Background()
 				}
-				_ = kb.RunIndexExtensions(ctx, pm, roots, fastExtensions)
+				_ = svc.RunIndexExtensions(ctx, roots, fastExtensions)
 			}
 
 			return nil
@@ -545,15 +522,14 @@ func NewKBGraphCommand(log *logging.Manager, cfg *config.Config, t *i18n.Transla
 				return nil
 			}
 
-			indexPath := filepath.Join(config.GetCockpitDir(), ".kb-index.json")
-			manager := kb.NewManagerWithLogger(roots, indexPath, log)
+			svc := newKBServiceFunc(roots, config.GetCockpitDir(), log)
 
-			docs, err := manager.ListDocuments()
+			docs, err := svc.ListDocuments()
 			if err != nil {
 				return fmt.Errorf("failed to list documents: %w", err)
 			}
 
-			searcher := kb.NewGraphSearcher()
+			searcher := svc.NewGraphSearcher()
 			if err := searcher.BuildGraph(docs); err != nil {
 				return fmt.Errorf("failed to build graph: %w", err)
 			}

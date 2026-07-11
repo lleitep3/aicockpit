@@ -6,11 +6,12 @@ import (
 
 	"github.com/lleitep3/aicockpit/internal/config"
 	"github.com/lleitep3/aicockpit/internal/packages"
+	"github.com/lleitep3/aicockpit/internal/services"
 	"github.com/spf13/cobra"
 )
 
 // NewPkgListCommand creates the pkg list command.
-func NewPkgListCommand() *cobra.Command {
+func NewPkgListCommand(svc services.PackageService, cfg *config.Config) *cobra.Command {
 	var (
 		source   string
 		detailed bool
@@ -21,16 +22,6 @@ func NewPkgListCommand() *cobra.Command {
 		Short: "List available packages",
 		Long:  "List all available packages from registries",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// Load config
-			cfg, err := config.Load()
-			if err != nil {
-				return fmt.Errorf("failed to load config: %w", err)
-			}
-
-			// Create registry manager
-			cockpitDir := config.GetCockpitDir()
-			rm := packages.NewRegistryManager(cockpitDir)
-
 			// Get registries to list
 			var registriesToList []packages.RegistryConfig
 			if source != "" {
@@ -52,7 +43,7 @@ func NewPkgListCommand() *cobra.Command {
 			}
 
 			// Get packages
-			pkgs, err := rm.ListPackages(registriesToList)
+			pkgs, err := svc.ListPackages(registriesToList)
 			if err != nil {
 				return fmt.Errorf("failed to list packages: %w", err)
 			}

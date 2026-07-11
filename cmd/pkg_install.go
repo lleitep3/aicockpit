@@ -6,11 +6,12 @@ import (
 
 	"github.com/lleitep3/aicockpit/internal/config"
 	"github.com/lleitep3/aicockpit/internal/packages"
+	"github.com/lleitep3/aicockpit/internal/services"
 	"github.com/spf13/cobra"
 )
 
 // NewPkgInstallCommand creates the pkg install command.
-func NewPkgInstallCommand() *cobra.Command {
+func NewPkgInstallCommand(svc services.PackageService, cfg *config.Config) *cobra.Command {
 	var (
 		source           string
 		withDependencies bool
@@ -34,16 +35,6 @@ func NewPkgInstallCommand() *cobra.Command {
 				version = parts[1]
 			}
 
-			// Load config
-			cfg, err := config.Load()
-			if err != nil {
-				return fmt.Errorf("failed to load config: %w", err)
-			}
-
-			// Create registry manager
-			cockpitDir := config.GetCockpitDir()
-			rm := packages.NewRegistryManager(cockpitDir)
-
 			// Get registries to search
 			var registriesToSearch []packages.RegistryConfig
 			if source != "" {
@@ -66,7 +57,7 @@ func NewPkgInstallCommand() *cobra.Command {
 
 			// Find package
 			fmt.Printf("Searching for package: %s\n", packageName)
-			pkgEntry, registryName, err := rm.GetPackage(packageName, registriesToSearch)
+			pkgEntry, registryName, err := svc.GetPackage(packageName, registriesToSearch)
 			if err != nil {
 				return fmt.Errorf("package not found: %s", packageName)
 			}
@@ -76,11 +67,8 @@ func NewPkgInstallCommand() *cobra.Command {
 				return fmt.Errorf("package version %s not found (available: %s)", version, pkgEntry.Version)
 			}
 
-			// Create package manager
-			pm := packages.NewPackageManager(cockpitDir)
-
 			// Check if already installed
-			if pm.PackageExists(packageName) && !force {
+			if svc.PackageExists(packageName) && !force {
 				return fmt.Errorf("package already installed: %s (use --force to reinstall)", packageName)
 			}
 
@@ -96,8 +84,7 @@ func NewPkgInstallCommand() *cobra.Command {
 			fmt.Printf("\nCopying package from cache...\n")
 
 			// Get package path from cache
-			cache := packages.NewRegistryCache(config.GetCockpitDir())
-			packageCachePath, err := cache.GetPackageFromCache(registryName, packageName)
+			packageCachePath, err := svc.GetPackageFromCache(registryName, packageName)
 			if err != nil {
 				return fmt.Errorf("failed to find package in cache: %w", err)
 			}
@@ -111,13 +98,13 @@ func NewPkgInstallCommand() *cobra.Command {
 			// Run pre_install hooks from cache directory
 			if len(cachedPkg.Installation.PreInstall) > 0 {
 				fmt.Printf("\nRunning pre-install hooks...\n")
-				if err := pm.RunPackageHooks(packageCachePath, cachedPkg.Installation.PreInstall); err != nil {
+				if err := svc.RunPackageHooks(packageCachePath, cachedPkg.Installation.PreInstall); err != nil {
 					return fmt.Errorf("pre-install hook failed: %w", err)
 				}
 			}
 
 			// Copy package to installation directory
-			installPath := pm.GetPackageInstallPath(packageName)
+			installPath := svc.GetPackageInstallPath(packageName)
 			if err := copyDirectory(packageCachePath, installPath); err != nil {
 				return fmt.Errorf("failed to copy package: %w", err)
 			}
@@ -144,7 +131,7 @@ func NewPkgInstallCommand() *cobra.Command {
 			// Run post_install hooks from the installation directory
 			if len(downloadedPkg.Installation.PostInstall) > 0 {
 				fmt.Printf("\nRunning post-install hooks...\n")
-				if err := pm.RunPackageHooks(installPath, downloadedPkg.Installation.PostInstall); err != nil {
+				if err := svc.RunPackageHooks(installPath, downloadedPkg.Installation.PostInstall); err != nil {
 					return fmt.Errorf("post-install hook failed: %w", err)
 				}
 			}
@@ -157,12 +144,12 @@ func NewPkgInstallCommand() *cobra.Command {
 				len(downloadedPkg.Features.KB) > 0
 			if hasAssets {
 				fmt.Printf("\nSyncing assets to canonical dirs...\n")
-				if err := pm.SyncPackageAssets(downloadedPkg, installPath); err != nil {
+				if err := svc.SyncPackageAssets(downloadedPkg, installPath); err != nil {
 					fmt.Printf("  ⚠ Asset sync warning: %v\n", err)
 				}
 
 				fmt.Printf("\nDeploying to active providers...\n")
-				if err := pm.TriggerDeploy(""); err != nil {
+				if err := svc.TriggerDeploy(""); err != nil {
 					fmt.Printf("  ⚠ Deploy warning: %v\n", err)
 				}
 			}
@@ -174,7 +161,7 @@ func NewPkgInstallCommand() *cobra.Command {
 					fmt.Printf("  Installing dependency: %s (%s)\n", dep.Name, dep.Version)
 
 					// Recursively install dependency
-					depCmd := NewPkgInstallCommand()
+					depCmd := NewPkgInstallCommand(svc, cfg)
 					depArgs := []string{dep.Name}
 					if withDependencies {
 						depArgs = append(depArgs, "--with-dependencies")

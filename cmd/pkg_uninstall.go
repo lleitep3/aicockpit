@@ -4,12 +4,12 @@ import (
 	"fmt"
 
 	"github.com/lleitep3/aicockpit/internal/config"
-	"github.com/lleitep3/aicockpit/internal/packages"
+	"github.com/lleitep3/aicockpit/internal/services"
 	"github.com/spf13/cobra"
 )
 
 // NewPkgUninstallCommand creates the pkg uninstall command.
-func NewPkgUninstallCommand() *cobra.Command {
+func NewPkgUninstallCommand(svc services.PackageService, cfg *config.Config) *cobra.Command {
 	var force bool
 
 	cmd := &cobra.Command{
@@ -20,19 +20,13 @@ func NewPkgUninstallCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			packageName := args[0]
 
-			// Load config
-			cockpitDir := config.GetCockpitDir()
-
-			// Create package manager
-			pm := packages.NewPackageManager(cockpitDir)
-
 			// Check if package exists
-			if !pm.PackageExists(packageName) {
+			if !svc.PackageExists(packageName) {
 				return fmt.Errorf("package not found: %s", packageName)
 			}
 
 			// Get package info
-			pkg, err := pm.GetInstalledPackage(packageName)
+			pkg, err := svc.GetInstalledPackage(packageName)
 			if err != nil {
 				return fmt.Errorf("failed to get package info: %w", err)
 			}
@@ -44,10 +38,10 @@ func NewPkgUninstallCommand() *cobra.Command {
 			fmt.Printf("Description: %s\n", pkg.Description)
 
 			// Run pre_uninstall hooks from the install dir (before files are removed)
-			installPath := pm.GetPackageInstallPath(packageName)
+			installPath := svc.GetPackageInstallPath(packageName)
 			if len(pkg.Installation.PreUninstall) > 0 {
 				fmt.Printf("\nRunning pre-uninstall hooks...\n")
-				if err := pm.RunPackageHooks(installPath, pkg.Installation.PreUninstall); err != nil {
+				if err := svc.RunPackageHooks(installPath, pkg.Installation.PreUninstall); err != nil {
 					if !force {
 						return fmt.Errorf("pre-uninstall hook failed: %w", err)
 					}
@@ -63,14 +57,14 @@ func NewPkgUninstallCommand() *cobra.Command {
 				len(pkg.Features.KB) > 0
 			if hasAssets {
 				fmt.Printf("\nRemoving assets from canonical dirs...\n")
-				if err := pm.RemovePackageAssets(pkg); err != nil {
+				if err := svc.RemovePackageAssets(pkg); err != nil {
 					fmt.Printf("  ⚠ Asset removal warning: %v\n", err)
 				}
 			}
 
 			// Uninstall package
 			fmt.Printf("\nUninstalling package: %s\n", packageName)
-			err = pm.UninstallPackage(packageName)
+			err = svc.UninstallPackage(packageName)
 			if err != nil {
 				return fmt.Errorf("failed to uninstall package: %w", err)
 			}
@@ -80,7 +74,7 @@ func NewPkgUninstallCommand() *cobra.Command {
 			// Redeploy to providers after removing assets
 			if hasAssets {
 				fmt.Printf("\nRedeploying to active providers...\n")
-				if err := pm.TriggerDeploy(""); err != nil {
+				if err := svc.TriggerDeploy(""); err != nil {
 					fmt.Printf("  ⚠ Deploy warning: %v\n", err)
 				}
 			}
@@ -100,6 +94,10 @@ func NewPkgUninstallCommand() *cobra.Command {
 	}
 
 	cmd.Flags().BoolVar(&force, "force", false, "Force uninstallation")
+
+	// Ensure cfg is used (suppress unused import warning); cfg is available for
+	// future registry-aware uninstall logic.
+	_ = cfg
 
 	return cmd
 }

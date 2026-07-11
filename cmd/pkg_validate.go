@@ -7,12 +7,12 @@ import (
 	"path/filepath"
 
 	"github.com/lleitep3/aicockpit/internal/config"
-	"github.com/lleitep3/aicockpit/internal/packages"
+	"github.com/lleitep3/aicockpit/internal/services"
 	"github.com/spf13/cobra"
 )
 
 // NewPkgValidateCommand creates the pkg validate command.
-func NewPkgValidateCommand() *cobra.Command {
+func NewPkgValidateCommand(svc services.PackageService, cfg *config.Config) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "validate <package>",
 		Short: "Validate an installed package configuration",
@@ -20,15 +20,13 @@ func NewPkgValidateCommand() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			packageName := args[0]
-			cockpitDir := config.GetCockpitDir()
-			pm := packages.NewPackageManager(cockpitDir)
 
-			if !pm.PackageExists(packageName) {
+			if !svc.PackageExists(packageName) {
 				return fmt.Errorf("package not installed: %s", packageName)
 			}
 
 			// Path to validate script
-			scriptPath := filepath.Join(pm.GetPackageInstallPath(packageName), "bin", "validate")
+			scriptPath := filepath.Join(svc.GetPackageInstallPath(packageName), "bin", "validate")
 			if _, err := os.Stat(scriptPath); os.IsNotExist(err) {
 				return fmt.Errorf("package %s does not implement a 'validate' script", packageName)
 			}
@@ -48,6 +46,9 @@ func NewPkgValidateCommand() *cobra.Command {
 			return nil
 		},
 	}
+
+	// cfg is available for future registry-aware validate logic.
+	_ = cfg
 
 	return cmd
 }
