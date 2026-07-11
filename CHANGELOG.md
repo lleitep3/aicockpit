@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Features
-No features
+- add pub/sub event bus for package lifecycle (#149)
 
 ### Bug Fixes
 No bug fixes
@@ -20,7 +20,7 @@ No performance improvements
 No breaking changes
 
 ### Documentation
-No documentation changes
+- update CHANGELOG.md for changes since v0.4.20 [skip ci] (#148)
 
 ### Testing
 No test changes
