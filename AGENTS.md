@@ -55,12 +55,65 @@ You are the **Lead Development Agent** for the AICockpit project. AICockpit is a
 
 ---
 
+## 📝 Pull Request Template (MANDATORY)
+
+Every PR opened with `gh pr create` MUST use the exact body below. The CI `validate-pr` check enforces this — PRs that omit any section or leave checkboxes unchecked will fail.
+
+Run `bash scripts/validate-pr.sh <(echo "$BODY")` locally before opening a PR to verify.
+
+```markdown
+## Descrição / Description
+<bullet points describing what and why>
+
+## Tipo de Mudança / Type of Change
+- [ ] Bug fix
+- [ ] Nova Feature
+- [ ] Breaking change
+- [ ] Documentação
+- [ ] Refatoração
+- [ ] Configuração/CI
+
+## Impacto na Versão (Semantic Versioning)
+- [ ] PATCH (bug fix, sem breaking change)
+- [ ] MINOR (nova feature, sem breaking change)
+- [ ] MAJOR (breaking change)
+
+## Evidências / Evidence
+<test output, coverage numbers, screenshots, or CI links>
+
+## Comandos para Teste / Test Commands
+```bash
+go test ./...
+```
+
+## Checklist de Qualidade / Quality Checklist
+- [x] Testes adicionados/atualizados
+- [x] Cobertura >= 90%
+- [x] Sem erros de lint
+- [x] Sem secrets commitados
+```
+
+**Usage example with `gh pr create`:**
+```bash
+gh pr create --title "feat(x): ..." --body "$(cat <<'EOF'
+## Descrição / Description
+...
+## Tipo de Mudança / Type of Change
+- [x] Nova Feature
+...
+EOF
+)"
+```
+
+---
+
 ## ✅ Task Checklist for Agents
 
 Before concluding any task, ensure:
 - [ ] Code is formatted (`make fmt`).
 - [ ] Linters pass (`make lint`).
 - [ ] Tests pass and coverage is >= 90% (`make test`).
+- [ ] PR body uses the mandatory template above and passes `scripts/validate-pr.sh`.
 - [ ] KB has been checked or updated.
 - [ ] No secrets were committed.
 
