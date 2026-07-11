@@ -1,25 +1,34 @@
 package packages
 
 import (
+	"context"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
+	"github.com/lleitep3/aicockpit/internal/resilience"
 	"gopkg.in/yaml.v3"
 )
 
 // RegistryCache manages local cache of package registries
 type RegistryCache struct {
-	cacheDir string
+	cacheDir  string
+	gitRunner *resilience.GitRunner
 }
 
 // NewRegistryCache creates a new registry cache manager
 func NewRegistryCache(cockpitDir string) *RegistryCache {
 	return &RegistryCache{
-		cacheDir: filepath.Join(cockpitDir, "cache", "registries"),
+		cacheDir:  filepath.Join(cockpitDir, "cache", "registries"),
+		gitRunner: resilience.DefaultGitRunner(),
 	}
+}
+
+// gitContext returns a background context with a generous timeout for git operations.
+func gitContext() (context.Context, context.CancelFunc) {
+	return context.WithTimeout(context.Background(), 5*time.Minute)
 }
 
 // GetRegistryCachePath returns the cache path for a registry
@@ -57,10 +66,12 @@ func (rc *RegistryCache) cloneRegistry(registry RegistryConfig, cachePath string
 		return fmt.Errorf("failed to create cache directory: %w", err)
 	}
 
-	// Clone the repository
-	cmd := exec.Command("git", "clone", "--depth", "1", "-b", registry.Branch, registry.URL, cachePath)
-	if output, err := cmd.CombinedOutput(); err != nil {
-		return fmt.Errorf("failed to clone registry: %w\n%s", err, string(output))
+	ctx, cancel := gitContext()
+	defer cancel()
+
+	_, err := rc.gitRunner.Run(ctx, "", "clone", "--depth", "1", "-b", registry.Branch, registry.URL, cachePath)
+	if err != nil {
+		return fmt.Errorf("failed to clone registry: %w", err)
 	}
 
 	fmt.Printf("✓ Registry cloned successfully\n")
@@ -69,16 +80,15 @@ func (rc *RegistryCache) cloneRegistry(registry RegistryConfig, cachePath string
 
 // updateRegistry updates an existing registry clone
 func (rc *RegistryCache) updateRegistry(cachePath string, registry RegistryConfig) error {
-	// Fetch latest changes
-	cmd := exec.Command("git", "-C", cachePath, "fetch", "origin", registry.Branch)
-	if output, err := cmd.CombinedOutput(); err != nil {
-		return fmt.Errorf("failed to fetch registry: %w\n%s", err, string(output))
+	ctx, cancel := gitContext()
+	defer cancel()
+
+	if _, err := rc.gitRunner.Run(ctx, "", "-C", cachePath, "fetch", "origin", registry.Branch); err != nil {
+		return fmt.Errorf("failed to fetch registry: %w", err)
 	}
 
-	// Pull latest changes
-	cmd = exec.Command("git", "-C", cachePath, "pull", "origin", registry.Branch)
-	if output, err := cmd.CombinedOutput(); err != nil {
-		return fmt.Errorf("failed to pull registry: %w\n%s", err, string(output))
+	if _, err := rc.gitRunner.Run(ctx, "", "-C", cachePath, "pull", "origin", registry.Branch); err != nil {
+		return fmt.Errorf("failed to pull registry: %w", err)
 	}
 
 	fmt.Printf("✓ Registry updated successfully\n")

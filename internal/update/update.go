@@ -1,6 +1,7 @@
 package update
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -8,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/lleitep3/aicockpit/internal/resilience"
 	"github.com/lleitep3/aicockpit/internal/version"
 )
 
@@ -28,6 +30,7 @@ type GitHubRelease struct {
 // Service handles update checking and changelog generation
 type Service struct {
 	client         *http.Client
+	retryClient    *resilience.RetryableClient
 	repoOwner      string
 	repoName       string
 	baseAPIURL     string
@@ -36,13 +39,13 @@ type Service struct {
 
 // NewUpdateService creates a new update service
 func NewUpdateService() *Service {
+	client := &http.Client{Timeout: 10 * time.Second}
 	return &Service{
-		client: &http.Client{
-			Timeout: 10 * time.Second,
-		},
-		repoOwner:  defaultGithubRepoOwner,
-		repoName:   defaultGithubRepoName,
-		baseAPIURL: defaultGithubAPIURL,
+		client:      client,
+		retryClient: newRetryClient(client),
+		repoOwner:   defaultGithubRepoOwner,
+		repoName:    defaultGithubRepoName,
+		baseAPIURL:  defaultGithubAPIURL,
 	}
 }
 
@@ -50,15 +53,22 @@ func NewUpdateService() *Service {
 // currentVersion overrides version.GetVersion() so tests can run without real ldflags builds.
 func NewUpdateServiceWithClient(client *http.Client, baseURL string, currentVersion ...string) *Service {
 	svc := &Service{
-		client:     client,
-		repoOwner:  defaultGithubRepoOwner,
-		repoName:   defaultGithubRepoName,
-		baseAPIURL: baseURL,
+		client:      client,
+		retryClient: newRetryClient(client),
+		repoOwner:   defaultGithubRepoOwner,
+		repoName:    defaultGithubRepoName,
+		baseAPIURL:  baseURL,
 	}
 	if len(currentVersion) > 0 {
 		svc.currentVersion = currentVersion[0]
 	}
 	return svc
+}
+
+// newRetryClient builds a retryable HTTP client with a circuit breaker for GitHub API calls.
+func newRetryClient(client *http.Client) *resilience.RetryableClient {
+	breaker := resilience.NewCircuitBreaker(resilience.DefaultCircuitBreakerConfig())
+	return resilience.NewRetryableClient(client, resilience.DefaultConfig(), breaker)
 }
 
 // CheckForUpdates checks if a new version is available on GitHub
@@ -76,7 +86,7 @@ func (s *Service) CheckForUpdates() (string, string, error) {
 
 	url := fmt.Sprintf(s.baseAPIURL, s.repoOwner, s.repoName)
 
-	resp, err := s.client.Get(url)
+	resp, err := s.retryClient.Get(context.Background(), url)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to fetch release info: %w", err)
 	}
@@ -131,7 +141,7 @@ func (s *Service) GetReleaseNotes(version string) (string, error) {
 	baseURL := strings.Replace(s.baseAPIURL, "/latest", "/tags/v"+version, 1)
 	url := fmt.Sprintf(baseURL, s.repoOwner, s.repoName)
 
-	resp, err := s.client.Get(url)
+	resp, err := s.retryClient.Get(context.Background(), url)
 	if err != nil {
 		return "", fmt.Errorf("failed to fetch release notes: %w", err)
 	}
