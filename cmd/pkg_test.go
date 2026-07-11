@@ -5,10 +5,26 @@ import (
 	"os/exec"
 	"path/filepath"
 	"testing"
+
+	"github.com/lleitep3/aicockpit/internal/config"
+	"github.com/lleitep3/aicockpit/internal/services"
 )
 
+// testPkgArgs returns a (PackageService, *config.Config) pair suitable for
+// unit tests. It relies on config.Load() resolving to a temp dir set up by
+// makePkgConfig or the test itself.
+func testPkgArgs(t *testing.T) (services.PackageService, *config.Config) {
+	t.Helper()
+	cfg, err := config.Load()
+	if err != nil {
+		cfg = &config.Config{}
+	}
+	svc := services.NewPackageService(config.GetCockpitDir())
+	return svc, cfg
+}
+
 func TestNewPkgCommand(t *testing.T) {
-	cmd := NewPkgCommand()
+	cmd := NewPkgCommand(&config.Config{})
 
 	if cmd.Use != "pkg" {
 		t.Errorf("Expected command use 'pkg', got '%s'", cmd.Use)
@@ -29,7 +45,7 @@ func TestNewPkgCommand(t *testing.T) {
 }
 
 func TestNewPkgSearchCommand(t *testing.T) {
-	cmd := NewPkgSearchCommand()
+	cmd := NewPkgSearchCommand(testPkgArgs(t))
 
 	if cmd.Use != "search [query]" {
 		t.Errorf("Expected command use 'search [query]', got '%s'", cmd.Use)
@@ -62,7 +78,7 @@ func TestNewPkgSearchCommand(t *testing.T) {
 }
 
 func TestNewPkgSearchCommandExecution(t *testing.T) {
-	cmd := NewPkgSearchCommand()
+	cmd := NewPkgSearchCommand(testPkgArgs(t))
 
 	// Test with no arguments should fail
 	err := cmd.RunE(cmd, []string{})
@@ -78,7 +94,7 @@ func TestNewPkgSearchCommandExecution(t *testing.T) {
 }
 
 func TestNewPkgInstallCommand(t *testing.T) {
-	cmd := NewPkgInstallCommand()
+	cmd := NewPkgInstallCommand(testPkgArgs(t))
 
 	if cmd.Use != "install <package>[@version]" {
 		t.Errorf("Expected command use 'install <package>[@version]', got '%s'", cmd.Use)
@@ -111,7 +127,7 @@ func TestNewPkgInstallCommand(t *testing.T) {
 }
 
 func TestNewPkgInstallCommandExecution(t *testing.T) {
-	cmd := NewPkgInstallCommand()
+	cmd := NewPkgInstallCommand(testPkgArgs(t))
 
 	// Test with non-existent package - will fail because package doesn't exist
 	// This is expected behavior in test environment
@@ -122,7 +138,7 @@ func TestNewPkgInstallCommandExecution(t *testing.T) {
 }
 
 func TestNewPkgUninstallCommand(t *testing.T) {
-	cmd := NewPkgUninstallCommand()
+	cmd := NewPkgUninstallCommand(testPkgArgs(t))
 
 	if cmd.Use != "uninstall <package>" {
 		t.Errorf("Expected command use 'uninstall <package>', got '%s'", cmd.Use)
@@ -143,7 +159,7 @@ func TestNewPkgUninstallCommand(t *testing.T) {
 }
 
 func TestNewPkgUninstallCommandExecution(t *testing.T) {
-	cmd := NewPkgUninstallCommand()
+	cmd := NewPkgUninstallCommand(testPkgArgs(t))
 
 	// Test with non-existent package - will fail because package is not installed
 	// This is expected behavior in test environment
@@ -154,7 +170,7 @@ func TestNewPkgUninstallCommandExecution(t *testing.T) {
 }
 
 func TestNewPkgListCommand(t *testing.T) {
-	cmd := NewPkgListCommand()
+	cmd := NewPkgListCommand(testPkgArgs(t))
 
 	if cmd.Use != "list" {
 		t.Errorf("Expected command use 'list', got '%s'", cmd.Use)
@@ -179,7 +195,7 @@ func TestNewPkgListCommand(t *testing.T) {
 }
 
 func TestNewPkgListCommandExecution(t *testing.T) {
-	cmd := NewPkgListCommand()
+	cmd := NewPkgListCommand(testPkgArgs(t))
 
 	// Test execution
 	err := cmd.RunE(cmd, []string{})
@@ -189,7 +205,7 @@ func TestNewPkgListCommandExecution(t *testing.T) {
 }
 
 func TestPkgCommandHierarchy(t *testing.T) {
-	pkgCmd := NewPkgCommand()
+	pkgCmd := NewPkgCommand(&config.Config{})
 
 	// Check that all subcommands are registered
 	subcommands := map[string]bool{
@@ -419,7 +435,7 @@ package_registries: []
 
 func TestNewPkgListCommand_NoPackages(t *testing.T) {
 	makePkgConfig(t)
-	cmd := NewPkgListCommand()
+	cmd := NewPkgListCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{})
 	if err := cmd.Execute(); err != nil {
 		t.Errorf("list (no packages) error = %v", err)
@@ -428,7 +444,7 @@ func TestNewPkgListCommand_NoPackages(t *testing.T) {
 
 func TestNewPkgListCommand_UnknownRegistry(t *testing.T) {
 	makePkgConfig(t)
-	cmd := NewPkgListCommand()
+	cmd := NewPkgListCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"--source", "nonexistent"})
 	if err := cmd.Execute(); err == nil {
 		t.Error("list --source nonexistent should error")
@@ -437,7 +453,7 @@ func TestNewPkgListCommand_UnknownRegistry(t *testing.T) {
 
 func TestNewPkgSearchCommand_NoResults(t *testing.T) {
 	makePkgConfig(t)
-	cmd := NewPkgSearchCommand()
+	cmd := NewPkgSearchCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"no-such-pkg"})
 	if err := cmd.Execute(); err != nil {
 		t.Errorf("search (no results) error = %v", err)
@@ -446,7 +462,7 @@ func TestNewPkgSearchCommand_NoResults(t *testing.T) {
 
 func TestNewPkgInstallCommand_RegistryNotFound(t *testing.T) {
 	makePkgConfig(t)
-	cmd := NewPkgInstallCommand()
+	cmd := NewPkgInstallCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"--source", "ghost", "some-pkg"})
 	if err := cmd.Execute(); err == nil {
 		t.Error("install --source ghost should error")
@@ -455,7 +471,7 @@ func TestNewPkgInstallCommand_RegistryNotFound(t *testing.T) {
 
 func TestNewPkgInstallCommand_PackageNotFound(t *testing.T) {
 	makePkgConfig(t)
-	cmd := NewPkgInstallCommand()
+	cmd := NewPkgInstallCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"totally-unknown-pkg"})
 	if err := cmd.Execute(); err == nil {
 		t.Error("install unknown package should error")
@@ -464,7 +480,7 @@ func TestNewPkgInstallCommand_PackageNotFound(t *testing.T) {
 
 func TestNewPkgUninstallCommand_NotInstalled(t *testing.T) {
 	makePkgConfig(t)
-	cmd := NewPkgUninstallCommand()
+	cmd := NewPkgUninstallCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"ghost-package"})
 	if err := cmd.Execute(); err == nil {
 		t.Error("uninstall not-installed package should error")
@@ -473,7 +489,7 @@ func TestNewPkgUninstallCommand_NotInstalled(t *testing.T) {
 
 func TestNewPkgUpgradeCommand_NotInstalled(t *testing.T) {
 	makePkgConfig(t)
-	cmd := NewPkgUpgradeCommand()
+	cmd := NewPkgUpgradeCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"ghost-package"})
 	if err := cmd.Execute(); err == nil {
 		t.Error("upgrade not-installed package should error")
@@ -482,7 +498,7 @@ func TestNewPkgUpgradeCommand_NotInstalled(t *testing.T) {
 
 func TestNewPkgConfigureCommand_NotInstalled(t *testing.T) {
 	makePkgConfig(t)
-	cmd := NewPkgConfigureCommand()
+	cmd := NewPkgConfigureCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"ghost-package"})
 	if err := cmd.Execute(); err == nil {
 		t.Error("configure not-installed package should error")
@@ -491,7 +507,7 @@ func TestNewPkgConfigureCommand_NotInstalled(t *testing.T) {
 
 func TestNewPkgValidateCommand_NotInstalled(t *testing.T) {
 	makePkgConfig(t)
-	cmd := NewPkgValidateCommand()
+	cmd := NewPkgValidateCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"ghost-package"})
 	if err := cmd.Execute(); err == nil {
 		t.Error("validate not-installed package should error")
@@ -502,7 +518,7 @@ func TestNewPkgValidateCommand_NotInstalled(t *testing.T) {
 
 func TestNewPkgInstallCommand_WithVersion(t *testing.T) {
 	makePkgConfig(t)
-	cmd := NewPkgInstallCommand()
+	cmd := NewPkgInstallCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"some-pkg@1.0.0"})
 	// Should fail because config has no registries
 	if err := cmd.Execute(); err == nil {
@@ -512,7 +528,7 @@ func TestNewPkgInstallCommand_WithVersion(t *testing.T) {
 
 func TestNewPkgInstallCommand_WithForce(t *testing.T) {
 	makePkgConfig(t)
-	cmd := NewPkgInstallCommand()
+	cmd := NewPkgInstallCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"--force", "some-pkg"})
 	if err := cmd.Execute(); err == nil {
 		t.Error("install --force with no registries should error")
@@ -521,7 +537,7 @@ func TestNewPkgInstallCommand_WithForce(t *testing.T) {
 
 func TestNewPkgInstallCommand_WithDependencies(t *testing.T) {
 	makePkgConfig(t)
-	cmd := NewPkgInstallCommand()
+	cmd := NewPkgInstallCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"--with-dependencies", "some-pkg"})
 	if err := cmd.Execute(); err == nil {
 		t.Error("install --with-dependencies on no registries should error")
@@ -530,7 +546,7 @@ func TestNewPkgInstallCommand_WithDependencies(t *testing.T) {
 
 func TestNewPkgInstallCommand_Interactive(t *testing.T) {
 	makePkgConfig(t)
-	cmd := NewPkgInstallCommand()
+	cmd := NewPkgInstallCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"--interactive", "some-pkg"})
 	if err := cmd.Execute(); err == nil {
 		t.Error("install --interactive on no registries should error")
@@ -541,7 +557,7 @@ func TestNewPkgInstallCommand_Interactive(t *testing.T) {
 
 func TestNewPkgUpgradeCommand_WithVersion(t *testing.T) {
 	makePkgConfig(t)
-	cmd := NewPkgUpgradeCommand()
+	cmd := NewPkgUpgradeCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"some-pkg@2.0.0"})
 	if err := cmd.Execute(); err == nil {
 		t.Error("upgrade with version on non-installed package should error")
@@ -550,7 +566,7 @@ func TestNewPkgUpgradeCommand_WithVersion(t *testing.T) {
 
 func TestNewPkgUpgradeCommand_WithForce(t *testing.T) {
 	makePkgConfig(t)
-	cmd := NewPkgUpgradeCommand()
+	cmd := NewPkgUpgradeCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"--force", "some-pkg"})
 	if err := cmd.Execute(); err == nil {
 		t.Error("upgrade --force on non-installed package should error")
@@ -559,7 +575,7 @@ func TestNewPkgUpgradeCommand_WithForce(t *testing.T) {
 
 func TestNewPkgUpgradeCommand_WithSource(t *testing.T) {
 	makePkgConfig(t)
-	cmd := NewPkgUpgradeCommand()
+	cmd := NewPkgUpgradeCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"--source", "nonexistent-reg", "some-pkg"})
 	if err := cmd.Execute(); err == nil {
 		t.Error("upgrade --source nonexistent on non-installed should error")
@@ -570,7 +586,7 @@ func TestNewPkgUpgradeCommand_WithSource(t *testing.T) {
 
 func TestNewPkgUninstallCommand_WithForce(t *testing.T) {
 	makePkgConfig(t)
-	cmd := NewPkgUninstallCommand()
+	cmd := NewPkgUninstallCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"--force", "ghost-package"})
 	if err := cmd.Execute(); err == nil {
 		t.Error("uninstall --force on non-installed package should error")
@@ -611,7 +627,7 @@ package_registries: []
 		t.Fatalf("WriteFile config: %v", err)
 	}
 
-	cmd := NewPkgConfigureCommand()
+	cmd := NewPkgConfigureCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"test-pkg"})
 	// Should fail because no configure script exists
 	if err := cmd.Execute(); err == nil {
@@ -654,7 +670,7 @@ package_registries: []
 		t.Fatalf("WriteFile config: %v", err)
 	}
 
-	cmd := NewPkgConfigureCommand()
+	cmd := NewPkgConfigureCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"test-pkg"})
 	if err := cmd.Execute(); err != nil {
 		t.Errorf("configure with valid script error = %v", err)
@@ -696,7 +712,7 @@ package_registries: []
 		t.Fatalf("WriteFile config: %v", err)
 	}
 
-	cmd := NewPkgConfigureCommand()
+	cmd := NewPkgConfigureCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"test-pkg"})
 	if err := cmd.Execute(); err == nil {
 		t.Error("configure with failing script should error")
@@ -735,7 +751,7 @@ package_registries: []
 		t.Fatalf("WriteFile config: %v", err)
 	}
 
-	cmd := NewPkgValidateCommand()
+	cmd := NewPkgValidateCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"test-pkg"})
 	if err := cmd.Execute(); err == nil {
 		t.Error("validate with no validate script should error")
@@ -776,7 +792,7 @@ package_registries: []
 		t.Fatalf("WriteFile config: %v", err)
 	}
 
-	cmd := NewPkgValidateCommand()
+	cmd := NewPkgValidateCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"test-pkg"})
 	if err := cmd.Execute(); err != nil {
 		t.Errorf("validate with valid script error = %v", err)
@@ -817,7 +833,7 @@ package_registries: []
 		t.Fatalf("WriteFile config: %v", err)
 	}
 
-	cmd := NewPkgValidateCommand()
+	cmd := NewPkgValidateCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"test-pkg"})
 	if err := cmd.Execute(); err == nil {
 		t.Error("validate with failing script should error")
@@ -859,7 +875,7 @@ package_registries:
 		t.Fatalf("WriteFile config: %v", err)
 	}
 
-	cmd := NewPkgInstallCommand()
+	cmd := NewPkgInstallCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"test-pkg"})
 	// Should fail because package already exists
 	if err := cmd.Execute(); err == nil {
@@ -899,7 +915,7 @@ package_registries: []
 		t.Fatalf("WriteFile config: %v", err)
 	}
 
-	cmd := NewPkgUninstallCommand()
+	cmd := NewPkgUninstallCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"test-pkg"})
 	// Should succeed — uninstall a real package
 	if err := cmd.Execute(); err != nil {
@@ -939,7 +955,7 @@ package_registries: []
 		t.Fatalf("WriteFile config: %v", err)
 	}
 
-	cmd := NewPkgUpgradeCommand()
+	cmd := NewPkgUpgradeCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"test-pkg"})
 	// Should fail because no registries have the package
 	if err := cmd.Execute(); err == nil {
@@ -1042,7 +1058,7 @@ package_registries:
 func TestNewPkgInstallCommand_FullInstall(t *testing.T) {
 	setupLocalGitRegistry(t)
 
-	cmd := NewPkgInstallCommand()
+	cmd := NewPkgInstallCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"hello-pkg"})
 	if err := cmd.Execute(); err != nil {
 		t.Errorf("pkg install error = %v", err)
@@ -1052,7 +1068,7 @@ func TestNewPkgInstallCommand_FullInstall(t *testing.T) {
 func TestNewPkgInstallCommand_IntegrationWithVersion(t *testing.T) {
 	setupLocalGitRegistry(t)
 
-	cmd := NewPkgInstallCommand()
+	cmd := NewPkgInstallCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"hello-pkg@2.0.0"})
 	if err := cmd.Execute(); err != nil {
 		t.Errorf("pkg install @version error = %v", err)
@@ -1062,7 +1078,7 @@ func TestNewPkgInstallCommand_IntegrationWithVersion(t *testing.T) {
 func TestNewPkgInstallCommand_IntegrationWrongVersion(t *testing.T) {
 	setupLocalGitRegistry(t)
 
-	cmd := NewPkgInstallCommand()
+	cmd := NewPkgInstallCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"hello-pkg@9.9.9"})
 	if err := cmd.Execute(); err == nil {
 		t.Error("expected error for wrong version")
@@ -1072,7 +1088,7 @@ func TestNewPkgInstallCommand_IntegrationWrongVersion(t *testing.T) {
 func TestNewPkgInstallCommand_IntegrationSource(t *testing.T) {
 	setupLocalGitRegistry(t)
 
-	cmd := NewPkgInstallCommand()
+	cmd := NewPkgInstallCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"--source", "test-registry", "hello-pkg"})
 	if err := cmd.Execute(); err != nil {
 		t.Errorf("pkg install --source error = %v", err)
@@ -1082,7 +1098,7 @@ func TestNewPkgInstallCommand_IntegrationSource(t *testing.T) {
 func TestNewPkgInstallCommand_IntegrationSourceNotFound(t *testing.T) {
 	setupLocalGitRegistry(t)
 
-	cmd := NewPkgInstallCommand()
+	cmd := NewPkgInstallCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"--source", "nonexistent", "hello-pkg"})
 	if err := cmd.Execute(); err == nil {
 		t.Error("expected error for nonexistent source")
@@ -1093,12 +1109,12 @@ func TestNewPkgInstallCommand_IntegrationAlreadyInstalled(t *testing.T) {
 	tmpDir := setupLocalGitRegistry(t)
 
 	// Install first
-	cmd := NewPkgInstallCommand()
+	cmd := NewPkgInstallCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"hello-pkg"})
 	_ = cmd.Execute()
 
 	// Try again without --force
-	cmd2 := NewPkgInstallCommand()
+	cmd2 := NewPkgInstallCommand(testPkgArgs(t))
 	cmd2.SetArgs([]string{"hello-pkg"})
 	if err := cmd2.Execute(); err == nil {
 		t.Error("expected error: already installed")
@@ -1111,12 +1127,12 @@ func TestNewPkgInstallCommand_IntegrationForce(t *testing.T) {
 	setupLocalGitRegistry(t)
 
 	// Install first
-	cmd := NewPkgInstallCommand()
+	cmd := NewPkgInstallCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"hello-pkg"})
 	_ = cmd.Execute()
 
 	// Force reinstall
-	cmd2 := NewPkgInstallCommand()
+	cmd2 := NewPkgInstallCommand(testPkgArgs(t))
 	cmd2.SetArgs([]string{"--force", "hello-pkg"})
 	if err := cmd2.Execute(); err != nil {
 		t.Errorf("pkg install --force error = %v", err)
@@ -1126,7 +1142,7 @@ func TestNewPkgInstallCommand_IntegrationForce(t *testing.T) {
 func TestNewPkgInstallCommand_IntegrationInteractive(t *testing.T) {
 	setupLocalGitRegistry(t)
 
-	cmd := NewPkgInstallCommand()
+	cmd := NewPkgInstallCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"--interactive", "hello-pkg"})
 	if err := cmd.Execute(); err != nil {
 		t.Errorf("pkg install --interactive error = %v", err)
@@ -1149,7 +1165,7 @@ requirements:
   cockpit: ">=0.1.0"
 `), 0o644)
 
-	cmd := NewPkgUpgradeCommand()
+	cmd := NewPkgUpgradeCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"hello-pkg"})
 	if err := cmd.Execute(); err != nil {
 		t.Errorf("pkg upgrade error = %v", err)
@@ -1171,7 +1187,7 @@ requirements:
   cockpit: ">=0.1.0"
 `), 0o644)
 
-	cmd := NewPkgUpgradeCommand()
+	cmd := NewPkgUpgradeCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"hello-pkg"})
 	if err := cmd.Execute(); err != nil {
 		t.Errorf("pkg upgrade (up to date) error = %v", err)
@@ -1181,7 +1197,7 @@ requirements:
 func TestNewPkgUpgradeCommand_IntegrationNotInstalled(t *testing.T) {
 	setupLocalGitRegistry(t)
 
-	cmd := NewPkgUpgradeCommand()
+	cmd := NewPkgUpgradeCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"nonexistent-pkg"})
 	if err := cmd.Execute(); err == nil {
 		t.Error("expected error: package not installed")
@@ -1203,7 +1219,7 @@ requirements:
   cockpit: ">=0.1.0"
 `), 0o644)
 
-	cmd := NewPkgUpgradeCommand()
+	cmd := NewPkgUpgradeCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"--source", "test-registry", "hello-pkg"})
 	if err := cmd.Execute(); err != nil {
 		t.Errorf("pkg upgrade --source error = %v", err)
@@ -1225,7 +1241,7 @@ requirements:
   cockpit: ">=0.1.0"
 `), 0o644)
 
-	cmd := NewPkgUpgradeCommand()
+	cmd := NewPkgUpgradeCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"--source", "nonexistent", "hello-pkg"})
 	if err := cmd.Execute(); err == nil {
 		t.Error("expected error: registry not found")
@@ -1248,7 +1264,7 @@ requirements:
 `), 0o644)
 
 	// Force upgrade even when already up to date
-	cmd := NewPkgUpgradeCommand()
+	cmd := NewPkgUpgradeCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"--force", "hello-pkg"})
 	if err := cmd.Execute(); err != nil {
 		t.Errorf("pkg upgrade --force error = %v", err)
@@ -1270,7 +1286,7 @@ requirements:
   cockpit: ">=0.1.0"
 `), 0o644)
 
-	cmd := NewPkgUpgradeCommand()
+	cmd := NewPkgUpgradeCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"hello-pkg@9.9.9"})
 	if err := cmd.Execute(); err == nil {
 		t.Error("expected error: version not found")
@@ -1373,7 +1389,7 @@ package_registries:
 func TestNewPkgInstallCommand_WithHooks(t *testing.T) {
 	setupLocalGitRegistryWithHooks(t)
 
-	cmd := NewPkgInstallCommand()
+	cmd := NewPkgInstallCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"hook-pkg"})
 	if err := cmd.Execute(); err != nil {
 		t.Errorf("pkg install with hooks error = %v", err)
@@ -1383,7 +1399,7 @@ func TestNewPkgInstallCommand_WithHooks(t *testing.T) {
 func TestNewPkgInstallCommand_WithInteractive(t *testing.T) {
 	setupLocalGitRegistry(t)
 
-	cmd := NewPkgInstallCommand()
+	cmd := NewPkgInstallCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"--interactive", "hello-pkg"})
 	if err := cmd.Execute(); err != nil {
 		t.Errorf("pkg install --interactive error = %v", err)
@@ -1394,7 +1410,7 @@ func TestNewPkgInstallCommand_IntegrationWithDependencies(t *testing.T) {
 	// The hello-pkg has no dependencies, so --with-dependencies is a no-op path but exercises the flag
 	setupLocalGitRegistry(t)
 
-	cmd := NewPkgInstallCommand()
+	cmd := NewPkgInstallCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"--force", "--with-dependencies", "hello-pkg"})
 	if err := cmd.Execute(); err != nil {
 		t.Errorf("pkg install --with-dependencies error = %v", err)
@@ -1404,7 +1420,7 @@ func TestNewPkgInstallCommand_IntegrationWithDependencies(t *testing.T) {
 func TestNewPkgSearchCommand_FullSearch(t *testing.T) {
 	setupLocalGitRegistry(t)
 
-	cmd := NewPkgSearchCommand()
+	cmd := NewPkgSearchCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"hello"})
 	if err := cmd.Execute(); err != nil {
 		t.Errorf("pkg search error = %v", err)
@@ -1414,7 +1430,7 @@ func TestNewPkgSearchCommand_FullSearch(t *testing.T) {
 func TestNewPkgSearchCommand_NotFound(t *testing.T) {
 	setupLocalGitRegistry(t)
 
-	cmd := NewPkgSearchCommand()
+	cmd := NewPkgSearchCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"nonexistent-xyz"})
 	// Search with no results should still succeed (prints "no packages found")
 	if err := cmd.Execute(); err != nil {
@@ -1425,7 +1441,7 @@ func TestNewPkgSearchCommand_NotFound(t *testing.T) {
 func TestNewPkgSearchCommand_Detailed(t *testing.T) {
 	setupLocalGitRegistry(t)
 
-	cmd := NewPkgSearchCommand()
+	cmd := NewPkgSearchCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"--detailed", "hello"})
 	if err := cmd.Execute(); err != nil {
 		t.Errorf("pkg search --detailed error = %v", err)
@@ -1435,7 +1451,7 @@ func TestNewPkgSearchCommand_Detailed(t *testing.T) {
 func TestNewPkgSearchCommand_NoQuery(t *testing.T) {
 	setupLocalGitRegistry(t)
 
-	cmd := NewPkgSearchCommand()
+	cmd := NewPkgSearchCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{})
 	// No query, no category, no tag → error
 	if err := cmd.Execute(); err == nil {
@@ -1446,7 +1462,7 @@ func TestNewPkgSearchCommand_NoQuery(t *testing.T) {
 func TestNewPkgSearchCommand_Source(t *testing.T) {
 	setupLocalGitRegistry(t)
 
-	cmd := NewPkgSearchCommand()
+	cmd := NewPkgSearchCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"--source", "test-registry", "hello"})
 	if err := cmd.Execute(); err != nil {
 		t.Errorf("pkg search --source error = %v", err)
@@ -1456,7 +1472,7 @@ func TestNewPkgSearchCommand_Source(t *testing.T) {
 func TestNewPkgSearchCommand_SourceNotFound(t *testing.T) {
 	setupLocalGitRegistry(t)
 
-	cmd := NewPkgSearchCommand()
+	cmd := NewPkgSearchCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"--source", "nonexistent", "hello"})
 	if err := cmd.Execute(); err == nil {
 		t.Error("expected error: registry not found")
@@ -1466,7 +1482,7 @@ func TestNewPkgSearchCommand_SourceNotFound(t *testing.T) {
 func TestNewPkgSearchCommand_Category(t *testing.T) {
 	setupLocalGitRegistry(t)
 
-	cmd := NewPkgSearchCommand()
+	cmd := NewPkgSearchCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"--category", "test"})
 	if err := cmd.Execute(); err != nil {
 		t.Errorf("pkg search --category error = %v", err)
@@ -1476,7 +1492,7 @@ func TestNewPkgSearchCommand_Category(t *testing.T) {
 func TestNewPkgSearchCommand_Tag(t *testing.T) {
 	setupLocalGitRegistry(t)
 
-	cmd := NewPkgSearchCommand()
+	cmd := NewPkgSearchCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"--tag", "test"})
 	if err := cmd.Execute(); err != nil {
 		t.Errorf("pkg search --tag error = %v", err)
@@ -1487,7 +1503,7 @@ func TestNewPkgListCommand_WithPackages(t *testing.T) {
 	setupLocalGitRegistry(t)
 
 	// List — should find hello-pkg in registry
-	listCmd := NewPkgListCommand()
+	listCmd := NewPkgListCommand(testPkgArgs(t))
 	if err := listCmd.Execute(); err != nil {
 		t.Errorf("pkg list (with packages) error = %v", err)
 	}
@@ -1496,7 +1512,7 @@ func TestNewPkgListCommand_WithPackages(t *testing.T) {
 func TestNewPkgListCommand_Detailed(t *testing.T) {
 	setupLocalGitRegistry(t)
 
-	listCmd := NewPkgListCommand()
+	listCmd := NewPkgListCommand(testPkgArgs(t))
 	listCmd.SetArgs([]string{"--detailed"})
 	if err := listCmd.Execute(); err != nil {
 		t.Errorf("pkg list --detailed error = %v", err)
@@ -1506,7 +1522,7 @@ func TestNewPkgListCommand_Detailed(t *testing.T) {
 func TestNewPkgListCommand_Source(t *testing.T) {
 	setupLocalGitRegistry(t)
 
-	listCmd := NewPkgListCommand()
+	listCmd := NewPkgListCommand(testPkgArgs(t))
 	listCmd.SetArgs([]string{"--source", "test-registry"})
 	if err := listCmd.Execute(); err != nil {
 		t.Errorf("pkg list --source error = %v", err)
@@ -1516,7 +1532,7 @@ func TestNewPkgListCommand_Source(t *testing.T) {
 func TestNewPkgListCommand_SourceNotFound(t *testing.T) {
 	setupLocalGitRegistry(t)
 
-	listCmd := NewPkgListCommand()
+	listCmd := NewPkgListCommand(testPkgArgs(t))
 	listCmd.SetArgs([]string{"--source", "nonexistent"})
 	if err := listCmd.Execute(); err == nil {
 		t.Error("expected error: registry not found")
@@ -1565,7 +1581,7 @@ package_registries: []
 		t.Fatalf("WriteFile config: %v", err)
 	}
 
-	cmd := NewPkgUninstallCommand()
+	cmd := NewPkgUninstallCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"hello-pkg"})
 	if err := cmd.Execute(); err != nil {
 		t.Errorf("pkg uninstall error = %v", err)
@@ -1611,7 +1627,7 @@ package_registries: []
 `
 	os.WriteFile(filepath.Join(cockpitDir, "config.yaml"), []byte(cfgYaml), 0o644)
 
-	cmd := NewPkgUninstallCommand()
+	cmd := NewPkgUninstallCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"asset-pkg"})
 	if err := cmd.Execute(); err != nil {
 		t.Errorf("pkg uninstall with assets error = %v", err)
@@ -1663,7 +1679,7 @@ package_registries: []
 		t.Fatalf("WriteFile config: %v", err)
 	}
 
-	cmd := NewPkgUninstallCommand()
+	cmd := NewPkgUninstallCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"hook-pkg"})
 	if err := cmd.Execute(); err != nil {
 		t.Errorf("pkg uninstall with pre-uninstall hook error = %v", err)
@@ -1715,14 +1731,14 @@ package_registries: []
 	}
 
 	// Without --force, should error
-	cmd := NewPkgUninstallCommand()
+	cmd := NewPkgUninstallCommand(testPkgArgs(t))
 	cmd.SetArgs([]string{"fail-pkg"})
 	if err := cmd.Execute(); err == nil {
 		t.Error("uninstall with failing hook (no --force) should error")
 	}
 
 	// With --force, should succeed
-	cmd2 := NewPkgUninstallCommand()
+	cmd2 := NewPkgUninstallCommand(testPkgArgs(t))
 	cmd2.SetArgs([]string{"--force", "fail-pkg"})
 	if err := cmd2.Execute(); err != nil {
 		t.Errorf("uninstall --force with failing hook error = %v", err)

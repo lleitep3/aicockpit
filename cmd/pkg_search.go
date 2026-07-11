@@ -6,11 +6,12 @@ import (
 
 	"github.com/lleitep3/aicockpit/internal/config"
 	"github.com/lleitep3/aicockpit/internal/packages"
+	"github.com/lleitep3/aicockpit/internal/services"
 	"github.com/spf13/cobra"
 )
 
 // NewPkgSearchCommand creates the pkg search command.
-func NewPkgSearchCommand() *cobra.Command {
+func NewPkgSearchCommand(svc services.PackageService, cfg *config.Config) *cobra.Command {
 	var (
 		source   string
 		category string
@@ -34,16 +35,6 @@ func NewPkgSearchCommand() *cobra.Command {
 				return fmt.Errorf("please provide a search query, category, or tag")
 			}
 
-			// Load config
-			cfg, err := config.Load()
-			if err != nil {
-				return fmt.Errorf("failed to load config: %w", err)
-			}
-
-			// Create registry manager
-			cockpitDir := config.GetCockpitDir()
-			rm := packages.NewRegistryManager(cockpitDir)
-
 			// Get registries to search
 			var registriesToSearch []packages.RegistryConfig
 			if source != "" {
@@ -65,13 +56,16 @@ func NewPkgSearchCommand() *cobra.Command {
 			}
 
 			// Perform search
-			var results []packages.PackageIndexEntry
+			var (
+				results []packages.PackageIndexEntry
+				err     error
+			)
 			if category != "" {
-				results, err = rm.SearchByCategory(category, registriesToSearch)
+				results, err = svc.SearchByCategory(category, registriesToSearch)
 			} else if tag != "" {
-				results, err = rm.SearchByTag(tag, registriesToSearch)
+				results, err = svc.SearchByTag(tag, registriesToSearch)
 			} else {
-				results, err = rm.SearchPackages(query, registriesToSearch)
+				results, err = svc.SearchPackages(query, registriesToSearch)
 			}
 
 			if err != nil {

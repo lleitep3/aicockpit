@@ -7,12 +7,12 @@ import (
 	"path/filepath"
 
 	"github.com/lleitep3/aicockpit/internal/config"
-	"github.com/lleitep3/aicockpit/internal/packages"
+	"github.com/lleitep3/aicockpit/internal/services"
 	"github.com/spf13/cobra"
 )
 
 // NewPkgConfigureCommand creates the pkg configure command.
-func NewPkgConfigureCommand() *cobra.Command {
+func NewPkgConfigureCommand(svc services.PackageService, cfg *config.Config) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "configure <package>",
 		Short: "Configure an installed package",
@@ -20,15 +20,13 @@ func NewPkgConfigureCommand() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			packageName := args[0]
-			cockpitDir := config.GetCockpitDir()
-			pm := packages.NewPackageManager(cockpitDir)
 
-			if !pm.PackageExists(packageName) {
+			if !svc.PackageExists(packageName) {
 				return fmt.Errorf("package not installed: %s", packageName)
 			}
 
 			// Path to configure script
-			scriptPath := filepath.Join(pm.GetPackageInstallPath(packageName), "bin", "configure")
+			scriptPath := filepath.Join(svc.GetPackageInstallPath(packageName), "bin", "configure")
 			if _, err := os.Stat(scriptPath); os.IsNotExist(err) {
 				return fmt.Errorf("package %s does not implement a 'configure' script", packageName)
 			}
@@ -49,6 +47,9 @@ func NewPkgConfigureCommand() *cobra.Command {
 			return nil
 		},
 	}
+
+	// cfg is available for future registry-aware configure logic.
+	_ = cfg
 
 	return cmd
 }
