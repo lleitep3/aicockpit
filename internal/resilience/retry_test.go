@@ -73,7 +73,7 @@ func TestRetry_ContextCancellation(t *testing.T) {
 	err := Retry(ctx, DefaultConfig(), func() error {
 		return AsRetryable(errors.New("transient"))
 	})
-	if err != ctx.Err() {
+	if !errors.Is(err, ctx.Err()) {
 		t.Fatalf("expected context error, got %v", err)
 	}
 }
