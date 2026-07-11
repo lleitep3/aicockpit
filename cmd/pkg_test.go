@@ -19,7 +19,7 @@ func testPkgArgs(t *testing.T) (services.PackageService, *config.Config) {
 	if err != nil {
 		cfg = &config.Config{}
 	}
-	svc := services.NewPackageService(config.GetCockpitDir())
+	svc := services.NewPackageService(config.GetCockpitDir(), nil)
 	return svc, cfg
 }
 

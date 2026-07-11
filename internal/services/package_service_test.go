@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/lleitep3/aicockpit/internal/events"
 	"github.com/lleitep3/aicockpit/internal/packages"
 )
 
@@ -29,6 +30,7 @@ type MockPackageService struct {
 	SyncPackageAssetsFunc     func(*packages.Package, string) error
 	RemovePackageAssetsFunc   func(*packages.Package) error
 	TriggerDeployFunc         func(string) error
+	EmitEventFunc             func(events.Event)
 }
 
 func (m *MockPackageService) SearchPackages(query string, registries []packages.RegistryConfig) ([]packages.PackageIndexEntry, error) {
@@ -150,16 +152,58 @@ func (m *MockPackageService) TriggerDeploy(cockpitBin string) error {
 	return nil
 }
 
+func (m *MockPackageService) EmitEvent(e events.Event) {
+	if m.EmitEventFunc != nil {
+		m.EmitEventFunc(e)
+	}
+}
+
 func TestNewPackageService(t *testing.T) {
-	svc := NewPackageService(t.TempDir())
+	svc := NewPackageService(t.TempDir(), nil)
 	if svc == nil {
 		t.Fatal("expected non-nil service")
 	}
 }
 
+func TestNewPackageService_WithBus(t *testing.T) {
+	bus := events.New()
+	svc := NewPackageService(t.TempDir(), bus)
+	if svc == nil {
+		t.Fatal("expected non-nil service")
+	}
+}
+
+func TestDefaultPackageService_EmitEvent_WithBus(t *testing.T) {
+	bus := events.New()
+	received := make([]events.Event, 0)
+	bus.Subscribe(events.TopicPackageInstalled, func(e events.Event) error {
+		received = append(received, e)
+		return nil
+	})
+
+	svc := NewPackageService(t.TempDir(), bus)
+	svc.EmitEvent(events.Event{
+		Topic:   events.TopicPackageInstalled,
+		Payload: events.PackageInstalledPayload{PackageName: "test-pkg"},
+	})
+
+	if len(received) != 1 {
+		t.Fatalf("expected 1 event, got %d", len(received))
+	}
+	if received[0].Topic != events.TopicPackageInstalled {
+		t.Errorf("unexpected topic: %s", received[0].Topic)
+	}
+}
+
+func TestDefaultPackageService_EmitEvent_NilBus(t *testing.T) {
+	// Should be a no-op, not panic
+	svc := NewPackageService(t.TempDir(), nil)
+	svc.EmitEvent(events.Event{Topic: events.TopicPackageInstalled})
+}
+
 func TestDefaultPackageService_Delegation(t *testing.T) {
 	tmpDir := t.TempDir()
-	svc := NewPackageService(tmpDir)
+	svc := NewPackageService(tmpDir, nil)
 
 	if svc.PackageExists("nonexistent") {
 		t.Error("PackageExists(nonexistent) should be false on a fresh dir")
@@ -287,5 +331,6 @@ func TestMockPackageService(t *testing.T) {
 	_ = mock.SyncPackageAssets(&packages.Package{Name: "x"}, "dir")
 	_ = mock.RemovePackageAssets(&packages.Package{Name: "x"})
 	_ = mock.TriggerDeploy("")
+	mock.EmitEvent(events.Event{Topic: events.TopicPackageInstalled})
 	_ = ctx
 }

@@ -2,8 +2,10 @@ package cmd
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/lleitep3/aicockpit/internal/config"
+	"github.com/lleitep3/aicockpit/internal/events"
 	"github.com/lleitep3/aicockpit/internal/services"
 	"github.com/spf13/cobra"
 )
@@ -70,6 +72,17 @@ func NewPkgUninstallCommand(svc services.PackageService, cfg *config.Config) *co
 			}
 
 			fmt.Printf("✓ Package uninstalled successfully\n")
+
+			// Emit package uninstalled event
+			svc.EmitEvent(events.Event{
+				Topic: events.TopicPackageUninstalled,
+				Payload: events.PackageUninstalledPayload{
+					PackageName: packageName,
+					Version:     pkg.Version,
+					InstallPath: installPath,
+					Timestamp:   time.Now(),
+				},
+			})
 
 			// Redeploy to providers after removing assets
 			if hasAssets {

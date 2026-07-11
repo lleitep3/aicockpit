@@ -3,8 +3,10 @@ package cmd
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/lleitep3/aicockpit/internal/config"
+	"github.com/lleitep3/aicockpit/internal/events"
 	"github.com/lleitep3/aicockpit/internal/packages"
 	"github.com/lleitep3/aicockpit/internal/services"
 	"github.com/spf13/cobra"
@@ -90,6 +92,18 @@ func NewPkgUpgradeCommand(svc services.PackageService, cfg *config.Config) *cobr
 			}
 
 			fmt.Printf("✓ Package %s upgraded successfully to %s\n", packageName, pkgEntry.Version)
+
+			// Emit package upgraded event
+			svc.EmitEvent(events.Event{
+				Topic: events.TopicPackageUpgraded,
+				Payload: events.PackageUpgradedPayload{
+					PackageName: packageName,
+					OldVersion:  oldPkg.Version,
+					NewVersion:  pkgEntry.Version,
+					InstallPath: svc.GetPackageInstallPath(packageName),
+					Timestamp:   time.Now(),
+				},
+			})
 
 			// Redeploy to active providers
 			fmt.Printf("\nRedeploying to active providers...\n")

@@ -2,13 +2,23 @@ package cmd
 
 import (
 	"github.com/lleitep3/aicockpit/internal/config"
+	"github.com/lleitep3/aicockpit/internal/events"
 	"github.com/lleitep3/aicockpit/internal/services"
 	"github.com/spf13/cobra"
 )
 
 // newPkgServiceFunc can be replaced in tests.
 var newPkgServiceFunc = func(cockpitDir string) services.PackageService {
-	return services.NewPackageService(cockpitDir)
+	bus := events.New()
+	// Placeholder log subscriber — future issues can replace TriggerDeploy entirely.
+	for _, topic := range []events.Topic{
+		events.TopicPackageInstalled,
+		events.TopicPackageUninstalled,
+		events.TopicPackageUpgraded,
+	} {
+		bus.Subscribe(topic, func(_ events.Event) error { return nil })
+	}
+	return services.NewPackageService(cockpitDir, bus)
 }
 
 // NewPkgCommand creates the pkg command.
