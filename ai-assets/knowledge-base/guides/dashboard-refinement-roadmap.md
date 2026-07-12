@@ -78,6 +78,7 @@ Este documento é a lista de trabalho para aprofundamento e detalhamento técnic
         }
         ```
     *   Quick-Fix exige confirmação explícita do usuário e gera audit log.
+    *   Página `/logs` consome `~/.cockpit/metrics.json` e `~/.cockpit/logs/` para exibir insights.
 
 ### 🟩 3. Gerenciador de Pacotes & Registry
 *   **Decisões fechadas:**

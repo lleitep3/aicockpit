@@ -60,6 +60,8 @@ Esta página apresenta a situação geral da máquina local em tempo real.
     *   *Estilo:* Lista de itens com ícones de sucesso (`check-circle` verde), aviso (`exclamation-triangle` amarelo) ou falha (`x-circle` vermelho).
 3.  **Feed de Atividade Recente:**
     *   Exibe histórico rápido das últimas ações executadas (ex: "Mini-app X iniciado há 5 min", "Pacote Y atualizado às 10:15").
+4.  **Link para Logs & Insights:**
+    *   Card clicável que leva à página `/logs` para análise detalhada de métricas de execução.
 
 ### B. Ações Disponíveis
 *   **Bloqueio Rápido do Vault:** Um clique para fechar o cofre e limpar chaves da memória imediatamente.

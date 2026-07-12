@@ -1,0 +1,8 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - link "Cockpit Dashboard" [ref=e6] [cursor=pointer]:
+      - /url: /
+      - generic [ref=e7]: Cockpit Dashboard
+  - main [ref=e8]:
+    - heading "404" [level=1] [ref=e9]
+    - paragraph [ref=e10]: Not Found

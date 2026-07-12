@@ -1,0 +1,23 @@
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]: Cockpit
+      - button "Recolher menu" [ref=e7] [cursor=pointer]: ◀
+    - navigation [ref=e8]:
+      - link "• Visão Geral" [ref=e9] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e10]: •
+        - generic [ref=e11]: Visão Geral
+      - link "• Logs & Insights" [ref=e12] [cursor=pointer]:
+        - /url: /logs
+        - generic [ref=e13]: •
+        - generic [ref=e14]: Logs & Insights
+  - generic [ref=e15]:
+    - banner [ref=e16]:
+      - generic [ref=e17]: Cockpit Dashboard
+    - main [ref=e18]:
+      - generic [ref=e19]:
+        - generic [ref=e20]:
+          - heading "Logs & Insights" [level=1] [ref=e21]
+          - paragraph [ref=e22]: Análise de execuções e métricas do cockpit.
+        - paragraph [ref=e23]: Carregando...
