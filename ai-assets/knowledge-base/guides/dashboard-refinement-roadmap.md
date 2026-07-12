@@ -6,14 +6,14 @@ Este documento é a lista de trabalho para aprofundamento e detalhamento técnic
 
 ## status do Refinamento
 
-| Módulo | Status | Tópicos de Discussão |
-| :--- | :--- | :--- |
-| **1. Layout & Design System** | 🟩 REFINADO | Paleta de cores, componentes reusáveis e responsividade. |
-| **2. Visão Geral (Overview)** | 🟩 REFINADO | Integração do `cockpit doctor` e formato de payload. |
-| **3. Gerenciador de Pacotes** | 🟩 REFINADO | APIs de controle, paridade CLI/UI e busca. |
-| **4. Vault & Segurança** | 🟩 REFINADO | Ciclo de vida da senha, auto-lock e criptografia em trânsito. |
-| **5. Base de Conhecimento (KB)** | 🟩 REFINADO | Renderização de grafo, detecção de notas órfãs e busca fuzzy. |
-| **6. Console de Mini-Apps** | 🟩 REFINADO | WebSockets para logs em tempo real e controle de sub-processos. |
+| Módulo | Status | Implementação | Tópicos de Discussão |
+| :--- | :--- | :--- | :--- |
+| **1. Layout & Design System** | 🟩 REFINADO | ✅ Implementado | Sidebar com 6 telas, responsividade mobile, command palette. |
+| **2. Visão Geral (Overview)** | 🟩 REFINADO | ✅ Implementado | KPIs com links, integração `cockpit doctor --json`. |
+| **3. Gerenciador de Pacotes** | 🟩 REFINADO | 🟡 Em progresso | APIs de controle, paridade CLI/UI e busca. |
+| **4. Vault & Segurança** | 🟩 REFINADO | ⬜ Pendente | Ciclo de vida da senha, auto-lock e criptografia em trânsito. |
+| **5. Base de Conhecimento (KB)** | 🟩 REFINADO | ⬜ Pendente | Renderização de grafo, detecção de notas órfãs e busca fuzzy. |
+| **6. Console de Mini-Apps** | 🟩 REFINADO | ⬜ Pendente | WebSockets para logs em tempo real e controle de sub-processos. |
 
 ## Decisões de Arquitetura (Fechadas)
 
