@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -15,21 +16,21 @@ import (
 
 // NewDoctorCommand creates the doctor command.
 func NewDoctorCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translator) *cobra.Command {
-	return &cobra.Command{
+	var jsonOutput bool
+	cmd := &cobra.Command{
 		Use:   "doctor",
 		Short: t.T("doctor.title"),
 		Long:  t.T("doctor.title"),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runDoctor(log, cfg, t)
+			return runDoctor(log, cfg, t, jsonOutput)
 		},
 	}
+	cmd.Flags().BoolVar(&jsonOutput, "json", false, "Output doctor results as JSON")
+	return cmd
 }
 
-func runDoctor(log *logging.Manager, cfg *config.Config, t *i18n.Translator) error {
+func runDoctor(log *logging.Manager, cfg *config.Config, t *i18n.Translator, jsonOutput bool) error {
 	startTime := time.Now()
-	fmt.Println(t.T("doctor.title"))
-	fmt.Println("=" + strings.Repeat("=", 49))
-	fmt.Println()
 
 	cockpitDir := config.GetCockpitDir()
 	configPath := config.GetConfigPath()
@@ -38,68 +39,62 @@ func runDoctor(log *logging.Manager, cfg *config.Config, t *i18n.Translator) err
 	packagesPath := filepath.Join(cockpitDir, "packages")
 	cachePath := filepath.Join(cockpitDir, "cache")
 
+	checks := []map[string]interface{}{
+		{"name": "Cockpit directory", "path": cockpitDir},
+		{"name": "Configuration file", "path": configPath},
+		{"name": "Vault", "path": vaultPath},
+		{"name": "Logs directory", "path": logsPath},
+		{"name": "Packages directory", "path": packagesPath},
+		{"name": "Cache directory", "path": cachePath},
+	}
+
+	results := make([]map[string]interface{}, 0, len(checks))
 	allOk := true
 
-	// Check 1: Cockpit directory
-	fmt.Printf(t.T("doctor.checking")+"\n", "Cockpit directory")
-	if _, err := os.Stat(cockpitDir); err == nil {
-		fmt.Printf(t.T("doctor.ok")+"\n", "Cockpit directory exists")
-	} else {
-		fmt.Printf(t.T("doctor.failed")+"\n", "Cockpit directory not found")
-		allOk = false
+	for _, check := range checks {
+		name := check["name"].(string)
+		path := check["path"].(string)
+		_, err := os.Stat(path)
+		ok := err == nil
+		if !ok {
+			allOk = false
+		}
+		results = append(results, map[string]interface{}{
+			"check_name":  name,
+			"status":      map[bool]string{true: "ok", false: "error"}[ok],
+			"message":     map[bool]string{true: name + " exists", false: name + " not found"}[ok],
+			"fixable":     false,
+			"fix_command": "",
+		})
 	}
 
-	// Check 2: Configuration file
-	fmt.Printf(t.T("doctor.checking")+"\n", "Configuration file")
-	if _, err := os.Stat(configPath); err == nil {
-		fmt.Printf(t.T("doctor.ok")+"\n", t.T("doctor.config_ok"))
+	if jsonOutput {
+		output, err := json.Marshal(map[string]interface{}{
+			"passed": allOk,
+			"checks": results,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to marshal doctor output: %w", err)
+		}
+		fmt.Println(string(output))
 	} else {
-		fmt.Printf(t.T("doctor.failed")+"\n", t.T("doctor.config_bad"))
-		allOk = false
-	}
-
-	// Check 3: Vault
-	fmt.Printf(t.T("doctor.checking")+"\n", "Vault")
-	if _, err := os.Stat(vaultPath); err == nil {
-		fmt.Printf(t.T("doctor.ok")+"\n", t.T("doctor.vault_ok"))
-	} else {
-		fmt.Printf(t.T("doctor.failed")+"\n", t.T("doctor.vault_bad"))
-		allOk = false
-	}
-
-	// Check 4: Logs directory
-	fmt.Printf(t.T("doctor.checking")+"\n", "Logs directory")
-	if _, err := os.Stat(logsPath); err == nil {
-		fmt.Printf(t.T("doctor.ok")+"\n", "Logs directory exists")
-	} else {
-		fmt.Printf(t.T("doctor.failed")+"\n", "Logs directory not found")
-		allOk = false
-	}
-
-	// Check 5: Packages directory
-	fmt.Printf(t.T("doctor.checking")+"\n", "Packages directory")
-	if _, err := os.Stat(packagesPath); err == nil {
-		fmt.Printf(t.T("doctor.ok")+"\n", "Packages directory exists")
-	} else {
-		fmt.Printf(t.T("doctor.failed")+"\n", "Packages directory not found")
-		allOk = false
-	}
-
-	// Check 6: Cache directory
-	fmt.Printf(t.T("doctor.checking")+"\n", "Cache directory")
-	if _, err := os.Stat(cachePath); err == nil {
-		fmt.Printf(t.T("doctor.ok")+"\n", "Cache directory exists")
-	} else {
-		fmt.Printf(t.T("doctor.failed")+"\n", "Cache directory not found")
-		allOk = false
-	}
-
-	fmt.Println()
-
-	if allOk {
-		fmt.Println(t.T("doctor.passed"))
-	} else {
-		fmt.Println(t.T("doctor.failed_msg"))
+		fmt.Println(t.T("doctor.title"))
+		fmt.Println("=" + strings.Repeat("=", 49))
+		fmt.Println()
+		for _, result := range results {
+			fmt.Printf(t.T("doctor.checking")+"\n", result["check_name"])
+			if result["status"] == "ok" {
+				fmt.Printf(t.T("doctor.ok")+"\n", result["message"])
+			} else {
+				fmt.Printf(t.T("doctor.failed")+"\n", result["message"])
+			}
+		}
+		fmt.Println()
+		if allOk {
+			fmt.Println(t.T("doctor.passed"))
+		} else {
+			fmt.Println(t.T("doctor.failed_msg"))
+		}
 	}
 
 	duration := time.Since(startTime)

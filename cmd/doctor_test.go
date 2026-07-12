@@ -37,7 +37,7 @@ func TestRunDoctor_AllPresent(t *testing.T) {
 		t.Fatalf("WriteFile config: %v", err)
 	}
 
-	if err := runDoctor(log, cfg, tr); err != nil {
+	if err := runDoctor(log, cfg, tr, false); err != nil {
 		t.Errorf("runDoctor() error = %v", err)
 	}
 }
@@ -51,8 +51,30 @@ func TestRunDoctor_MissingDirs(t *testing.T) {
 
 	// runDoctor must NOT return an error even when checks fail —
 	// it just prints failures and returns nil.
-	if err := runDoctor(log, cfg, tr); err != nil {
+	if err := runDoctor(log, cfg, tr, false); err != nil {
 		t.Errorf("runDoctor() with missing dirs should return nil, got %v", err)
+	}
+}
+
+func TestRunDoctor_JSON(t *testing.T) {
+	log, cfg, tr := newTestDeps(t)
+
+	tmpDir := t.TempDir()
+	cockpitDir := filepath.Join(tmpDir, ".cockpit")
+	t.Setenv("HOME", tmpDir)
+
+	for _, sub := range []string{"", "vault", "logs", "packages", "cache"} {
+		if err := os.MkdirAll(filepath.Join(cockpitDir, sub), 0o755); err != nil {
+			t.Fatalf("MkdirAll %s: %v", sub, err)
+		}
+	}
+	configPath := filepath.Join(cockpitDir, "config.yaml")
+	if err := os.WriteFile(configPath, []byte("version: 0.1.0\n"), 0o644); err != nil {
+		t.Fatalf("WriteFile config: %v", err)
+	}
+
+	if err := runDoctor(log, cfg, tr, true); err != nil {
+		t.Errorf("runDoctor() json error = %v", err)
 	}
 }
 
