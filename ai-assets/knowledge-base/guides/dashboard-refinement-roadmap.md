@@ -10,10 +10,10 @@ Este documento é a lista de trabalho para aprofundamento e detalhamento técnic
 | :--- | :--- | :--- | :--- |
 | **1. Layout & Design System** | 🟩 REFINADO | ✅ Implementado | Sidebar com 6 telas, responsividade mobile, command palette. |
 | **2. Visão Geral (Overview)** | 🟩 REFINADO | ✅ Implementado | KPIs com links, integração `cockpit doctor --json`. |
-| **3. Gerenciador de Pacotes** | 🟩 REFINADO | 🟡 Em progresso | APIs de controle, paridade CLI/UI e busca. |
-| **4. Vault & Segurança** | 🟩 REFINADO | ⬜ Pendente | Ciclo de vida da senha, auto-lock e criptografia em trânsito. |
-| **5. Base de Conhecimento (KB)** | 🟩 REFINADO | ⬜ Pendente | Renderização de grafo, detecção de notas órfãs e busca fuzzy. |
-| **6. Console de Mini-Apps** | 🟩 REFINADO | ⬜ Pendente | WebSockets para logs em tempo real e controle de sub-processos. |
+| **3. Gerenciador de Pacotes** | 🟩 REFINADO | ✅ Implementado | Abas Instalados/Registry, busca fuzzy, instalação assíncrona com SSE. |
+| **4. Vault & Segurança** | 🟩 REFINADO | ✅ Implementado | Lock/unlock, senha mestra, credenciais com reveal/copy e auto-lock. |
+| **5. Base de Conhecimento (KB)** | 🟩 REFINADO | ✅ Implementado | Grafo D3, lista de documentos, busca e preview drawer. |
+| **6. Console de Mini-Apps** | 🟩 REFINADO | ✅ Implementado | Cards de processos, logs SSE, ações start/stop/restart. |
 
 ## Decisões de Arquitetura (Fechadas)
 
