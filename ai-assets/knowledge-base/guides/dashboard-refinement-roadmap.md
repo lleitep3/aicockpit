@@ -57,15 +57,17 @@ Este documento é a lista de trabalho para aprofundamento e detalhamento técnic
 ## Detalhamento dos Pontos para Refinamento
 
 ### 🟩 1. Layout & Design System (Tailwind CSS)
-*   **Decisões a tomar:**
-    *   Usar React + Tailwind CSS puro ou adotar componentes primitivos (ex: Radix UI / Headless UI)?
-    *   Definir tokens de design exatos (paleta Slate vs. Zinc, tons de destaque como Violet ou Emerald).
-    *   Comportamento da Sidebar em dispositivos móveis (drawer acionado por botão vs. ocultação completa).
+*   **Decisões fechadas:**
+    *   Framework: SvelteKit 5.
+    *   Estilização: Tailwind CSS 3 + CSS variables para tokens.
+    *   Componentes: classes utilitárias Tailwind; usar `bits-ui` apenas para acessibilidade complexa.
+    *   Sidebar em mobile: vira drawer acionado por botão em telas < 768px.
+    *   Paleta inicial: Slate para fundos, Violet para primário, Emerald/Rose para status.
 
 ### 🟩 2. Visão Geral (Overview) & Diagnósticos
-*   **Decisões a tomar:**
-    *   Como a CLI do Cockpit expõe os resultados do `doctor` para a interface web? (Requer endpoint HTTP retornando JSON estruturado).
-    *   *Formato do JSON de Diagnóstico:*
+*   **Decisões fechadas:**
+    *   `cockpit doctor` deve suportar saída JSON (`--json`) consumida pelo backend via `CommandExecutor`.
+    *   Formato do JSON de diagnóstico:
         ```json
         {
           "check_name": "Vault Access",
@@ -75,30 +77,32 @@ Este documento é a lista de trabalho para aprofundamento e detalhamento técnic
           "fix_command": "cockpit vault unlock"
         }
         ```
-    *   Implementação do botão "Quick-Fix" (executar comando corretivo de forma segura na máquina).
+    *   Quick-Fix exige confirmação explícita do usuário e gera audit log.
 
 ### 🟩 3. Gerenciador de Pacotes & Registry
-*   **Decisões a tomar:**
-    *   Mapeamento de rotas da API:
-        *   `GET /api/packages` -> Lista pacotes locais.
-        *   `GET /api/registry` -> Lista pacotes disponíveis.
-        *   `POST /api/packages/install` -> Instala um pacote.
-    *   Como lidar com tempo de execução longo de instalações/upgrades? (Usar Server-Sent Events - SSE ou polling de status).
+*   **Decisões fechadas:**
+    *   Rotas da API:
+        *   `GET /api/v1/packages` -> Lista pacotes locais.
+        *   `GET /api/v1/registry` -> Lista pacotes disponíveis.
+        *   `POST /api/v1/packages/install` -> Inicia instalação; retorna `job_id`.
+    *   Instalações/upgrades longos usam SSE com `job_id` para progresso.
+    *   Nomes de pacotes validados por regex `^[a-z0-9_-]+$`.
 
 ### 🟩 4. Vault & Segurança Local
-*   **Decisões a tomar:**
-    *   *Armazenamento do token de descriptografia:* Como garantir que a chave do Vault nunca toque no disco ou localStorage do browser? (Salvar apenas em estado do React na memória).
-    *   *Auto-lock:* Tempo máximo de inatividade antes de limpar o estado e bloquear o cofre na UI (ex: 5 minutos).
-    *   Tratamento de clipboard: Apagar dado copiado após X segundos por segurança.
+*   **Decisões fechadas:**
+    *   Chave de descriptografia mantida apenas em memória do backend (Python). Nunca em disco, localStorage ou sessionStorage.
+    *   Auto-lock padrão: 5 minutos de inatividade.
+    *   Clipboard: segredo apagado automaticamente após 15 segundos.
+    *   Backend utiliza `cryptography.fernet` para criptografia.
 
 ### 🟩 5. Visualizador de Base de Conhecimento (KB)
-*   **Decisões a tomar:**
-    *   Escolha da tecnologia para o grafo de conexões: SVG nativo manipulado por D3-force, ou bibliotecas dedicadas como React Flow / Vis.js?
-    *   Como o grafo lida com escalabilidade (ex: +500 notas)?
-    *   Lógica do analisador de links quebrados e notas órfãs (leitura local do front-matter das notas Markdown).
+*   **Decisões fechadas:**
+    *   Grafo: D3.js v7 + SVG renderizado em Svelte.
+    *   Escalabilidade: layout force-directed até 500 nós; virtualização acima disso.
+    *   Links e órfãs: parser local de front-matter e links Markdown em `~/.cockpit/kb/`.
 
 ### 🟩 6. Console de Processos (Mini-Apps)
-*   **Decisões a tomar:**
-    *   Como o Cockpit gerencia os processos em background (Go `os/exec` ou gerenciador de processos dedicado)?
-    *   *Streaming de logs:* Protocolo do WebSocket para transmissão contínua de stdout/stderr de cada mini-app.
-    *   Medição de recursos: Como obter o consumo de CPU/RAM de um processo filho em Go sem sobrecarregar a máquina local?
+*   **Decisões fechadas:**
+    *   Gerenciamento: backend Python executa subprocessos controlados; PIDs armazenados em `~/.cockpit/workspace/mini-apps/<name>/.pids/`.
+    *   Stream de logs: SSE (`/api/v1/mini-apps/{name}/logs/stream`) lendo arquivos de log.
+    *   Métricas: `psutil` no backend para CPU/RAM dos processos filhos.

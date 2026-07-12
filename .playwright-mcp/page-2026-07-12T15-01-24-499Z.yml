@@ -1,0 +1,25 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - link "Cockpit Dashboard" [ref=e6] [cursor=pointer]:
+      - /url: /
+  - main [ref=e7]:
+    - generic [ref=e8]:
+      - generic [ref=e9]:
+        - heading "Cockpit Dashboard" [level=1] [ref=e10]
+        - paragraph [ref=e11]: Estado atual do AICockpit em tempo real.
+      - generic [ref=e12]:
+        - generic [ref=e13]:
+          - heading "Status Geral" [level=2] [ref=e14]
+          - paragraph [ref=e15]: Carregando...
+        - generic [ref=e16]:
+          - heading "Providers" [level=2] [ref=e17]
+          - paragraph [ref=e18]: Carregando...
+        - generic [ref=e19]:
+          - heading "Pacotes Instalados" [level=2] [ref=e20]
+          - paragraph [ref=e21]: Carregando...
+        - generic [ref=e22]:
+          - heading "Registries" [level=2] [ref=e23]
+          - paragraph [ref=e24]: Carregando...
+        - generic [ref=e25]:
+          - heading "Knowledge Base" [level=2] [ref=e26]
+          - paragraph [ref=e27]: Carregando...

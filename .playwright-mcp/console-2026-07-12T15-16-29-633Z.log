@@ -1,0 +1,290 @@
+[    4549ms] [LOG] [vite] server connection lost. Polling for restart... @ http://localhost:3000/@vite/client:963
+[    4551ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[    5552ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[    6553ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[    7555ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[    8557ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[    9559ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   10561ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   11565ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   12568ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   13573ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   14599ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   15609ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   16615ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   17621ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   18642ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   19650ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   20666ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   21679ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   22720ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   23801ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   24928ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   26035ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   27296ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   28381ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   29620ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   30106ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/status:0
+[   30122ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/providers:0
+[   30195ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/packages:0
+[   30208ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/registries:0
+[   30221ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/kb:0
+[   31154ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   32798ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   34763ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   37787ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   39697ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   42448ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   45950ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   49473ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   54197ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   58547ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   60098ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/status:0
+[   60101ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/providers:0
+[   60103ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/packages:0
+[   60105ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/registries:0
+[   60106ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/kb:0
+[   62556ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   66106ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   69883ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   72588ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   77346ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   81950ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   86238ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   88573ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   90283ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://localhost:8000/api/v1/cockpit/status:0
+[   90471ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://localhost:8000/api/v1/cockpit/providers:0
+[   90658ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://localhost:8000/api/v1/cockpit/packages:0
+[   90845ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://localhost:8000/api/v1/cockpit/registries:0
+[   91033ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://localhost:8000/api/v1/cockpit/kb:0
+[   93981ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   99351ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  103465ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  108548ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  113506ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  118853ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  120283ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://localhost:8000/api/v1/cockpit/status:0
+[  120471ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://localhost:8000/api/v1/cockpit/providers:0
+[  120661ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://localhost:8000/api/v1/cockpit/packages:0
+[  120848ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://localhost:8000/api/v1/cockpit/registries:0
+[  121035ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://localhost:8000/api/v1/cockpit/kb:0
+[  122394ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  126480ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  131571ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  135659ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  137946ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  142810ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  147010ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  149105ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  150282ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://localhost:8000/api/v1/cockpit/status:0
+[  150468ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://localhost:8000/api/v1/cockpit/providers:0
+[  150654ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://localhost:8000/api/v1/cockpit/packages:0
+[  150840ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://localhost:8000/api/v1/cockpit/registries:0
+[  151028ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://localhost:8000/api/v1/cockpit/kb:0
+[  151777ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  153886ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  157093ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  159538ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  162338ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  165742ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  170454ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  172963ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  176003ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  180282ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://localhost:8000/api/v1/cockpit/status:0
+[  180468ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://localhost:8000/api/v1/cockpit/providers:0
+[  180656ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://localhost:8000/api/v1/cockpit/packages:0
+[  180843ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://localhost:8000/api/v1/cockpit/registries:0
+[  181030ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://localhost:8000/api/v1/cockpit/kb:0
+[  181895ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  186531ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  190859ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  194767ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  198928ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  202813ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  208541ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  210097ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/status:0
+[  210098ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/providers:0
+[  210099ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/packages:0
+[  210100ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/registries:0
+[  210101ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/kb:0
+[  211406ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  213941ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  216724ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  220806ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  225866ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  230955ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  233794ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  239718ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  240097ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/status:0
+[  240098ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/providers:0
+[  240099ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/packages:0
+[  240099ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/registries:0
+[  240100ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/kb:0
+[  240722ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  241723ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  242724ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  243726ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  244728ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  245733ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  246739ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  247750ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  248772ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  249829ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  250912ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  251996ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  253460ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  255152ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  257544ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  259923ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  263122ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  266648ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  270098ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/status:0
+[  270100ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/providers:0
+[  270102ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/packages:0
+[  270104ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/registries:0
+[  270106ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/kb:0
+[  271852ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  275669ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  280329ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  283047ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  288350ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  293101ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  298890ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  300097ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/status:0
+[  300098ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/providers:0
+[  300099ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/packages:0
+[  300099ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/registries:0
+[  300100ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/kb:0
+[  301548ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  306340ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  308904ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  312917ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  318268ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  323008ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  326087ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  330097ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/status:0
+[  330098ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/providers:0
+[  330099ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/packages:0
+[  330100ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/registries:0
+[  330102ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/kb:0
+[  331058ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  336611ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  340808ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  343587ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  348262ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  354253ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  358009ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  360106ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/status:0
+[  360140ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/providers:0
+[  360160ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/packages:0
+[  360173ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/registries:0
+[  360184ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/kb:0
+[  361375ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  364226ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  369453ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  375100ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  379934ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  384704ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  387297ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  390098ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/status:0
+[  390099ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/providers:0
+[  390101ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/packages:0
+[  390103ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/registries:0
+[  390104ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/kb:0
+[  393179ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  398519ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  404481ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  409605ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  412645ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  415368ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  420104ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/status:0
+[  420133ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/providers:0
+[  420145ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/packages:0
+[  420161ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/registries:0
+[  420178ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:8000/api/v1/cockpit/kb:0
+[  421096ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  423558ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  427191ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  429843ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  435190ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  439337ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  442998ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  447263ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  450101ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:8000/api/v1/cockpit/status:0
+[  450105ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:8000/api/v1/cockpit/providers:0
+[  450109ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:8000/api/v1/cockpit/packages:0
+[  450114ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:8000/api/v1/cockpit/registries:0
+[  450118ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:8000/api/v1/cockpit/kb:0
+[  450383ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  455482ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  459397ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  463427ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  466001ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  469202ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  472898ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  475846ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  480099ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:8000/api/v1/cockpit/status:0
+[  480101ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:8000/api/v1/cockpit/providers:0
+[  480104ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:8000/api/v1/cockpit/packages:0
+[  480107ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:8000/api/v1/cockpit/registries:0
+[  480110ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:8000/api/v1/cockpit/kb:0
+[  481301ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  484881ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  487150ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  489269ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  491631ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  496070ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  498166ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  501675ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  504159ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  509511ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  510098ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:8000/api/v1/cockpit/status:0
+[  510101ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:8000/api/v1/cockpit/providers:0
+[  510104ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:8000/api/v1/cockpit/packages:0
+[  510107ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:8000/api/v1/cockpit/registries:0
+[  510110ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:8000/api/v1/cockpit/kb:0
+[  513014ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  517918ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  521965ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  527131ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  531500ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  537096ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  540098ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:8000/api/v1/cockpit/status:0
+[  540101ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:8000/api/v1/cockpit/providers:0
+[  540103ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:8000/api/v1/cockpit/packages:0
+[  540106ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:8000/api/v1/cockpit/registries:0
+[  540108ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:8000/api/v1/cockpit/kb:0
+[  540403ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  544031ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  547495ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  553467ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  557418ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  562162ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  567050ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  570101ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:8000/api/v1/cockpit/status:0
+[  570106ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:8000/api/v1/cockpit/providers:0
+[  570111ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:8000/api/v1/cockpit/packages:0
+[  570118ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:8000/api/v1/cockpit/registries:0
+[  570123ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:8000/api/v1/cockpit/kb:0
+[  571569ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  593059ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/:0
+[  593125ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/favicon.ico:0
+[  681097ms] [LOG] [vite] server connection lost. Polling for restart... @ http://localhost:3000/@vite/client:963
+[  681107ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  682141ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  683161ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  684217ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  685254ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  686326ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  687456ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  688600ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  689739ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  690941ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  692065ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  693321ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  694556ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  695956ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  697409ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  698679ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  700819ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[  703027ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034

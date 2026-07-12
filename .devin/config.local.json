@@ -73,7 +73,22 @@
       "Exec(/tmp/test_simple.sh)",
       "Exec(rmdir)",
       "Exec(go env)",
-      "Exec(sh)"
+      "Exec(sh)",
+      "Exec($(rtk go env GOPATH)/bin/golangci-lint run)",
+      "Exec(:)",
+      "Exec(python3)",
+      "Exec(git pull)",
+      "Exec(awk)",
+      "Exec(git diff)",
+      "Exec(git push)",
+      "Exec(head)",
+      "Exec(sed)",
+      "Exec(git fetch)",
+      "Exec(git stash)",
+      "Exec(mini-app)",
+      "Exec(podman-compose)",
+      "Exec(true)",
+      "Exec(/home/lleite/projects/cockpit-registry/packages/cockpit-dashboard/bin/dashboard)"
     ]
   }
 }

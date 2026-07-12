@@ -1,0 +1,19 @@
+[    6623ms] [LOG] [vite] server connection lost. Polling for restart... @ http://localhost:3000/@vite/client:963
+[    6625ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[    7626ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[    8629ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[    9630ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   10631ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   11633ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   12636ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   13640ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   14646ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   15649ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   16653ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   17657ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   18664ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   19674ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   20683ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   21688ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   22695ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034
+[   23708ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/@vite/client:1034

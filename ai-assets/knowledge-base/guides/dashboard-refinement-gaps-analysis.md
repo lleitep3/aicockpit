@@ -27,17 +27,21 @@ Este documento compara os refinamentos planejados com a implementação atual do
 | 5 | KB | Lista de `.md` com nome/categoria | Grafo interativo, busca fuzzy, preview, auditoria, criar artigo | Grande: sem grafo, busca ou ações. |
 | 6 | Mini-Apps Console | Não existe | Cards de processos, terminal de logs, health, start/stop/restart | Módulo inteiro ausente. |
 
-## Inconsistências e Riscos nos Refinamentos
+## Inconsistências Resolvidas
 
-1. **Stack não decidida:** documentos perguntavam "React ou Headless?". Dashboard já usa SvelteKit. **Decisão fechada: manter SvelteKit.**
-2. **Grafo sem tecnologia:** perguntavam "D3, React Flow ou Vis.js?". **Decisão fechada: D3.js + SVG.**
-3. **Execução de comandos do cockpit:** proposta de endpoint do `cockpit doctor` sem detalhes de segurança. **Solução: `CommandExecutor` whitelistado, leitura via backend, ações sensíveis com confirmação.**
-4. **Quick-fix automático:** alto risco de segurança. **Mitigação: confirmação explícita e audit log.**
-5. **Vault "só em memória":** chave no estado React não resolve backend Python. **Solução: chave mantida em memória do backend, nunca persistida.**
-6. **WebSocket de logs:** sem protocolo definido. **Solução: usar SSE (Server-Sent Events) mais simples.**
-7. **Métricas de recursos:** pergunta sem resposta. **Solução: `psutil` no backend para ler PIDs dos mini-apps.**
-8. **Múltiplas instâncias:** sem gestão de portas. **Marcado como evolução futura.**
-9. **SSE vs polling:** pergunta aberta. **Decisão fechada: SSE para jobs e logs.**
+As seguintes questões abertas dos refinamentos originais foram fechadas:
+
+| # | Inconsistência Original | Decisão / Solução | Documento Atualizado |
+| :--- | :--- | :--- | :--- |
+| 1 | Stack não decidida (React vs Headless?) | Manter SvelteKit 5 + Tailwind CSS 3. | `refinement-layout-overview.md`, `dashboard-refinement-roadmap.md` |
+| 2 | Tecnologia do grafo não definida | D3.js v7 + SVG renderizado em Svelte. | `refinement-kb-miniapps.md`, `dashboard-refinement-roadmap.md` |
+| 3 | Execução de comandos do cockpit sem segurança | `CommandExecutor` whitelistado; leitura via backend, ações sensíveis com confirmação. | `refinement-layout-overview.md`, `dashboard-refinement-roadmap.md` |
+| 4 | Quick-fix automático de alto risco | Exige confirmação explícita e audit log. | `refinement-layout-overview.md` |
+| 5 | Vault "só em memória" no React | Chave de descriptografia mantida em memória do backend Python. | `refinement-packages-vault.md`, `dashboard-refinement-roadmap.md` |
+| 6 | Protocolo de logs não definido | Server-Sent Events (SSE) para logs de mini-apps. | `refinement-kb-miniapps.md`, `dashboard-refinement-roadmap.md` |
+| 7 | Métricas de recursos sem resposta | `psutil` no backend para CPU/RAM dos processos filhos. | `refinement-kb-miniapps.md`, `dashboard-refinement-roadmap.md` |
+| 8 | Múltiplas instâncias sem gestão de portas | Mantido como evolução futura. | `refinement-kb-miniapps.md` |
+| 9 | SSE vs polling para jobs longos | SSE com `job_id` para progresso contínuo. | `refinement-packages-vault.md`, `dashboard-refinement-roadmap.md` |
 
 ## Decisões de Arquitetura Fechadas
 

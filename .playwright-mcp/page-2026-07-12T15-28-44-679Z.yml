@@ -1,0 +1,39 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - link "Test-mini" [ref=e6] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e7]: Test-mini
+      - navigation [ref=e8]:
+        - link "Home" [ref=e9] [cursor=pointer]:
+          - /url: /
+        - link "Items" [ref=e10] [cursor=pointer]:
+          - /url: /items
+      - button "Alternar tema" [ref=e11] [cursor=pointer]:
+        - img [ref=e12]
+  - main [ref=e13]:
+    - generic [ref=e14]:
+      - generic [ref=e15]:
+        - heading "Test-mini" [level=1] [ref=e16]
+        - paragraph [ref=e17]: Bem-vindo ao seu mini-app.
+      - generic [ref=e18]:
+        - generic [ref=e19]:
+          - paragraph [ref=e20]: API
+          - paragraph [ref=e21]: ...
+        - generic [ref=e22]:
+          - paragraph [ref=e23]: Banco de Dados
+          - paragraph [ref=e24]: ...
+        - generic [ref=e25]:
+          - paragraph [ref=e26]: Swagger
+          - link "Abrir Docs →" [ref=e27] [cursor=pointer]:
+            - /url: http://localhost:8000/docs
+      - generic [ref=e28]:
+        - heading "Começando" [level=2] [ref=e29]
+        - paragraph [ref=e30]:
+          - text: Este é o boilerplate do cockpit-mini-apps. Edite os arquivos em
+          - code [ref=e31]: frontend/src/routes/
+          - text: para o frontend e
+          - code [ref=e32]: backend/app/
+          - text: para a API.
+        - link "Ver exemplo de CRUD →" [ref=e33] [cursor=pointer]:
+          - /url: /items
