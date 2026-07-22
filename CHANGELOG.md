@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Features
+- create project package with full CLI support (#164)
+
+### Bug Fixes
+No bug fixes
+
+### Performance
+No performance improvements
+
+### Breaking Changes
+No breaking changes
+
+### Documentation
+No documentation changes
+
+### Testing
+No test changes
+
+### Other Changes
+No other changes
+
+
 ## [0.4.23] - 2026-07-22
 
 ### Changed since v0.4.22
