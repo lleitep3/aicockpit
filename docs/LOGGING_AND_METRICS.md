@@ -102,17 +102,13 @@ type Manager struct {
 
 ### Automatic Command Logging
 
-Every command automatically logs its execution:
+`NewRootCommand` registers built-in commands and commands discovered in installed packages before recursively decorating every executable Cobra subcommand. The decorator records one metric and one log entry after the handler finishes; individual command handlers must not call `LogCommand` themselves.
 
-```go
-// In command implementation
-startTime := time.Now()
+The recorded command name is its Cobra path without the `cockpit` prefix. For example, `cockpit pkg install example` is recorded as `pkg install` with `example` in `args`.
 
-// ... command execution ...
+For `RunE` handlers, a returned error records `status: "error"`, the error details, and exit code `1` (or the original code from an `exec.ExitError`). Commands that use `Run` can set the `telemetry_status` annotation when their domain result must be recorded as an error despite not returning an error.
 
-duration := time.Since(startTime)
-log.LogCommand("setup", []string{}, "success", 0, duration, "", nil)
-```
+Commands added after root-command construction must also be passed through the decorator before execution. Package commands loaded during startup already satisfy this ordering. Package scripts should return their result to Cobra rather than writing telemetry independently, which preserves a single metric for the user-facing command.
 
 ### View Metrics
 

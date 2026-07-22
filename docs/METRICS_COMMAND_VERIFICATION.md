@@ -147,11 +147,13 @@ $ cockpit metrics logs --date 2026-06-20
 ## Integration
 
 ### Automatic Logging
-All commands automatically log their execution:
-- ✅ cockpit setup - Logs execution
-- ✅ cockpit info - Logs execution
-- ✅ cockpit doctor - Logs execution
-- ✅ cockpit uninstall - Logs execution
+The root Cobra command decorates executable subcommands after registering built-ins and installed-package commands. Each invocation produces one metric and one daily-log entry:
+- ✅ `cockpit setup` - Logs execution
+- ✅ `cockpit info` - Logs execution
+- ✅ `cockpit doctor` - Logs execution
+- ✅ `cockpit uninstall` - Logs execution
+- ✅ `cockpit pkg install <package>` - Logs as `pkg install`
+- ✅ Commands provided by installed packages at startup - Log through their Cobra wrapper
 
 ### Metrics Storage
 - ✅ Metrics stored in `~/.cockpit/metrics.json`
