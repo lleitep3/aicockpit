@@ -1,10 +1,12 @@
 package logging
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/user"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -109,6 +111,28 @@ func (m *Manager) LogCommand(command string, args []string, status string, exitC
 	level := "INFO"
 	if status == "error" {
 		level = "ERROR"
+
+		// Self-healing: save failure to KB raw/failures/
+		failureDir := filepath.Join(m.cockpitDir, "kb", "raw", "failures")
+		if err := os.MkdirAll(failureDir, 0755); err == nil {
+			// e.g. 2026-07-22-command-name.json
+			safeCmd := "unknown"
+			if command != "" {
+				safeCmd = command
+			}
+			// replace spaces and slashes with dashes
+			safeCmd = filepath.Base(safeCmd)
+			for _, char := range []string{" ", "/", "\\", ":"} {
+				safeCmd = strings.ReplaceAll(safeCmd, char, "-")
+			}
+
+			filename := fmt.Sprintf("%s-%s.json", time.Now().Format("2006-01-02-15-04-05"), safeCmd)
+			failureFile := filepath.Join(failureDir, filename)
+
+			if b, err := json.MarshalIndent(metric, "", "  "); err == nil {
+				os.WriteFile(failureFile, b, 0644)
+			}
+		}
 	}
 
 	return m.fileLogger.Log(level, fmt.Sprintf("Command executed: %s", command), context)
