@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.22] - 2026-07-11
+
+### Changed since v0.4.21
+
+
+### Features
+- add dynamic YAML-based provider plugin loader (#152)
+
+### Bug Fixes
+No bug fixes
+
+### Performance
+No performance improvements
+
+### Breaking Changes
+No breaking changes
+
+### Documentation
+No documentation changes
+
+### Testing
+No test changes
+
+### Other Changes
+No other changes
+
+
+
+## [0.4.21] - 2026-07-11
+
+### Changed since v0.4.20
+
+
 ### Features
 - add pub/sub event bus for package lifecycle (#149)
 
@@ -27,6 +60,7 @@ No test changes
 
 ### Other Changes
 No other changes
+
 
 
 ## [0.4.20] - 2026-07-11
