@@ -2,9 +2,11 @@ package cmd
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"strings"
 	"time"
 
@@ -57,6 +59,8 @@ func NewRootCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translator
 	// Add flags
 	rootCmd.PersistentFlags().StringVar(&cfg.Language, "language", cfg.Language, "Set language (en-us, pt-br)")
 	rootCmd.PersistentFlags().StringVar(&cfg.LogLevel, "log-level", cfg.LogLevel, "Set log level (debug, info, warn, error)")
+
+	decorateCommands(rootCmd, log)
 
 	return rootCmd
 }
@@ -131,4 +135,80 @@ func checkForUpdatesWithService(log *logging.Manager, cfg *config.Config, t *i18
 		fmt.Println(t.T("update.cancel"))
 	}
 	fmt.Println()
+}
+
+// decorateCommands decorates all subcommands with telemetry logging.
+func decorateCommands(cmd *cobra.Command, log *logging.Manager) {
+	for _, subCmd := range cmd.Commands() {
+		decorateCommands(subCmd, log)
+	}
+
+	// Skip decorating the root command itself
+	if cmd.Parent() == nil {
+		return
+	}
+
+	origRun := cmd.Run
+	origRunE := cmd.RunE
+
+	if origRun == nil && origRunE == nil {
+		return
+	}
+
+	if origRunE != nil {
+		cmd.RunE = func(c *cobra.Command, args []string) error {
+			startTime := time.Now()
+			err := origRunE(c, args)
+			duration := time.Since(startTime)
+
+			status := "success"
+			exitCode := 0
+			if err != nil {
+				status = "error"
+				exitCode = 1
+				var exitErr *exec.ExitError
+				if errors.As(err, &exitErr) {
+					exitCode = exitErr.ExitCode()
+				}
+			}
+
+			// Check for custom telemetry status in annotations
+			if c.Annotations != nil {
+				if customStatus, ok := c.Annotations["telemetry_status"]; ok {
+					status = customStatus
+					if status == "error" && exitCode == 0 {
+						exitCode = 1
+					}
+				}
+			}
+
+			cmdName := c.CommandPath()
+			cmdName = strings.TrimPrefix(cmdName, c.Root().Name()+" ")
+
+			log.LogCommand(cmdName, args, status, exitCode, duration, "", err)
+			return err
+		}
+	} else if origRun != nil {
+		cmd.Run = func(c *cobra.Command, args []string) {
+			startTime := time.Now()
+			origRun(c, args)
+			duration := time.Since(startTime)
+
+			status := "success"
+			exitCode := 0
+			if c.Annotations != nil {
+				if customStatus, ok := c.Annotations["telemetry_status"]; ok {
+					status = customStatus
+					if status == "error" {
+						exitCode = 1
+					}
+				}
+			}
+
+			cmdName := c.CommandPath()
+			cmdName = strings.TrimPrefix(cmdName, c.Root().Name()+" ")
+
+			log.LogCommand(cmdName, args, status, exitCode, duration, "", nil)
+		}
+	}
 }

@@ -1,8 +1,10 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 
 	"github.com/lleitep3/aicockpit/cmd"
 	"github.com/lleitep3/aicockpit/internal/config"
@@ -36,6 +38,12 @@ func main() {
 		log.LogError("Command execution failed", map[string]interface{}{
 			"error": err.Error(),
 		})
-		os.Exit(1)
+
+		exitCode := 1
+		var exitErr *exec.ExitError
+		if errors.As(err, &exitErr) {
+			exitCode = exitErr.ExitCode()
+		}
+		os.Exit(exitCode)
 	}
 }

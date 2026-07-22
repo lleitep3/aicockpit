@@ -2,10 +2,10 @@
 title: "Metrics Collection and Monitoring"
 description: "Understanding and using metrics in AICockpit"
 tags: ["metrics", "monitoring", "performance", "tracking"]
-created: "2026-06-20"
-modified: "2026-06-20"
+created: "2026-06-20T00:00:00Z"
+modified: "2026-07-17T00:00:00Z"
 author: "AICockpit Team"
-version: "1.0"
+version: "1.1"
 related: []
 ---
 
@@ -18,9 +18,9 @@ This guide explains how to use the metrics system in AICockpit to monitor perfor
 AICockpit collects metrics about:
 
 - Command execution time
+- Command arguments
 - Command success/failure rates
-- Token usage (for AI operations)
-- System resource usage
+- Exit codes
 - Error rates and types
 
 ## Accessing Metrics
@@ -28,35 +28,28 @@ AICockpit collects metrics about:
 ### View Metrics
 
 ```bash
-cockpit metrics
+cockpit metrics list
+cockpit metrics stats
+cockpit metrics logs
 ```
 
-This displays:
-- Total commands executed
-- Average execution time
-- Success rate
-- Error summary
-
-### Export Metrics
-
-```bash
-cockpit metrics --export json
-cockpit metrics --export csv
-```
+`list` shows executions and supports command, status, date, and limit filters. `stats` reports aggregate execution, duration, and error data. `logs` lists daily JSON log files.
 
 ## Metrics Data
 
-Metrics are stored in `~/.cockpit/logs/metrics.json`:
+Metrics are stored locally in `~/.cockpit/metrics.json` as a JSON array:
 
 ```json
-{
-  "timestamp": "2026-06-20T10:30:00Z",
-  "command": "info",
-  "duration_ms": 125,
-  "status": "success",
-  "tokens_used": 0,
-  "error": null
-}
+[
+  {
+    "timestamp": "2026-06-20T10:30:00Z",
+    "command": "info",
+    "args": [],
+    "duration_ms": 125,
+    "status": "success",
+    "exit_code": 0
+  }
+]
 ```
 
 ## Performance Optimization

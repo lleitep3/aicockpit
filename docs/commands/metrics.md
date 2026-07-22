@@ -207,23 +207,19 @@ metrics    | 2          | 2       | 0      | 0.08s
 Metrics are stored in `~/.cockpit/metrics.json`:
 
 ```json
-{
-  "metrics": [
-    {
-      "timestamp": "2026-06-20T10:30:45Z",
-      "command": "setup",
-      "args": [],
-      "status": "success",
-      "exit_code": 0,
-      "duration_ms": 2340,
-      "user": "username",
-      "version": "0.2.3",
-      "language": "en-us",
-      "error": null,
-      "error_type": null
-    }
-  ]
-}
+[
+  {
+    "timestamp": "2026-06-20T10:30:45Z",
+    "command": "setup",
+    "args": [],
+    "status": "success",
+    "exit_code": 0,
+    "duration_ms": 2340,
+    "user": "username",
+    "version": "0.2.3",
+    "language": "en-us"
+  }
+]
 ```
 
 ## Related Commands

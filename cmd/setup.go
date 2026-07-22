@@ -8,7 +8,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/lleitep3/aicockpit/internal/assets"
 	"github.com/lleitep3/aicockpit/internal/config"
@@ -32,7 +31,6 @@ func NewSetupCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translato
 }
 
 func runSetup(log *logging.Manager, cfg *config.Config, t *i18n.Translator) error {
-	startTime := time.Now()
 	fmt.Println(t.T("setup.welcome"))
 	fmt.Println()
 
@@ -152,9 +150,6 @@ func runSetup(log *logging.Manager, cfg *config.Config, t *i18n.Translator) erro
 	fmt.Println()
 	fmt.Println(t.T("setup.complete"))
 	fmt.Printf(t.T("setup.saved")+"\n", config.GetConfigPath())
-
-	duration := time.Since(startTime)
-	log.LogCommand("setup", []string{}, "success", 0, duration, "", nil)
 
 	return nil
 }

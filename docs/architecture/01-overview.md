@@ -40,7 +40,7 @@ graph TD
 * **Package Manager (`internal/packages`):** O "NPM" ou "APT" do Cockpit. Gerencia a busca, download, instalação e desinstalação de pacotes.
 * **Provider Manager (`internal/providers`):** O motor de compilação. Traduz os pacotes baixados em configurações ativas nos agentes de IA. *(Discutiremos profundamente na próxima etapa).*
 * **Knowledge Base Engine (`internal/kb`):** O motor de busca vetorial/keyword que as IAs utilizam para encontrar contexto dentro dos arquivos do próprio repositório.
-* **Logger & Metrics (`internal/logging`):** Tudo que passa pelo CLI é logado. Isso permite analisar a performance das IAs e economizar *tokens*.
+* **Logger & Metrics (`internal/logging`):** O decorator da raiz Cobra registra cada subcomando executável uma vez em logs diários e em `metrics.json`, incluindo caminho do comando, argumentos, duração, status e código de saída.
 * **Update Service (`internal/update`):** Sistema de verificação e atualização automática que consulta a API do GitHub Releases para manter o Cockpit atualizado. Inclui verificação diária, prompts interativos e atualização via git.
 
 ### O Ciclo de Vida de uma Execução

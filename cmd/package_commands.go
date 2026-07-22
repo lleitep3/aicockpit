@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -80,11 +79,6 @@ func createPackageCommand(pkg *packages.Package, packageName, packagePath string
 			// Try to execute package command
 			err := executePackageCommand(packageName, packagePath, args)
 			if err != nil {
-				var exitErr *exec.ExitError
-				if errors.As(err, &exitErr) {
-					// Propagate the original script's exit code transparently
-					os.Exit(exitErr.ExitCode())
-				}
 				return err
 			}
 			return nil
@@ -177,11 +171,6 @@ func CreateDynamicCommand(commandName string) *cobra.Command {
 				if hasCommand(packagePath, commandName) {
 					err := executePackageCommand(packageName, packagePath, args)
 					if err != nil {
-						var exitErr *exec.ExitError
-						if errors.As(err, &exitErr) {
-							// Propagate the original script's exit code transparently
-							os.Exit(exitErr.ExitCode())
-						}
 						return err
 					}
 					return nil

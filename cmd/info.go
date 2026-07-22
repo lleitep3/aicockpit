@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/lleitep3/aicockpit/internal/config"
 	"github.com/lleitep3/aicockpit/internal/i18n"
@@ -26,7 +25,6 @@ func NewInfoCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translator
 }
 
 func runInfo(log *logging.Manager, cfg *config.Config, t *i18n.Translator) error {
-	startTime := time.Now()
 	fmt.Println(t.T("info.title"))
 	fmt.Println("=" + strings.Repeat("=", 49))
 	fmt.Println()
@@ -65,7 +63,5 @@ func runInfo(log *logging.Manager, cfg *config.Config, t *i18n.Translator) error
 		}
 	}
 
-	duration := time.Since(startTime)
-	log.LogCommand("info", []string{}, "success", 0, duration, "", nil)
 	return nil
 }

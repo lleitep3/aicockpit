@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/lleitep3/aicockpit/internal/config"
 	"github.com/lleitep3/aicockpit/internal/i18n"
@@ -26,7 +25,6 @@ func NewUninstallCommand(log *logging.Manager, cfg *config.Config, t *i18n.Trans
 }
 
 func runUninstall(log *logging.Manager, cfg *config.Config, t *i18n.Translator) error {
-	startTime := time.Now()
 	cockpitDir := config.GetCockpitDir()
 
 	// Confirm uninstall
@@ -39,21 +37,14 @@ func runUninstall(log *logging.Manager, cfg *config.Config, t *i18n.Translator) 
 	// Check for affirmative response (y or s for Portuguese)
 	if input != "y" && input != "s" && input != "yes" && input != "sim" {
 		fmt.Println(t.T("uninstall.cancel"))
-		duration := time.Since(startTime)
-		log.LogCommand("uninstall", []string{}, "cancelled", 0, duration, "", nil)
 		return nil
 	}
 
 	// Remove cockpit directory
 	if err := os.RemoveAll(cockpitDir); err != nil {
-		duration := time.Since(startTime)
-		log.LogCommand("uninstall", []string{}, "error", 1, duration, "", err)
 		return fmt.Errorf("failed to remove cockpit directory: %w", err)
 	}
 
 	fmt.Println(t.T("uninstall.success"))
-	duration := time.Since(startTime)
-	log.LogCommand("uninstall", []string{}, "success", 0, duration, "", nil)
-
 	return nil
 }
