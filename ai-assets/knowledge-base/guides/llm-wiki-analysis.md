@@ -81,24 +81,95 @@ Após a divulgação do gist do Karpathy, a comunidade desenvolveu várias ferra
 
 ---
 
-## 5. Insights de Evolução para o AICockpit
+## 5. Blueprint de Evolução para o AICockpit
 
-Atualmente, o **AICockpit** possui uma estrutura de KB sob o gerenciador [internal/kb/manager.go](file:///home/lleite/projects/aicockpit/internal/kb/manager.go) utilizando indexação baseada em arquivos e busca por palavra-chave BM25 ([internal/kb/bm25.go](file:///home/lleite/projects/aicockpit/internal/kb/bm25.go)). Para evoluir esta estrutura para uma LLM Wiki robusta, podemos adotar os seguintes aprimoramentos:
+Para expandir a base de conhecimento do **AICockpit** ([internal/kb/manager.go](file:///home/lleite/projects/aicockpit/internal/kb/manager.go)) para além de uma busca BM25 simples, propomos quatro especificações detalhadas de features integrando a IA, o CLI e o Dashboard Visual.
 
-### 💡 Proposta de Ações
+---
 
-### A. Integração de Telemetria e Execuções diretamente na KB
-> [!TIP]  
-> Quando um comando der erro, o dashboard não deve apenas mostrar o log. A IA pode analisar o erro, cruzar com a KB de soluções conhecidas e atualizar a KB automaticamente com a solução aplicada. O conhecimento de debug da IA acumula e se torna persistente.
+### FEATURE 1: Ciclo de Auto-Cura de Falhas (Self-Healing Debugging Loop)
 
-### B. Ingestão Automatizada de Pacotes e Módulos
-Ao instalar um novo pacote (via `cockpit pkg install`), a IA deve processar seu manifesto e documentação na pasta `raw/`, atualizando a wiki local com os comandos expostos, dependências e padrões de uso de forma estruturada.
+O Cockpit monitora comandos que resultaram em erro através do decorator de telemetria. Esta feature transforma erros de execução em conhecimento compounding na KB.
 
-### C. Implementação do `cockpit kb lint`
-Criar um comando CLI nativo para a IA rodar sanitizações na KB:
-- Detectar redundâncias em guias de desenvolvimento.
-- Encontrar links quebrados entre documentos do repositório.
-- Identificar dependências desatualizadas no código analisando a documentação.
+```mermaid
+sequenceDiagram
+    participant CLI as CLI telemetry
+    participant KB as Knowledge Base
+    participant IA as AI Debugger Agent
+    participant Dash as Dashboard UI
 
-### D. Exposição do Grafo de Conexões no Dashboard
-Adicionar uma aba "Knowledge Graph" no frontend visual do Cockpit, renderizando visualmente as relações entre pacotes, documentações e ferramentas ativas usando bibliotecas leves de grafos (como D3 ou VisJS).
+    CLI->>KB: Salva erro em raw/logs (ExitCode > 0)
+    Note over IA: Trigger: Falha de Comando
+    IA->>KB: Busca KB por erro semelhante (BM25)
+    alt Solução Encontrada
+        IA->>Dash: Recomenda comando de correção
+    else Nova Falha
+        IA->>IA: Executa debug/diagnóstico
+        IA->>KB: Cria wiki/troubleshooting/erro-slug.md
+        IA->>KB: Vincula ao index.md e log.md
+    end
+```
+
+#### Detalhes de Funcionamento
+1. **Trigger**: Ao encerrar um comando Cobra com status `error`, o `logging.Manager` salva o stack trace e argumentos na pasta `raw/failures/YYYY-MM-DD-command-slug.json`.
+2. **Diagnóstico**: O agente em segundo plano analisa o erro e executa uma busca híbrida na KB. 
+3. **Resolução**: Se houver um padrão de correção conhecido (ex: erro de permissão que necessita de `chmod` ou `rtk`), a IA sugere a solução. Se for um erro novo, a IA gera um artigo de "Post-Mortem/Troubleshooting" com a causa raiz e os passos tomados para corrigir.
+4. **Dashboards**:
+   - Uma seção na tela de logs: **"Correções Sugeridas pela IA"**.
+   - Botão **"Auto-Fix"** permitindo o usuário aprovar a execução da correção sugerida diretamente pelo browser.
+
+---
+
+### FEATURE 2: Editor Visual de KB & Visualizador de Grafos interativo
+
+Atualmente a KB é gerenciada via markdown local. Propomos uma interface web no Dashboard que sirva como a "IDE" de conhecimento para o desenvolvedor e para a IA.
+
+#### Detalhes de Funcionamento
+1. **Frontend Svelte 5 (Nova rota `/kb`)**:
+   - **Tree View**: Visualização da estrutura de diretórios (`wiki/concepts`, `wiki/entities`, `wiki/sources`).
+   - **Markdown Editor**: Editor web (ex: Monaco Editor ou simples textarea com preview markdown) permitindo que o desenvolvedor edite os arquivos markdown diretamente no dashboard.
+   - **Backlinks e Metadados**: Exibe em uma aba lateral quais arquivos linkam para o documento atual (backlinks) e permite editar campos frontmatter YAML de forma visual.
+2. **Visualizador de Grafo Interativo**:
+   - Integração de um painel usando D3.js ou Vis.js renderizando os nós da KB.
+   - **Código de Cores dos Nós**:
+     - *Verde*: Fontes em `raw/`.
+     - *Azul*: Conceitos e Entidades em `wiki/`.
+     - *Vermelho*: Falhas e Troubleshooting de comandos.
+   - Ao clicar em um nó do grafo, a interface redireciona para o editor de markdown daquele documento.
+
+---
+
+### FEATURE 3: Validador Semântico de KB (`cockpit kb lint`)
+
+Feature para garantir a consistência das documentações e código do projeto, impedindo degradações ao longo do tempo.
+
+#### Detalhes de Funcionamento
+1. **CLI Command**: `cockpit kb lint`
+2. **Regras de Linting**:
+   - **Contradições**: IA lê os guias na KB e compara com o código fonte atual (ex: um guia diz que a versão mínima do Go é `1.22`, mas o `go.mod` define `1.26`). O lint reporta essa contradição.
+   - **Orphans**: Identifica arquivos `.md` na KB que não possuem nenhum link de entrada (backlink) a partir do `index.md` ou de outros guias.
+   - **Stale Docs**: Documentos modificados há mais de 30 dias que referenciam módulos de código que sofreram grandes refatorações recentes (cruzando logs do Git).
+3. **Exposição no Dashboard**:
+   - Aba **"KB Health"** exibindo o score geral de integridade da base de conhecimento (0 a 100%).
+   - Lista de warnings de linting com um botão **"Auto-Refactor"**, onde a IA reescreve ou reorganiza os documentos para sanar os alertas.
+
+---
+
+### FEATURE 4: Engine de Grafo Cognitivo Baseado em SQLite (Cognee Style)
+
+Substitui a indexação de texto plano por uma representação de grafo semântico real, salvando triplas RDF (Sujeito -> Predicado -> Objeto) extraídas dos metadados markdown em um banco de dados local SQLite.
+
+#### Exemplo de Estrutura de Triplas
+```json
+{
+  "subject": "doctor",
+  "predicate": "depends_on",
+  "object": "metrics.json"
+}
+```
+
+#### Detalhes de Funcionamento
+1. **Extrator de Entidades**: Ao rodar a ingestão, o backend em FastAPI analisa o YAML frontmatter e o texto markdown usando regex/AST e insere as relações em uma tabela SQLite `kb_relations (source, target, relation_type)`.
+2. **Busca Avançada**:
+   - O endpoint `/api/v1/kb/search` executa consultas combinadas.
+   - Permite perguntas complexas como: *"Quais comandos dependem de pacotes que estão com falha de conexão?"* O backend realiza travessia de grafos (joins na tabela SQL) e traz o contexto exato necessário para a IA.
