@@ -5,45 +5,51 @@
 [![Go Version](https://img.shields.io/badge/go-1.26+-blue.svg)](https://golang.org)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-O **AICockpit** é o "harness" definitivo para engenharia de IAs autônomas. Ele atua como um sistema operacional local que amplifica as capacidades do seu Agente de IA favorito (seja Claude, Devin, Goose ou Antigravity), trazendo colaboração visual, segurança nativa e modularidade.
+O **AICockpit** é o sistema operacional local definitivo para IAs autônomas. Ele amplifica as capacidades do seu Agente de IA favorito (como Antigravity, Devin ou Claude), fornecendo um **Cofre Seguro (Vault)** nativo, um **Dashboard Visual** para humanos colaborarem com a IA, e um **Gerenciador de Habilidades (Packages)** integrado.
 
 ---
 
-## 🛑 O Problema das IAs Atuais
+## 🚀 1. Instalação e Setup Inicial
 
-Agentes de IA de código são incrivelmente inteligentes, mas quando operam sozinhos no seu terminal, eles esbarram em grandes barreiras de infraestrutura:
-- **Insegurança com Credenciais:** Você acaba enviando chaves de API e segredos em texto puro nos prompts.
-- **Isolamento Visual:** Você não consegue "ver" o que a IA está planejando além de ler logs intermináveis no terminal.
-- **Fragmentação de Conhecimento:** Cada IA nova (ou nova sessão) precisa reaprender as regras de arquitetura e ferramentas do seu projeto do zero.
-- **Falta de Ecossistema:** Não há como baixar e instalar facilmente novas habilidades (skills) na sua IA.
+Comece instalando a CLI localmente (requer Go 1.26+):
 
-## 💡 A Solução: AICockpit
+```bash
+# 1. Instale o AICockpit via Go
+go install github.com/lleitep3/aicockpit@latest
 
-O AICockpit resolve a infraestrutura local para que o seu agente foque apenas em ser inteligente. Ele fornece um **Cofre seguro**, um **Dashboard visual para humanos colaborarem com a IA** e um **Gerenciador de Pacotes** de habilidades.
+# 2. Rode o setup interativo (Selecione sua IA preferida, ex: Antigravity)
+cockpit setup
+```
 
-### 🆚 IA Pura vs IA + AICockpit
+## 📦 2. Adicione o Registry Oficial
 
-| Funcionalidade | 🤖 IA Pura (Sozinha) | 🚀 IA + AICockpit |
-| :--- | :--- | :--- |
-| **Credenciais** | Chaves em texto puro (Inseguro) | Integração nativa com OS Keyring (Cofre Local) |
-| **Colaboração** | Apenas CLI e logs de texto | Dashboard Visual SvelteKit (Kanban, Grafos) |
-| **Gerenciamento de Projetos** | A IA perde o contexto das tarefas | Sync bi-direcional com GitHub Issues (Kanban local) |
-| **Extensibilidade (Skills)** | Habilidades hardcoded no prompt | App Store de Skills e Regras (`cockpit pkg install`) |
-| **Contexto de Arquitetura** | Precisa ler todos os arquivos toda vez | Engine de Busca Semântica em Vector/Grafos embutida |
+O ecossistema do Cockpit é extensível. Conecte-se ao registry oficial para ter acesso às melhores ferramentas e habilidades:
+
+```bash
+cockpit pkg registry add default https://github.com/lleitep3/cockpit-registry
+```
+
+## 🛠️ 3. Instale os Módulos Essenciais
+
+Para uma experiência completa (incluindo interface visual e gestão de tarefas Kanban), instale os pacotes e utilize os recursos nativos:
+
+```bash
+# Instale a interface visual interativa (UI)
+cockpit pkg install cockpit-dashboard
+```
+*(Nota: O gerenciador Kanban `cockpit project` já é nativo no core da CLI!)*
+
+## 🤖 4. Trabalhe Junto com a IA
+
+Agora sua infraestrutura está pronta! Abra o terminal, inicie sua IA (como Antigravity ou Devin) e trabalhe de forma integrada:
+
+> **Você:** *"IA, use o `cockpit project` para criar uma nova tarefa para refatorar o login. Depois abra o dashboard visual."*
+
+A IA irá utilizar automaticamente as habilidades locais que você instalou e interagir com o Cofre Seguro do seu sistema operacional, sem precisar expor chaves de API em texto plano!
 
 ---
 
-## 🚀 Comece Agora (Get Started)
-
-Pronto para dar super-poderes aos seus agentes de IA? Siga os passos abaixo:
-
-- 📖 **[Guia Rápido (Quick Start)](docs/QUICK_START.md)** - Instale e rode em menos de 5 minutos!
-- 🛠️ **[Guia Completo de Instalação](docs/INSTALLATION.md)** - Alternativas de instalação e dependências.
-- 📦 **[Explorando Pacotes](docs/architecture/04-package-registries.md)** - Veja como instalar seu primeiro pacote no Cockpit.
-
----
-
-## 📚 Estrutura da Documentação
+## 📚 Documentação e Arquitetura
 
 ### Getting Started
 
@@ -72,36 +78,13 @@ Pronto para dar super-poderes aos seus agentes de IA? Siga os passos abaixo:
 - **[Session Summary](docs/SESSION_SUMMARY.md)** - Latest session summary
 - **[Global Installation Verified](docs/GLOBAL_INSTALLATION_VERIFIED.md)** - Installation verification
 
-## 🚀 Quick Start
+## 💻 Developer Installation (From Source)
 
 ### Prerequisites
 
-- **Go 1.26 or later** (required for development)
+- **Go 1.26 or later**
 - Linux, macOS, or Windows
 - Git
-
-### Quick Installation (CLI Users)
-
-If you just want to install the **AICockpit CLI** and start using its AI-assisted tools on your machine:
-
-```bash
-# 1. Install the CLI using Go
-go install github.com/lleitep3/aicockpit@latest
-
-# 2. Run Initial Setup
-cockpit setup
-
-# 3. Add the Package Registry
-cockpit pkg registry add default https://github.com/lleitep3/cockpit-registry
-
-# 4. Install Your First AI Package
-cockpit pkg install go-expert-rules
-```
-*(Make sure `$(go env GOPATH)/bin` is in your system's PATH)*
-
-![AICockpit Quick Start Demonstration](https://raw.githubusercontent.com/lleitep3/aicockpit/main/docs/assets/quickstart.gif)
-
-### Developer Installation (From Source)
 
 #### Linux/macOS
 
@@ -154,7 +137,7 @@ cockpit info
 
 For more details, see [Quick Start Guide](docs/QUICK_START.md).
 
-## 📋 Available Commands
+## 📋 Referência de Comandos
 
 ### Core Commands
 
