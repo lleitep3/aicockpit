@@ -20,7 +20,8 @@ No performance improvements
 No breaking changes
 
 ### Documentation
-No documentation changes
+- rewrite README for commercial pitch and github pages (#178)
+- update CHANGELOG.md for changes since v0.4.27 [skip ci] (#177)
 
 ### Testing
 No test changes
