@@ -7,16 +7,17 @@
 
 A powerful CLI-based harness engineering tool that enables AI systems to evolve autonomously and operate more efficiently by optimizing token usage and improving performance over time.
 
-## 🎯 Vision
+## 🎯 Vision & Why Use AICockpit?
 
-AICockpit is designed to be the "cockpit" for your AI systems - a comprehensive control center that helps AI models:
+AICockpit is designed to be the "cockpit" for your AI systems - a comprehensive control center that bridges the gap between human developers and autonomous AI agents (like Devin, Goose, Antigravity, and Claude).
 
-- 🚀 Operate more efficiently
-- 💰 Save tokens through intelligent optimization
-- 📚 Learn and improve from each interaction
-- 🧠 Manage knowledge bases and skills
-- 📋 Execute commands with full audit trails
-- 📊 Track metrics and performance
+**Why use it?**
+- 🔌 **Canonical Compiler:** Write a skill or rule once, and AICockpit will compile and inject it automatically into the native format of whatever AI agent you are using.
+- 🎨 **Visual Collaboration (Mini-Apps):** It's not just a CLI. It includes a local SvelteKit/FastAPI visual dashboard where humans and AIs collaborate over a dynamic Kanban board and Knowledge Base graphs.
+- 📦 **Package Ecosystem:** Install community skills, UI dashboards, and CLI commands dynamically using `cockpit pkg install`.
+- 🔐 **Secure Vault:** Stop pasting API keys in plaintext for your AI to use. AICockpit integrates with your OS Keyring so the AI can securely fetch credentials at runtime.
+- 🚀 **Project Management:** Built-in Kanban state machine with sub-millisecond local reordering and bi-directional GitHub Issue sync.
+- 📊 **Metrics & Auditing:** Full audit trails of every command executed by the AI, optimizing token usage over time.
 
 ## 📚 Documentation
 
@@ -171,25 +172,28 @@ For more details, see [Quick Start Guide](docs/QUICK_START.md).
 
 ### Security & Secrets
 
-- **`cockpit vault set`** - Store a secret securely
-  - Interactive mode (hidden input)
-  - Direct mode with `--value` flag
-
+- **`cockpit vault set`** - Store a secret securely in the OS Keyring
 - **`cockpit vault get`** - Retrieve a secret
-  - Print to stdout for use in scripts
-  - Secure retrieval from OS keyring
-
 - **`cockpit vault remove`** - Remove a secret
-  - Delete securely stored credentials
+
+### Packages & Extensibility
+
+- **`cockpit pkg install`** - Install a new package (e.g. `cockpit-dashboard`)
+- **`cockpit pkg search`** - Search for available packages in registries
+- **`cockpit pkg upgrade`** - Upgrade installed packages
+- **`cockpit pkg registry`** - Manage multiple package registries
+
+### Project & Task Management
+
+- **`cockpit project sync`** - Sync local tasks bi-directionally with GitHub Issues
+- **`cockpit project add`** - Create a new task in the Kanban board
+- **`cockpit project move`** - Change the state of a task (todo, in_progress, done)
 
 ### Planned Commands
 
-- **`cockpit pkg`** - Package management
 - **`cockpit agents`** - Manage AI agents
-- **`cockpit skills`** - Manage skills
-- **`cockpit rules`** - Manage rules
-- **`cockpit hooks`** - Manage hooks
-- **`cockpit kb`** - Knowledge base management
+- **`cockpit skills`** - Manage skills explicitly
+- **`cockpit rules`** - Manage rules explicitly
 
 ## 🌍 Internationalization
 
@@ -393,30 +397,28 @@ For issues, questions, or suggestions:
 
 - ✅ Core CLI structure
 - ✅ Configuration system
-- ✅ Logging and i18n
-- ✅ Metrics tracking
+- ✅ Logging, Metrics, and i18n
 - ✅ Installation scripts (user-level & system-wide)
 
-### Phase 2 (In Progress)
+### Phase 2 ✅ (Complete)
 
 - ✅ Vault system (keyring integration)
-- [~] Package management (CLI commands implemented, registries supported; package compiler integration in progress)
-- [x] Knowledge base search (BM25 + graph traversal available)
-- [ ] Command execution with logging (logging/metrics implemented; deep command auditing planned)
+- ✅ Package management (`cockpit pkg` and registries)
+- ✅ Project management (Kanban & GitHub Sync)
+- ✅ Visual Dashboard (SvelteKit/FastAPI)
+- ✅ Knowledge base search (BM25 + Graph Traversal)
 
-### Phase 3 (Planned)
+### Phase 3 (In Progress)
 
-- [ ] Agent management
-- [ ] Skills and rules system
+- [ ] Agent management system
+- [ ] Skills and rules framework
 - [ ] Hooks system
-- [ ] Advanced analytics
+- [ ] Advanced metrics & token analytics
 
 ### Phase 4 (Vision)
 
-- [ ] AI-powered optimization
-- [ ] Token usage analytics
-- [ ] Performance metrics
-- [ ] Autonomous evolution
+- [ ] AI-powered autonomous optimization
+- [ ] Performance and cost analysis trends
 
 ## 📈 Project Statistics
 
