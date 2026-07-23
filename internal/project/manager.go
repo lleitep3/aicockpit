@@ -1,11 +1,15 @@
 package project
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/google/go-github/v68/github"
+	"golang.org/x/oauth2"
 )
 
 // Manager handles project operations
@@ -162,9 +166,49 @@ func (m *Manager) MoveTask(slug, taskID, column string) error {
 	}
 
 	if !taskFound {
+		return fmt.Errorf("task %s not found in project %s", taskID, slug)
+	}
+
+	return m.SaveProject(proj)
+}
+
+// ReorderTask changes a task's position in the list
+func (m *Manager) ReorderTask(slug, taskID string, newIndex int) error {
+	proj, err := m.GetProject(slug)
+	if err != nil {
+		return err
+	}
+
+	tasks := proj.Metadata.Tasks
+	var task *Task
+	var oldIndex int = -1
+
+	for i, t := range tasks {
+		if t.ID == taskID {
+			task = &tasks[i]
+			oldIndex = i
+			break
+		}
+	}
+
+	if oldIndex == -1 {
 		return fmt.Errorf("task %s not found", taskID)
 	}
 
+	if newIndex < 0 {
+		newIndex = 0
+	}
+	if newIndex >= len(tasks) {
+		newIndex = len(tasks) - 1
+	}
+
+	// Remove from old position
+	tasks = append(tasks[:oldIndex], tasks[oldIndex+1:]...)
+
+	// Insert at new position
+	tasks = append(tasks[:newIndex], append([]Task{*task}, tasks[newIndex:]...)...)
+
+	proj.Metadata.Tasks = tasks
 	return m.SaveProject(proj)
 }
 
@@ -180,4 +224,116 @@ func (m *Manager) AddTracking(slug, message string) error {
 
 	proj.Content = strings.TrimRight(proj.Content, "\n") + "\n" + entry
 	return m.SaveProject(proj)
+}
+
+// SyncGitHubIssue syncs a task with a GitHub issue
+func (m *Manager) SyncGitHubIssue(slug, taskID string) (*Task, error) {
+	proj, err := m.GetProject(slug)
+	if err != nil {
+		return nil, err
+	}
+
+	var task *Task
+	var taskIdx int = -1
+	for i, t := range proj.Metadata.Tasks {
+		if t.ID == taskID {
+			task = &proj.Metadata.Tasks[i]
+			taskIdx = i
+			break
+		}
+	}
+
+	if task == nil {
+		return nil, fmt.Errorf("task %s not found", taskID)
+	}
+
+	repoURL := task.Repository
+	if repoURL == "" {
+		return nil, fmt.Errorf("repository not defined for this task")
+	}
+
+	repoName := repoURL
+	if strings.Contains(repoURL, "github.com/") {
+		parts := strings.Split(repoURL, "github.com/")
+		repoName = strings.TrimSuffix(parts[len(parts)-1], ".git")
+	}
+
+	token := os.Getenv("GITHUB_TOKEN")
+	if token == "" {
+		return nil, fmt.Errorf("GITHUB_TOKEN not found in environment")
+	}
+
+	ctx := context.Background()
+	ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})
+	tc := oauth2.NewClient(ctx, ts)
+	client := github.NewClient(tc)
+
+	ownerRepo := strings.Split(repoName, "/")
+	if len(ownerRepo) != 2 {
+		return nil, fmt.Errorf("invalid repository format: %s. Expected owner/repo", repoName)
+	}
+	owner, repo := ownerRepo[0], ownerRepo[1]
+
+	if task.IssueNumber > 0 {
+		// Update existing issue
+		issueReq := &github.IssueRequest{}
+		needsUpdate := false
+
+		// fetch issue first to compare
+		issue, _, err := client.Issues.Get(ctx, owner, repo, task.IssueNumber)
+		if err != nil {
+			return nil, fmt.Errorf("failed to fetch issue: %w", err)
+		}
+
+		if task.Title != "" && task.Title != issue.GetTitle() {
+			issueReq.Title = github.String(task.Title)
+			needsUpdate = true
+		}
+		if task.Description != "" && task.Description != issue.GetBody() {
+			issueReq.Body = github.String(task.Description)
+			needsUpdate = true
+		}
+		
+		stateMap := map[string]string{"open": "open", "closed": "closed"}
+		if state, ok := stateMap[task.State]; ok && state != issue.GetState() {
+			issueReq.State = github.String(state)
+			needsUpdate = true
+		}
+
+		if needsUpdate {
+			issue, _, err = client.Issues.Edit(ctx, owner, repo, task.IssueNumber, issueReq)
+			if err != nil {
+				return nil, fmt.Errorf("failed to update issue: %w", err)
+			}
+		}
+
+		// Sync back
+		task.Title = issue.GetTitle()
+		task.Description = issue.GetBody()
+		task.State = issue.GetState()
+	} else {
+		// Create new issue
+		issueReq := &github.IssueRequest{
+			Title: github.String(task.Title),
+		}
+		if task.Description != "" {
+			issueReq.Body = github.String(task.Description)
+		}
+
+		issue, _, err := client.Issues.Create(ctx, owner, repo, issueReq)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create issue: %w", err)
+		}
+
+		task.IssueNumber = issue.GetNumber()
+		task.IssueURL = issue.GetHTMLURL()
+	}
+
+	proj.Metadata.Tasks[taskIdx] = *task
+
+	if err := m.SaveProject(proj); err != nil {
+		return nil, err
+	}
+
+	return task, nil
 }
