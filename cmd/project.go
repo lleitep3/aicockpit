@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/lleitep3/aicockpit/internal/config"
@@ -155,6 +156,23 @@ func NewProjectCommand(log *logging.Manager, cfg *config.Config, t *i18n.Transla
 	})
 
 	projectTaskCmd.AddCommand(&cobra.Command{
+		Use:   "reorder <slug> <task-id> <new-index>",
+		Short: "Muda a posição de uma task dentro do board",
+		Args:  cobra.ExactArgs(3),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			idx, err := strconv.Atoi(args[2])
+			if err != nil {
+				return fmt.Errorf("new-index must be an integer")
+			}
+			if err := getProjectManager().ReorderTask(args[0], args[1], idx); err != nil {
+				return err
+			}
+			fmt.Println("✅ Task reordenada com sucesso.")
+			return nil
+		},
+	})
+
+	projectTaskCmd.AddCommand(&cobra.Command{
 		Use:   "list <slug>",
 		Short: "Lista todas as tasks",
 		Args:  cobra.ExactArgs(1),
@@ -178,6 +196,20 @@ func NewProjectCommand(log *logging.Manager, cfg *config.Config, t *i18n.Transla
 					fmt.Println("   (Vazio)")
 				}
 			}
+			return nil
+		},
+	})
+
+	projectTaskCmd.AddCommand(&cobra.Command{
+		Use:   "sync <slug> <task-id>",
+		Short: "Sincroniza a task com uma issue no GitHub",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			task, err := getProjectManager().SyncGitHubIssue(args[0], args[1])
+			if err != nil {
+				return err
+			}
+			fmt.Printf("✅ Task sincronizada com sucesso. Issue #%d\n", task.IssueNumber)
 			return nil
 		},
 	})

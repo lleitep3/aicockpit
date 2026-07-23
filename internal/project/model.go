@@ -16,10 +16,19 @@ const (
 
 // Task represents a kanban board item
 type Task struct {
-	ID        string    `yaml:"id"`
-	Title     string    `yaml:"title"`
-	Status    string    `yaml:"status"`
-	CreatedAt time.Time `yaml:"created_at"`
+	ID          string    `yaml:"id"`
+	Title       string    `yaml:"title"`
+	Description string    `yaml:"description,omitempty"`
+	Status      string    `yaml:"status"`
+	Assignees   []string  `yaml:"assignees,omitempty"`
+	Labels      []string  `yaml:"labels,omitempty"`
+	State       string    `yaml:"state,omitempty"`
+	Milestone   string    `yaml:"milestone,omitempty"`
+	Repository  string    `yaml:"repository,omitempty"`
+	IssueNumber int       `yaml:"issue_number,omitempty"`
+	IssueURL    string    `yaml:"issue_url,omitempty"`
+	CreatedAt   time.Time `yaml:"created_at"`
+	UpdatedAt   time.Time `yaml:"updated_at,omitempty"`
 }
 
 // Link represents an external resource link
