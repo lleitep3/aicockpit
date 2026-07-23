@@ -125,7 +125,7 @@ func (m *Manager) AddTask(slug, title string) error {
 		return err
 	}
 
-	taskID := fmt.Sprintf("TASK-%d", time.Now().Unix())
+	taskID := fmt.Sprintf("TASK-%d", time.Now().UnixMilli())
 	task := Task{
 		ID:        taskID,
 		Title:     title,
@@ -180,12 +180,12 @@ func (m *Manager) ReorderTask(slug, taskID string, newIndex int) error {
 	}
 
 	tasks := proj.Metadata.Tasks
-	var task *Task
-	var oldIndex int = -1
+	var taskToMove Task
+	oldIndex := -1
 
 	for i, t := range tasks {
 		if t.ID == taskID {
-			task = &tasks[i]
+			taskToMove = t
 			oldIndex = i
 			break
 		}
@@ -206,7 +206,7 @@ func (m *Manager) ReorderTask(slug, taskID string, newIndex int) error {
 	tasks = append(tasks[:oldIndex], tasks[oldIndex+1:]...)
 
 	// Insert at new position
-	tasks = append(tasks[:newIndex], append([]Task{*task}, tasks[newIndex:]...)...)
+	tasks = append(tasks[:newIndex], append([]Task{taskToMove}, tasks[newIndex:]...)...)
 
 	proj.Metadata.Tasks = tasks
 	return m.SaveProject(proj)
@@ -234,7 +234,7 @@ func (m *Manager) SyncGitHubIssue(slug, taskID string) (*Task, error) {
 	}
 
 	var task *Task
-	var taskIdx int = -1
+	taskIdx := -1
 	for i, t := range proj.Metadata.Tasks {
 		if t.ID == taskID {
 			task = &proj.Metadata.Tasks[i]
@@ -286,17 +286,17 @@ func (m *Manager) SyncGitHubIssue(slug, taskID string) (*Task, error) {
 		}
 
 		if task.Title != "" && task.Title != issue.GetTitle() {
-			issueReq.Title = github.String(task.Title)
+			issueReq.Title = github.Ptr(task.Title)
 			needsUpdate = true
 		}
 		if task.Description != "" && task.Description != issue.GetBody() {
-			issueReq.Body = github.String(task.Description)
+			issueReq.Body = github.Ptr(task.Description)
 			needsUpdate = true
 		}
-		
+
 		stateMap := map[string]string{"open": "open", "closed": "closed"}
 		if state, ok := stateMap[task.State]; ok && state != issue.GetState() {
-			issueReq.State = github.String(state)
+			issueReq.State = github.Ptr(state)
 			needsUpdate = true
 		}
 
@@ -314,10 +314,10 @@ func (m *Manager) SyncGitHubIssue(slug, taskID string) (*Task, error) {
 	} else {
 		// Create new issue
 		issueReq := &github.IssueRequest{
-			Title: github.String(task.Title),
+			Title: github.Ptr(task.Title),
 		}
 		if task.Description != "" {
-			issueReq.Body = github.String(task.Description)
+			issueReq.Body = github.Ptr(task.Description)
 		}
 
 		issue, _, err := client.Issues.Create(ctx, owner, repo, issueReq)
