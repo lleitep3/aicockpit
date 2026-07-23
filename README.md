@@ -5,21 +5,45 @@
 [![Go Version](https://img.shields.io/badge/go-1.26+-blue.svg)](https://golang.org)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-A powerful CLI-based harness engineering tool that enables AI systems to evolve autonomously and operate more efficiently by optimizing token usage and improving performance over time.
+O **AICockpit** é o "harness" definitivo para engenharia de IAs autônomas. Ele atua como um sistema operacional local que amplifica as capacidades do seu Agente de IA favorito (seja Claude, Devin, Goose ou Antigravity), trazendo colaboração visual, segurança nativa e modularidade.
 
-## 🎯 Vision & Why Use AICockpit?
+---
 
-AICockpit is designed to be the "cockpit" for your AI systems - a comprehensive control center that bridges the gap between human developers and autonomous AI agents (like Devin, Goose, Antigravity, and Claude).
+## 🛑 O Problema das IAs Atuais
 
-**Why use it?**
-- 🔌 **Canonical Compiler:** Write a skill or rule once, and AICockpit will compile and inject it automatically into the native format of whatever AI agent you are using.
-- 🎨 **Visual Collaboration (Mini-Apps):** It's not just a CLI. It includes a local SvelteKit/FastAPI visual dashboard where humans and AIs collaborate over a dynamic Kanban board and Knowledge Base graphs.
-- 📦 **Package Ecosystem:** Install community skills, UI dashboards, and CLI commands dynamically using `cockpit pkg install`.
-- 🔐 **Secure Vault:** Stop pasting API keys in plaintext for your AI to use. AICockpit integrates with your OS Keyring so the AI can securely fetch credentials at runtime.
-- 🚀 **Project Management:** Built-in Kanban state machine with sub-millisecond local reordering and bi-directional GitHub Issue sync.
-- 📊 **Metrics & Auditing:** Full audit trails of every command executed by the AI, optimizing token usage over time.
+Agentes de IA de código são incrivelmente inteligentes, mas quando operam sozinhos no seu terminal, eles esbarram em grandes barreiras de infraestrutura:
+- **Insegurança com Credenciais:** Você acaba enviando chaves de API e segredos em texto puro nos prompts.
+- **Isolamento Visual:** Você não consegue "ver" o que a IA está planejando além de ler logs intermináveis no terminal.
+- **Fragmentação de Conhecimento:** Cada IA nova (ou nova sessão) precisa reaprender as regras de arquitetura e ferramentas do seu projeto do zero.
+- **Falta de Ecossistema:** Não há como baixar e instalar facilmente novas habilidades (skills) na sua IA.
 
-## 📚 Documentation
+## 💡 A Solução: AICockpit
+
+O AICockpit resolve a infraestrutura local para que o seu agente foque apenas em ser inteligente. Ele fornece um **Cofre seguro**, um **Dashboard visual para humanos colaborarem com a IA** e um **Gerenciador de Pacotes** de habilidades.
+
+### 🆚 IA Pura vs IA + AICockpit
+
+| Funcionalidade | 🤖 IA Pura (Sozinha) | 🚀 IA + AICockpit |
+| :--- | :--- | :--- |
+| **Credenciais** | Chaves em texto puro (Inseguro) | Integração nativa com OS Keyring (Cofre Local) |
+| **Colaboração** | Apenas CLI e logs de texto | Dashboard Visual SvelteKit (Kanban, Grafos) |
+| **Gerenciamento de Projetos** | A IA perde o contexto das tarefas | Sync bi-direcional com GitHub Issues (Kanban local) |
+| **Extensibilidade (Skills)** | Habilidades hardcoded no prompt | App Store de Skills e Regras (`cockpit pkg install`) |
+| **Contexto de Arquitetura** | Precisa ler todos os arquivos toda vez | Engine de Busca Semântica em Vector/Grafos embutida |
+
+---
+
+## 🚀 Comece Agora (Get Started)
+
+Pronto para dar super-poderes aos seus agentes de IA? Siga os passos abaixo:
+
+- 📖 **[Guia Rápido (Quick Start)](docs/QUICK_START.md)** - Instale e rode em menos de 5 minutos!
+- 🛠️ **[Guia Completo de Instalação](docs/INSTALLATION.md)** - Alternativas de instalação e dependências.
+- 📦 **[Explorando Pacotes](docs/architecture/04-package-registries.md)** - Veja como instalar seu primeiro pacote no Cockpit.
+
+---
+
+## 📚 Estrutura da Documentação
 
 ### Getting Started
 
