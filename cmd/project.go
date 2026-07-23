@@ -321,7 +321,7 @@ func NewProjectCommand(log *logging.Manager, cfg *config.Config, t *i18n.Transla
 
 	projectTrackCmd := &cobra.Command{
 		Use:   "track <slug> \"Mensagem\"",
-		Short: "Registra uma anotação de progresso",
+		Short: "Registra uma anotação de andamento",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := getProjectManager().AddTracking(args[0], args[1]); err != nil {
