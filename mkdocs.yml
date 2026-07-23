@@ -1,0 +1,68 @@
+site_name: AICockpit
+site_description: AI Harness Engineering Platform
+site_url: https://lleitep3.github.io/aicockpit/
+repo_url: https://github.com/lleitep3/aicockpit
+repo_name: lleitep3/aicockpit
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - toc.integrate
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+nav:
+  - Home: index.md
+  - Quick Start: QUICK_START.md
+  - Features: FEATURES.md
+  - Architecture:
+    - Overview: architecture/01-overview.md
+    - Project Management: architecture/07-project-management.md
+    - Canonical Compiler: architecture/canonical-compiler.md
+    - Registries: architecture/04-package-registries.md
+    - Vault System: architecture/05-vault-system.md
+    - Knowledge Base: architecture/06-knowledge-base.md
+  - Guides:
+    - Vault Guide: vault-guide.md
+    - Logging & Metrics: LOGGING_AND_METRICS.md
+    - Command Guide: COMMAND_DOCUMENTATION_GUIDE.md
+  - Installation:
+    - Guide: INSTALLATION.md
+    - Scripts: INSTALLATION_SCRIPTS.md
+    - Options: INSTALLATION_OPTIONS.md
+  - Contributing:
+    - Developer Guide: CONTRIBUTING.md
+    - AI Agents Directives: AGENTS.md
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - toc:
+      permalink: true
