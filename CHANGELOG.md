@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.25] - 2026-07-23
+
+### Changed since v0.4.24
+
+
 ### Features
 - add reorder task CLI and dashboard support (#167)
 
@@ -27,6 +32,7 @@ No test changes
 
 ### Other Changes
 No other changes
+
 
 
 ## [0.4.24] - 2026-07-22
