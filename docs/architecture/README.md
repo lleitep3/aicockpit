@@ -16,6 +16,12 @@ Para garantir que você absorva o conteúdo da melhor forma sem se perder em jar
    Entenda o ciclo de vida de um pacote. Como o `PackageManager` faz o download, instala módulos e aciona os ganchos (*hooks*) de compilação.
 4. [**04. Registros de Pacotes (Registries)**](04-package-registries.md)
    Aprofunde-se em como o ecossistema é distribuído. Como o Cockpit encontra pacotes, como funciona um arquivo `package-index.yaml`, e como você pode plugar seu próprio repositório de pacotes privado na sua empresa.
+5. [**05. O Sistema de Cofre (Vault)**](05-vault-system.md)
+   Gerenciamento seguro de credenciais, chaves de API e segredos que os agentes utilizam.
+6. [**06. Knowledge Base Engine**](06-knowledge-base.md)
+   Como o sistema indexa, busca e correlaciona o conteúdo semântico para os agentes locais.
+7. [**07. Project & Task Management**](07-project-management.md)
+   A máquina de estados para workflows, a UI do dashboard e a integração bi-direcional de tickets com o GitHub.
 
 ---
 *Dica: Todos os documentos desta pasta utilizam diagramas interativos para facilitar o entendimento dos fluxos.*

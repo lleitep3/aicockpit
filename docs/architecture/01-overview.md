@@ -16,13 +16,17 @@ Abaixo temos um diagrama visual simplificado do fluxo do sistema:
 
 ```mermaid
 graph TD
-    User([Usuário / Desenvolvedor]) --> CLI[AICockpit CLI]
+    User([Usuário / Desenvolvedor]) --> UI[Dashboard Visual\n(Mini-Apps)]
+    User --> CLI[AICockpit CLI]
+    UI --> CLI
     AI([Agentes de IA]) --> CLI
     
     subgraph AICockpit Core
         CLI --> Config[Config Manager\n(config.yaml)]
         CLI --> PkgMgr[Package Manager]
         CLI --> KB[Knowledge Base\nSearch Engine]
+        CLI --> ProjMgr[Project & Task\nManager]
+        CLI --> Vault[Vault System\n(Credenciais)]
         
         PkgMgr --> ProvMgr[Provider Manager\n(Canonical Compiler)]
     end
@@ -31,6 +35,7 @@ graph TD
         PkgMgr -- "Faz o download de" --> Registries[(Package Registries)]
         KB -- "Lê e Indexa" --> LocalFiles[Arquivos Markdown Locais]
         ProvMgr -- "Injeta Skills em" --> AIFolders[(Pastas de IA\n.gemini, .devin)]
+        ProjMgr -- "Sincroniza Issues" --> GitHub[(GitHub API)]
     end
 ```
 
@@ -40,6 +45,8 @@ graph TD
 * **Package Manager (`internal/packages`):** O "NPM" ou "APT" do Cockpit. Gerencia a busca, download, instalação e desinstalação de pacotes.
 * **Provider Manager (`internal/providers`):** O motor de compilação. Traduz os pacotes baixados em configurações ativas nos agentes de IA. *(Discutiremos profundamente na próxima etapa).*
 * **Knowledge Base Engine (`internal/kb`):** O motor de busca vetorial/keyword que as IAs utilizam para encontrar contexto dentro dos arquivos do próprio repositório.
+* **Project Manager (`internal/project`):** Máquina de estados para gerenciamento de tarefas (Kanban) e sincronização bidirecional com Issues do GitHub.
+* **Vault System (`internal/vault`):** Gerenciador de segredos e variáveis de ambiente vitais para que a IA consiga rodar fluxos de automação sem hardcode de credenciais.
 * **Logger & Metrics (`internal/logging`):** O decorator da raiz Cobra registra cada subcomando executável uma vez em logs diários e em `metrics.json`, incluindo caminho do comando, argumentos, duração, status e código de saída.
 * **Update Service (`internal/update`):** Sistema de verificação e atualização automática que consulta a API do GitHub Releases para manter o Cockpit atualizado. Inclui verificação diária, prompts interativos e atualização via git.
 
