@@ -73,7 +73,13 @@
       "Exec(/tmp/test_simple.sh)",
       "Exec(rmdir)",
       "Exec(go env)",
-      "Exec(sh)"
+      "Exec(sh)",
+      "Exec(/tmp/create_tasks.sh)",
+      "Exec(python3)",
+      "Exec(/tmp/sync_tasks.sh)",
+      "Exec(/tmp/create_issues.sh)",
+      "Exec(/tmp/link_issues.sh)",
+      "Exec(/tmp/create_all_issues.sh)"
     ]
   }
 }
