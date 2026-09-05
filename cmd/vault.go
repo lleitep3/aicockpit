@@ -26,6 +26,7 @@ func NewVaultCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translato
 	vaultCmd.AddCommand(NewVaultSetCommand(log, cfg, t))
 	vaultCmd.AddCommand(NewVaultGetCommand(log, cfg, t))
 	vaultCmd.AddCommand(NewVaultRemoveCommand(log, cfg, t))
+	vaultCmd.AddCommand(NewVaultListCommand(log, cfg, t))
 	vaultCmd.AddCommand(NewVaultLockCommand(log, cfg, t))
 	vaultCmd.AddCommand(NewVaultUnlockCommand(log, cfg, t))
 	vaultCmd.AddCommand(NewVaultStatusCommand(log, cfg, t))

@@ -80,6 +80,25 @@ func (sv *SecureVault) Delete(key string) error {
 	return sv.osVault.Delete(namespacedKey)
 }
 
+// List returns all keys and metadata for the vault namespace.
+func (sv *SecureVault) List() ([]SecretInfo, error) {
+	all, err := sv.osVault.List()
+	if err != nil {
+		return nil, err
+	}
+
+	prefix := sv.namespacedKey("")
+	var out []SecretInfo
+	for _, info := range all {
+		if !strings.HasPrefix(info.Key, prefix) {
+			continue
+		}
+		info.Key = strings.TrimPrefix(info.Key, prefix)
+		out = append(out, info)
+	}
+	return out, nil
+}
+
 // encrypt encrypts a value using AES-GCM
 func (sv *SecureVault) encrypt(plaintext string) (string, error) {
 	block, err := aes.NewCipher(sv.encryptionKey)
