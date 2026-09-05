@@ -68,13 +68,29 @@ func (nv *NamespacedVault) Delete(key string) error {
 	return nv.osVault.Delete(namespacedKey)
 }
 
-// ListSecrets returns all keys in the application's namespace
-// This is a convenience method for debugging and management
-func (nv *NamespacedVault) ListSecrets() ([]string, error) {
-	// Note: The underlying keyring doesn't support listing,
-	// so this would need to be implemented with a caching mechanism
-	// or by maintaining a separate index
-	return nil, fmt.Errorf("listing secrets not supported by underlying keyring")
+// List returns all keys and metadata in the application namespace.
+// It satisfies the Manager interface.
+func (nv *NamespacedVault) List() ([]SecretInfo, error) {
+	return nv.ListSecrets()
+}
+
+// ListSecrets returns all keys and metadata in the application's namespace.
+func (nv *NamespacedVault) ListSecrets() ([]SecretInfo, error) {
+	all, err := nv.osVault.List()
+	if err != nil {
+		return nil, err
+	}
+
+	prefix := nv.namespace + ":"
+	var out []SecretInfo
+	for _, info := range all {
+		if !strings.HasPrefix(info.Key, prefix) {
+			continue
+		}
+		info.Key = strings.TrimPrefix(info.Key, prefix)
+		out = append(out, info)
+	}
+	return out, nil
 }
 
 // GetNamespace returns the current namespace
