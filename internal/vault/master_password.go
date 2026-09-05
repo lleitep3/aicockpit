@@ -3,8 +3,10 @@ package vault
 import (
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/pbkdf2"
 	"crypto/rand"
 	"crypto/sha256"
+	"crypto/subtle"
 	"encoding/base64"
 	"fmt"
 	"os"
@@ -14,6 +16,17 @@ import (
 
 	"golang.org/x/term"
 )
+
+const (
+	masterPasswordVerifierVersion = "v2"
+	masterPasswordSaltSize        = 16
+	masterPasswordKeySize         = 32
+)
+
+// masterPasswordIterations follows the OWASP-recommended PBKDF2-HMAC-SHA256
+// work factor. Tests replace it in TestMain to keep the suite fast while the
+// production default remains deliberately expensive.
+var masterPasswordIterations = 600000
 
 type MasterPassword struct {
 	enabled      bool
@@ -53,12 +66,13 @@ func (mp *MasterPassword) SetPassword(password string) error {
 	if mp.enabled {
 		return fmt.Errorf("master password already set; authenticate before changing it")
 	}
-	// Hash the password
-	hash := sha256.Sum256([]byte(password))
-	hashStr := base64.URLEncoding.EncodeToString(hash[:])
+	verifier, err := newPasswordVerifier(password)
+	if err != nil {
+		return fmt.Errorf("failed to derive master password verifier: %w", err)
+	}
 
 	oldEnabled, oldHash := mp.enabled, mp.passwordHash
-	mp.passwordHash = hashStr
+	mp.passwordHash = verifier
 	mp.enabled = true
 
 	if err := mp.save(); err != nil {
@@ -77,10 +91,7 @@ func (mp *MasterPassword) Validate(password string) bool {
 		return true
 	}
 
-	hash := sha256.Sum256([]byte(password))
-	hashStr := base64.URLEncoding.EncodeToString(hash[:])
-
-	return hashStr == mp.passwordHash
+	return verifyPassword(password, mp.passwordHash)
 }
 
 // Enable enables master password protection
@@ -111,9 +122,12 @@ func (mp *MasterPassword) ChangePassword(oldPassword, newPassword string) error 
 	if !mp.Validate(oldPassword) {
 		return fmt.Errorf("invalid old password")
 	}
-	hash := sha256.Sum256([]byte(newPassword))
+	verifier, err := newPasswordVerifier(newPassword)
+	if err != nil {
+		return fmt.Errorf("failed to derive master password verifier: %w", err)
+	}
 	oldHash := mp.passwordHash
-	mp.passwordHash = base64.URLEncoding.EncodeToString(hash[:])
+	mp.passwordHash = verifier
 	if err := mp.save(); err != nil {
 		mp.passwordHash = oldHash
 		return err
@@ -126,13 +140,75 @@ func (mp *MasterPassword) ForceSet(password string) error {
 	if mp.initErr != nil {
 		return fmt.Errorf("master password state unavailable: %w", mp.initErr)
 	}
-	hash := sha256.Sum256([]byte(password))
+	verifier, err := newPasswordVerifier(password)
+	if err != nil {
+		return fmt.Errorf("failed to derive master password verifier: %w", err)
+	}
 	oldEnabled, oldHash := mp.enabled, mp.passwordHash
 	mp.enabled = true
-	mp.passwordHash = base64.URLEncoding.EncodeToString(hash[:])
+	mp.passwordHash = verifier
 	if err := mp.save(); err != nil {
 		mp.enabled, mp.passwordHash = oldEnabled, oldHash
 		return err
+	}
+	return nil
+}
+
+// newPasswordVerifier derives a deliberately expensive verifier for the
+// master password. The result contains its version, random salt and derived
+// key so validation never relies on a fast unsalted password hash.
+func newPasswordVerifier(password string) (string, error) {
+	salt := make([]byte, masterPasswordSaltSize)
+	if _, err := rand.Read(salt); err != nil {
+		return "", err
+	}
+
+	derived, err := pbkdf2.Key(sha256.New, password, salt, masterPasswordIterations, masterPasswordKeySize)
+	if err != nil {
+		return "", err
+	}
+
+	return strings.Join([]string{
+		masterPasswordVerifierVersion,
+		base64.RawURLEncoding.EncodeToString(salt),
+		base64.RawURLEncoding.EncodeToString(derived),
+	}, "$"), nil
+}
+
+func verifyPassword(password, verifier string) bool {
+	parts := strings.Split(verifier, "$")
+	if len(parts) != 3 || parts[0] != masterPasswordVerifierVersion {
+		return false
+	}
+
+	salt, err := base64.RawURLEncoding.DecodeString(parts[1])
+	if err != nil || len(salt) != masterPasswordSaltSize {
+		return false
+	}
+	expected, err := base64.RawURLEncoding.DecodeString(parts[2])
+	if err != nil || len(expected) != masterPasswordKeySize {
+		return false
+	}
+
+	derived, err := pbkdf2.Key(sha256.New, password, salt, masterPasswordIterations, masterPasswordKeySize)
+	if err != nil {
+		return false
+	}
+	return subtle.ConstantTimeCompare(derived, expected) == 1
+}
+
+func validatePasswordVerifier(verifier string) error {
+	parts := strings.Split(verifier, "$")
+	if len(parts) != 3 || parts[0] != masterPasswordVerifierVersion {
+		return fmt.Errorf("unsupported master password verifier version")
+	}
+	salt, err := base64.RawURLEncoding.DecodeString(parts[1])
+	if err != nil || len(salt) != masterPasswordSaltSize {
+		return fmt.Errorf("invalid master password verifier salt")
+	}
+	derived, err := base64.RawURLEncoding.DecodeString(parts[2])
+	if err != nil || len(derived) != masterPasswordKeySize {
+		return fmt.Errorf("invalid master password verifier")
 	}
 	return nil
 }
@@ -211,6 +287,11 @@ func (mp *MasterPassword) load() error {
 	}
 	if parts[0] == "true" && parts[1] == "" {
 		return fmt.Errorf("enabled master password has no verifier")
+	}
+	if parts[0] == "true" {
+		if err := validatePasswordVerifier(parts[1]); err != nil {
+			return fmt.Errorf("invalid master password verifier: %w", err)
+		}
 	}
 
 	enabled := parts[0] == "true"

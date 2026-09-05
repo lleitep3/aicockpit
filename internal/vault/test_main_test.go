@@ -8,6 +8,7 @@ import (
 )
 
 func TestMain(m *testing.M) {
+	masterPasswordIterations = 1000
 	testHome, err := os.MkdirTemp("", "aicockpit-vault-tests-")
 	if err != nil {
 		os.Exit(2)

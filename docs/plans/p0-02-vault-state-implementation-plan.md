@@ -103,7 +103,10 @@ Esta tarefa não redesenha o verificador nem migra todos os registros de senha. 
 - `COCKPIT_DEV_MODE` não desativa verificação do estado v2 nem autenticação de produção. Testes usam dependências falsas, não bypass ativável por ambiente.
 - `ForceSet`/factory reset não viram fallback de migração. Não executar reset real; preservar confirmação destrutiva e tratar erros. Definir se a chave interna deve ser mantida ou removida em reset explícito e cobrir por fake, sem excluir credenciais durante migração.
 
-Documentar como dívida separada o verificador SHA-256 e armazenamento legado da senha mestra, bem como acesso direto ao keyring e replay de estado. Não anunciar “vault seguro contra agentes locais” ao concluir. Se a implementação exigir redesenhar o verificador para cumprir o contrato, explicar essa dependência antes de ampliar a tarefa.
+Documentar como limitações separadas o armazenamento legado da senha mestra,
+o acesso direto ao keyring e replay de estado. O verificador da senha mestra foi
+modernizado após a revisão de segurança para PBKDF2-HMAC-SHA256 com salt
+aleatório; não anunciar “vault seguro contra agentes locais” ao concluir.
 
 ## 8. Etapas pequenas para Luna
 

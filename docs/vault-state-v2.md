@@ -44,6 +44,6 @@ imagem em memória somente após escrita atômica, `sync`, fechamento e rename.
 Testes usam keyring falso, diretórios temporários e não executam migração,
 lock/unlock ou reset no vault pessoal.
 
-O verificador legado da senha mestra (SHA-256 e cifra dependente do sistema) é
-uma dívida separada: corrupção agora é erro, não “senha desabilitada”, mas a
-modernização completa do verificador não faz parte desta entrega.
+O verificador da senha mestra usa PBKDF2-HMAC-SHA256 com salt aleatório e
+comparação em tempo constante. A cifra do arquivo continua dependente do
+sistema; corrupção agora é erro, não “senha desabilitada”.

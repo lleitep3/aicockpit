@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"syscall"
 	"testing"
 
@@ -129,6 +130,48 @@ func TestMasterPassword_Persistence(t *testing.T) {
 	}
 	if !mp2.Validate("persisted") {
 		t.Error("password should validate after reload")
+	}
+}
+
+func TestMasterPassword_UsesVersionedPasswordKDF(t *testing.T) {
+	mp := newTestMasterPassword(t)
+	if err := mp.SetPassword("kdf-protected-password"); err != nil {
+		t.Fatalf("SetPassword: %v", err)
+	}
+
+	ciphertext, err := os.ReadFile(mp.storagePath)
+	if err != nil {
+		t.Fatalf("ReadFile: %v", err)
+	}
+	plaintext, err := decryptSystemData(ciphertext)
+	if err != nil {
+		t.Fatalf("decryptSystemData: %v", err)
+	}
+	parts := strings.Split(string(plaintext), "|")
+	if len(parts) != 2 || !strings.HasPrefix(parts[1], masterPasswordVerifierVersion+"$") {
+		t.Fatalf("expected versioned password verifier, got %q", string(plaintext))
+	}
+	if mp.Validate("kdf-protected-password") == false || mp.Validate("wrong-password") {
+		t.Fatal("password verifier validation result is incorrect")
+	}
+}
+
+func TestMasterPassword_RejectsLegacyFastVerifier(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "master_password.dat")
+	ciphertext, err := encryptSystemData([]byte("true|legacy-sha256-verifier"))
+	if err != nil {
+		t.Fatalf("encryptSystemData: %v", err)
+	}
+	if err := os.WriteFile(path, ciphertext, 0o600); err != nil {
+		t.Fatalf("WriteFile: %v", err)
+	}
+
+	mp := NewMasterPasswordAt(path)
+	if mp.InitializationError() == nil {
+		t.Fatal("legacy fast verifier must be rejected")
+	}
+	if mp.Validate("legacy-password") {
+		t.Fatal("legacy fast verifier must fail closed")
 	}
 }
 

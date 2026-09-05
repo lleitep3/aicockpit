@@ -307,7 +307,7 @@ Veja o diretório `examples/` para exemplos completos:
 1. **Master Password:**
    - Opcional mas recomendado para produção
    - Mínimo 8 caracteres
-   - Hashed com SHA-256 antes do armazenamento
+   - Verificador derivado com PBKDF2-HMAC-SHA256, salt aleatório e work factor alto
    - Criptografado com chave específica do sistema
 
 2. **Isolamento de Namespace:**
@@ -481,6 +481,6 @@ type Manager interface {
 - `github.com/zalando/go-keyring`: Biblioteca para acesso ao keyring do sistema operacional
 - `golang.org/x/term`: Para input de senha invisível no modo interativo
 - `crypto/aes`: Criptografia AES-256
-- `crypto/sha256`: Hash SHA-256
+- `crypto/pbkdf2` e `crypto/sha256`: derivação PBKDF2-HMAC-SHA256
 
 > **Próximo Passo:** Entenda como as informações são guardadas e interligadas no AICockpit lendo o [06. Base de Conhecimento (Knowledge Base)](06-knowledge-base.md).
