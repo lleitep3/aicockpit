@@ -35,6 +35,38 @@ providers:
         path: ".gemini/config/config.json"
         description: "Global permission grants for cockpit commands"
 
+  # Codex - OpenAI coding agent
+  # The first Codex adapter targets project-local files. User-global paths and
+  # CODEX_HOME-aware deployment are covered by the Codex scope workstream.
+  codex:
+    enabled: true
+    name: "Codex"
+    description: "OpenAI coding agent"
+    workspace: "~/.codex"
+    binary: "codex"
+    version: "1.0.0"
+    features:
+      rules:
+        enabled: true
+        path: "AGENTS.md"
+        description: "Project instructions and canonical AICockpit rules"
+      skills:
+        enabled: true
+        path: ".agents/skills"
+        description: "Reusable Codex skills"
+      workflows:
+        enabled: true
+        path: ".agents/skills"
+        description: "Workflow skills for Codex"
+      permissions:
+        enabled: true
+        path: ".codex/rules/aicockpit.rules"
+        description: "Project-local Codex execpolicy rules"
+      agents:
+        enabled: true
+        path: ".codex/agents"
+        description: "Project-local Codex custom agents"
+
   # Devin - Autonomous AI agent by Cognition
   devin:
     enabled: true

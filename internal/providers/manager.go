@@ -21,6 +21,7 @@ func NewProviderManager(config *ProvidersConfig) *ProviderManager {
 	}
 
 	pm.Register(NewAntigravityCompiler())
+	pm.Register(NewCodexCompiler())
 	pm.Register(NewDevinCompiler())
 	pm.Register(NewGooseCompiler())
 
