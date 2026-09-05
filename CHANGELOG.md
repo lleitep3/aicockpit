@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Features
+No features
+
+### Bug Fixes
+- validate zip entry paths to prevent Zip Slip (#210)
+
+### Performance
+No performance improvements
+
+### Breaking Changes
+No breaking changes
+
+### Documentation
+No documentation changes
+
+### Testing
+No test changes
+
+### Other Changes
+No other changes
+
+
 ## [0.4.34] - 2026-09-05
 
 ### Changed since v0.4.33
