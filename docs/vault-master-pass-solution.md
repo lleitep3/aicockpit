@@ -1,5 +1,11 @@
 # Vault Master Pass - Análise e Solução Híbrida
 
+> [!WARNING]
+> Documento de proposta/histórico. O comportamento implementado atualmente
+> está em [Vault lock state v2](vault-state-v2.md): `COCKPIT_DEV_MODE` não é
+> bypass de produção, falhas de estado negam acesso e a migração de estado é
+> explícita. Não use os snippets abaixo como contrato sem conferir o código atual.
+
 ## 🎯 Sua Proposta: Master Pass para CLI
 
 **Ideia:**

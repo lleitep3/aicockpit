@@ -1,8 +1,15 @@
 # Comparação: Documentação vs Implementação Real do Vault
 
-## Status do Vault: ✅ FUNCIONANDO CORRETAMENTE
+## Status da comparação
 
-Após análise detalhada e testes exhaustivos, o Vault System do AICockpit está **plenamente operacional** e a documentação existente está **correta**.
+> [!WARNING]
+> Este documento é uma comparação histórica do vault anterior ao P0-02. A
+> fonte de verdade atual para lock state é [Vault lock state v2](vault-state-v2.md)
+> e a arquitetura atualizada está em [05. Sistema de Cofre](architecture/05-vault-system.md).
+
+As conclusões abaixo continuam úteis apenas para os comandos de credenciais;
+afirmações sobre persistência, criptografia ou comportamento de falhas devem ser
+interpretadas à luz da implementação v2.
 
 ## Comparação Detalhada
 
