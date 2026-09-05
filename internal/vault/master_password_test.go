@@ -138,11 +138,11 @@ func TestMasterPassword_LoadCorruptFile(t *testing.T) {
 	if err := os.WriteFile(mp.storagePath, []byte("corrupt-data"), 0o600); err != nil {
 		t.Fatalf("WriteFile: %v", err)
 	}
-	if err := mp.load(); err != nil {
-		t.Fatalf("load: %v", err)
+	if err := mp.load(); err == nil {
+		t.Fatal("corrupt file should return an error")
 	}
 	if mp.IsEnabled() {
-		t.Error("corrupt file should leave password disabled")
+		t.Error("corrupt file must not enable a password")
 	}
 }
 
@@ -157,11 +157,25 @@ func TestMasterPassword_LoadInvalidFormat(t *testing.T) {
 	if err := os.WriteFile(mp.storagePath, cipherData, 0o600); err != nil {
 		t.Fatalf("WriteFile: %v", err)
 	}
-	if err := mp.load(); err != nil {
-		t.Fatalf("load: %v", err)
+	if err := mp.load(); err == nil {
+		t.Fatal("invalid format should return an error")
 	}
 	if mp.IsEnabled() {
-		t.Error("invalid format should leave password disabled")
+		t.Error("invalid format must not enable a password")
+	}
+}
+
+func TestMasterPassword_ConstructorFailsClosedOnCorruption(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "master_password.dat")
+	if err := os.WriteFile(path, []byte("corrupt"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	mp := NewMasterPasswordAt(path)
+	if mp.InitializationError() == nil {
+		t.Fatal("constructor must retain corruption error")
+	}
+	if mp.Validate("anything") {
+		t.Fatal("corrupt master-password state must not validate")
 	}
 }
 
@@ -279,5 +293,25 @@ func TestPromptAndValidate_NonTerminal(t *testing.T) {
 	// When reading the password fails, PromptAndValidate should return the error.
 	if err := mp.PromptAndValidate(); err == nil {
 		t.Error("expected error when stdin is not a terminal")
+	}
+}
+
+func TestMasterPassword_RejectsUnsafeOverwriteAndSaveFailures(t *testing.T) {
+	mp := newTestMasterPassword(t)
+	if err := mp.SetPassword("first-password"); err != nil {
+		t.Fatal(err)
+	}
+	if err := mp.SetPassword("second-password"); err == nil {
+		t.Fatal("SetPassword must not overwrite an enabled password")
+	}
+	mp.storagePath = t.TempDir()
+	if err := mp.ChangePassword("first-password", "second-password"); err == nil {
+		t.Fatal("ChangePassword must report persistence failure")
+	}
+	if err := mp.ForceSet("recovery-password"); err == nil {
+		t.Fatal("ForceSet must report persistence failure")
+	}
+	if err := mp.Disable(); err == nil {
+		t.Fatal("Disable must report persistence failure")
 	}
 }
