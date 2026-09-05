@@ -1,11 +1,12 @@
 package packages
 
 import (
-	"gopkg.in/yaml.v3"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
+
+	"gopkg.in/yaml.v3"
 )
 
 func TestSavePackageAddsTimestamps(t *testing.T) {
