@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.34] - 2026-09-05
+
+### Changed since v0.4.33
+
+
 ### Features
 - add list command with creation and update timestamps (#207)
 
@@ -27,6 +32,7 @@ No test changes
 
 ### Other Changes
 No other changes
+
 
 
 ## [0.4.33] - 2026-09-05
