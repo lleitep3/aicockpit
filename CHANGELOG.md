@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.31] - 2026-09-05
+
+### Changed since v0.4.30
+
+
 ### Features
 - implement keyring-backed lock state v2 (P0-02) (#188)
 
@@ -27,6 +32,7 @@ No test changes
 
 ### Other Changes
 No other changes
+
 
 
 ## [0.4.30] - 2026-09-05
