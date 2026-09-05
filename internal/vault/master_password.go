@@ -8,6 +8,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"syscall"
 
@@ -18,33 +19,62 @@ type MasterPassword struct {
 	enabled      bool
 	passwordHash string
 	storagePath  string
+	initErr      error
 }
 
 func NewMasterPassword() *MasterPassword {
+	return NewMasterPasswordAt(defaultMasterPasswordPath())
+}
+
+func NewMasterPasswordAt(storagePath string) *MasterPassword {
 	mp := &MasterPassword{
 		enabled:     false, // Default disabled until set
-		storagePath: "/home/lleite/.cockpit/vault/master_password.dat",
+		storagePath: storagePath,
 	}
-	mp.load()
+	if err := mp.load(); err != nil {
+		mp.initErr = err
+	}
 	return mp
+}
+
+func defaultMasterPasswordPath() string {
+	return filepath.Join(filepath.Dir(DefaultLockStatePath()), "master_password.dat")
+}
+
+func (mp *MasterPassword) InitializationError() error {
+	return mp.initErr
 }
 
 // SetPassword sets the master password
 func (mp *MasterPassword) SetPassword(password string) error {
+	if mp.initErr != nil {
+		return fmt.Errorf("master password state unavailable: %w", mp.initErr)
+	}
+	if mp.enabled {
+		return fmt.Errorf("master password already set; authenticate before changing it")
+	}
 	// Hash the password
 	hash := sha256.Sum256([]byte(password))
 	hashStr := base64.URLEncoding.EncodeToString(hash[:])
 
+	oldEnabled, oldHash := mp.enabled, mp.passwordHash
 	mp.passwordHash = hashStr
 	mp.enabled = true
 
-	return mp.save()
+	if err := mp.save(); err != nil {
+		mp.enabled, mp.passwordHash = oldEnabled, oldHash
+		return err
+	}
+	return nil
 }
 
 // Validate validates the master password
 func (mp *MasterPassword) Validate(password string) bool {
+	if mp.initErr != nil {
+		return false
+	}
 	if !mp.enabled {
-		return true // If disabled, always valid (dev mode)
+		return true
 	}
 
 	hash := sha256.Sum256([]byte(password))
@@ -60,24 +90,51 @@ func (mp *MasterPassword) Enable(password string) error {
 
 // Disable disables master password protection
 func (mp *MasterPassword) Disable() error {
+	if mp.initErr != nil {
+		return fmt.Errorf("master password state unavailable: %w", mp.initErr)
+	}
+	oldEnabled := mp.enabled
 	mp.enabled = false
-	return mp.save()
+	if err := mp.save(); err != nil {
+		mp.enabled = oldEnabled
+		return err
+	}
+	return nil
 }
 
 // ChangePassword changes the master password (requires old password)
 func (mp *MasterPassword) ChangePassword(oldPassword, newPassword string) error {
+	if mp.initErr != nil {
+		return fmt.Errorf("master password state unavailable: %w", mp.initErr)
+	}
 	// Validate old password first
 	if !mp.Validate(oldPassword) {
 		return fmt.Errorf("invalid old password")
 	}
-
-	// Set new password
-	return mp.SetPassword(newPassword)
+	hash := sha256.Sum256([]byte(newPassword))
+	oldHash := mp.passwordHash
+	mp.passwordHash = base64.URLEncoding.EncodeToString(hash[:])
+	if err := mp.save(); err != nil {
+		mp.passwordHash = oldHash
+		return err
+	}
+	return nil
 }
 
 // ForceSet forces setting a password even if already set (for recovery)
 func (mp *MasterPassword) ForceSet(password string) error {
-	return mp.SetPassword(password)
+	if mp.initErr != nil {
+		return fmt.Errorf("master password state unavailable: %w", mp.initErr)
+	}
+	hash := sha256.Sum256([]byte(password))
+	oldEnabled, oldHash := mp.enabled, mp.passwordHash
+	mp.enabled = true
+	mp.passwordHash = base64.URLEncoding.EncodeToString(hash[:])
+	if err := mp.save(); err != nil {
+		mp.enabled, mp.passwordHash = oldEnabled, oldHash
+		return err
+	}
+	return nil
 }
 
 // IsEnabled returns if master password is enabled
@@ -120,6 +177,12 @@ func (mp *MasterPassword) save() error {
 		return err
 	}
 
+	if err := os.MkdirAll(filepath.Dir(mp.storagePath), 0o700); err != nil {
+		return fmt.Errorf("failed to create master password directory: %w", err)
+	}
+	if err := os.Chmod(filepath.Dir(mp.storagePath), 0o700); err != nil {
+		return fmt.Errorf("failed to secure master password directory: %w", err)
+	}
 	return os.WriteFile(mp.storagePath, encryptedData, 0600)
 }
 
@@ -135,16 +198,19 @@ func (mp *MasterPassword) load() error {
 	// Decrypt the data
 	decryptedData, err := decryptSystemData(data)
 	if err != nil {
-		// If decryption fails, assume file is corrupted and use defaults
-		mp.enabled = false
-		return nil
+		return fmt.Errorf("failed to decrypt master password state: %w", err)
 	}
 
 	// Parse: enabled|hash
 	parts := strings.Split(string(decryptedData), "|")
 	if len(parts) != 2 {
-		mp.enabled = false
-		return nil
+		return fmt.Errorf("invalid master password state format")
+	}
+	if parts[0] != "true" && parts[0] != "false" {
+		return fmt.Errorf("invalid master password enabled flag")
+	}
+	if parts[0] == "true" && parts[1] == "" {
+		return fmt.Errorf("enabled master password has no verifier")
 	}
 
 	enabled := parts[0] == "true"
