@@ -6,11 +6,25 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"time"
 
 	"github.com/zalando/go-keyring"
 )
 
 const serviceName = "aicockpit"
+
+// SecretInfo holds the metadata for a stored secret.
+type SecretInfo struct {
+	Key     string `json:"key"`
+	Created string `json:"created"`
+	Updated string `json:"updated"`
+}
+
+// keyMeta tracks timestamps for a single key in the index.
+type keyMeta struct {
+	Created string `json:"created"`
+	Updated string `json:"updated"`
+}
 
 // Manager defines the interface for interacting with the Vault.
 type Manager interface {
@@ -22,6 +36,9 @@ type Manager interface {
 
 	// Delete removes the secret for a given key.
 	Delete(key string) error
+
+	// List returns all stored secret keys with their metadata.
+	List() ([]SecretInfo, error)
 
 	// ClearAllSecrets removes all secrets (factory reset)
 	ClearAllSecrets() error
@@ -54,33 +71,39 @@ func defaultIndexPath() string {
 
 // loadIndex reads the persisted key set from disk.
 // Returns an empty set when the file does not exist yet.
-func (v *osVault) loadIndex() (map[string]struct{}, error) {
+// Supports legacy []string indexes by migrating them to the new metadata format.
+func (v *osVault) loadIndex() (map[string]keyMeta, error) {
 	data, err := os.ReadFile(v.indexPath)
 	if os.IsNotExist(err) {
-		return make(map[string]struct{}), nil
+		return make(map[string]keyMeta), nil
 	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to read vault index: %w", err)
 	}
+
+	// Try the new metadata format first.
+	var meta map[string]keyMeta
+	if err := json.Unmarshal(data, &meta); err == nil {
+		return meta, nil
+	}
+
+	// Fall back to legacy []string index and migrate to metadata format.
 	var keys []string
 	if err := json.Unmarshal(data, &keys); err != nil {
 		// Corrupt index — start fresh rather than blocking the vault entirely.
-		return make(map[string]struct{}), nil
+		return make(map[string]keyMeta), nil
 	}
-	set := make(map[string]struct{}, len(keys))
+	now := time.Now().UTC().Format(time.RFC3339)
+	meta = make(map[string]keyMeta, len(keys))
 	for _, k := range keys {
-		set[k] = struct{}{}
+		meta[k] = keyMeta{Created: now, Updated: now}
 	}
-	return set, nil
+	return meta, nil
 }
 
 // saveIndex persists the key set to disk atomically.
-func (v *osVault) saveIndex(set map[string]struct{}) error {
-	keys := make([]string, 0, len(set))
-	for k := range set {
-		keys = append(keys, k)
-	}
-	data, err := json.Marshal(keys)
+func (v *osVault) saveIndex(meta map[string]keyMeta) error {
+	data, err := json.Marshal(meta)
 	if err != nil {
 		return fmt.Errorf("failed to marshal vault index: %w", err)
 	}
@@ -105,12 +128,18 @@ func (v *osVault) Set(key string, value string) error {
 	}
 	v.mu.Lock()
 	defer v.mu.Unlock()
-	set, err := v.loadIndex()
+	meta, err := v.loadIndex()
 	if err != nil {
 		return err
 	}
-	set[key] = struct{}{}
-	return v.saveIndex(set)
+	now := time.Now().UTC().Format(time.RFC3339)
+	existing, ok := meta[key]
+	if !ok {
+		existing.Created = now
+	}
+	existing.Updated = now
+	meta[key] = existing
+	return v.saveIndex(meta)
 }
 
 // Get retrieves the value from the OS keychain.
@@ -129,12 +158,27 @@ func (v *osVault) Delete(key string) error {
 	}
 	v.mu.Lock()
 	defer v.mu.Unlock()
-	set, err := v.loadIndex()
+	meta, err := v.loadIndex()
 	if err != nil {
 		return err
 	}
-	delete(set, key)
-	return v.saveIndex(set)
+	delete(meta, key)
+	return v.saveIndex(meta)
+}
+
+// List returns all stored keys with their creation and update timestamps.
+func (v *osVault) List() ([]SecretInfo, error) {
+	v.mu.Lock()
+	defer v.mu.Unlock()
+	meta, err := v.loadIndex()
+	if err != nil {
+		return nil, err
+	}
+	infos := make([]SecretInfo, 0, len(meta))
+	for k, m := range meta {
+		infos = append(infos, SecretInfo{Key: k, Created: m.Created, Updated: m.Updated})
+	}
+	return infos, nil
 }
 
 // ClearAllSecrets deletes every key recorded in the index, then removes the
@@ -144,13 +188,13 @@ func (v *osVault) ClearAllSecrets() error {
 	v.mu.Lock()
 	defer v.mu.Unlock()
 
-	set, err := v.loadIndex()
+	meta, err := v.loadIndex()
 	if err != nil {
 		return err
 	}
 
 	var errs []string
-	for key := range set {
+	for key := range meta {
 		if err := keyring.Delete(serviceName, key); err != nil {
 			errs = append(errs, fmt.Sprintf("delete %q: %v", key, err))
 		}

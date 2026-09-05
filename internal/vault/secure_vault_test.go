@@ -137,6 +137,37 @@ func TestSecureVault(t *testing.T) {
 	})
 }
 
+func TestSecureVault_List(t *testing.T) {
+	keyring.MockInit()
+	os.Setenv("COCKPIT_DEV_MODE", "true")
+	defer os.Unsetenv("COCKPIT_DEV_MODE")
+
+	sv, err := NewSecureVault("secure-list")
+	if err != nil {
+		t.Fatalf("NewSecureVault: %v", err)
+	}
+
+	if err := sv.Set("secret-a", "value-a"); err != nil {
+		t.Fatalf("Set: %v", err)
+	}
+	if err := sv.Set("secret-b", "value-b"); err != nil {
+		t.Fatalf("Set: %v", err)
+	}
+
+	secrets, err := sv.List()
+	if err != nil {
+		t.Fatalf("List: %v", err)
+	}
+	if len(secrets) != 2 {
+		t.Fatalf("expected 2 secrets, got %d", len(secrets))
+	}
+	for _, s := range secrets {
+		if s.Created == "" || s.Updated == "" {
+			t.Errorf("expected timestamps for %s", s.Key)
+		}
+	}
+}
+
 func TestSecureVault_Get_NotFound(t *testing.T) {
 	keyring.MockInit()
 	os.Setenv("COCKPIT_DEV_MODE", "true")

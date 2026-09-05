@@ -26,6 +26,7 @@ func NewVaultCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translato
 	vaultCmd.AddCommand(NewVaultSetCommand(log, cfg, t))
 	vaultCmd.AddCommand(NewVaultGetCommand(log, cfg, t))
 	vaultCmd.AddCommand(NewVaultRemoveCommand(log, cfg, t))
+	vaultCmd.AddCommand(NewVaultListCommand(log, cfg, t))
 	vaultCmd.AddCommand(NewVaultLockCommand(log, cfg, t))
 	vaultCmd.AddCommand(NewVaultUnlockCommand(log, cfg, t))
 	vaultCmd.AddCommand(NewVaultStatusCommand(log, cfg, t))
@@ -33,6 +34,7 @@ func NewVaultCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translato
 	vaultCmd.AddCommand(NewVaultChangeMasterPasswordCommand(log, cfg, t))
 	vaultCmd.AddCommand(NewVaultDisableMasterPasswordCommand(log, cfg, t))
 	vaultCmd.AddCommand(NewVaultFactoryResetCommand(log, cfg, t))
+	vaultCmd.AddCommand(NewVaultMigrateStateCommand(log, cfg, t))
 
 	return vaultCmd
 }
@@ -40,12 +42,18 @@ func NewVaultCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translato
 // checkVaultAccess checks if vault access is allowed based on lock state
 func checkVaultAccess(operation string) error {
 	lm := vault.NewLockManager("")
+	if err := lm.InitializationError(); err != nil {
+		return fmt.Errorf("vault lock state unavailable: %w", err)
+	}
 
 	// Check if current process (package) has access
 	currentPackage := getCurrentProcessName()
 
 	if !lm.CanPackageAccess(currentPackage) {
-		status := lm.GetStatus()
+		status, err := lm.GetStatusWithError()
+		if err != nil {
+			return fmt.Errorf("vault lock state unavailable: %w", err)
+		}
 
 		fmt.Printf("🔒 Vault is locked. Access denied for '%s'.\n", currentPackage)
 		fmt.Println()

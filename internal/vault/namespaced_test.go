@@ -3,7 +3,6 @@ package vault
 import (
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/zalando/go-keyring"
@@ -170,12 +169,24 @@ func newTestNamespacedVault(t *testing.T, appID string) *NamespacedVault {
 func TestNamespacedVault_ListSecrets(t *testing.T) {
 	vault := newTestNamespacedVault(t, "list-test")
 
-	_, err := vault.ListSecrets()
-	if err == nil {
-		t.Fatal("expected error from ListSecrets")
+	if err := vault.Set("secret-key", "secret-value"); err != nil {
+		t.Fatalf("Set: %v", err)
 	}
-	if !strings.Contains(err.Error(), "listing secrets not supported") {
-		t.Errorf("unexpected error message: %v", err)
+	if err := vault.Set("another-key", "another-value"); err != nil {
+		t.Fatalf("Set: %v", err)
+	}
+
+	secrets, err := vault.ListSecrets()
+	if err != nil {
+		t.Fatalf("ListSecrets: %v", err)
+	}
+	if len(secrets) != 2 {
+		t.Fatalf("expected 2 secrets, got %d", len(secrets))
+	}
+	for _, s := range secrets {
+		if s.Created == "" || s.Updated == "" {
+			t.Errorf("expected timestamps for %s", s.Key)
+		}
 	}
 }
 

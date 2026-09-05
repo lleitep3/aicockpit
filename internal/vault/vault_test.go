@@ -1,6 +1,7 @@
 package vault
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
@@ -109,14 +110,14 @@ func TestOSVault_IndexTracksKeys(t *testing.T) {
 		t.Fatalf("Set key2: %v", err)
 	}
 
-	set, err := v.loadIndex()
+	meta, err := v.loadIndex()
 	if err != nil {
 		t.Fatalf("loadIndex: %v", err)
 	}
-	if _, ok := set["key1"]; !ok {
+	if _, ok := meta["key1"]; !ok {
 		t.Error("index should contain key1 after Set")
 	}
-	if _, ok := set["key2"]; !ok {
+	if _, ok := meta["key2"]; !ok {
 		t.Error("index should contain key2 after Set")
 	}
 }
@@ -131,11 +132,11 @@ func TestOSVault_DeleteRemovesFromIndex(t *testing.T) {
 		t.Fatalf("Delete: %v", err)
 	}
 
-	set, err := v.loadIndex()
+	meta, err := v.loadIndex()
 	if err != nil {
 		t.Fatalf("loadIndex: %v", err)
 	}
-	if _, ok := set["key1"]; ok {
+	if _, ok := meta["key1"]; ok {
 		t.Error("index should NOT contain key1 after Delete")
 	}
 }
@@ -212,6 +213,63 @@ func TestOSVault_ClearAllSecrets_WithDeleteFailure(t *testing.T) {
 
 	if err := v.ClearAllSecrets(); err == nil {
 		t.Fatal("expected ClearAllSecrets to report delete failure")
+	}
+}
+
+func TestOSVault_List(t *testing.T) {
+	v := newTestVault(t)
+
+	if err := v.Set("alpha", "val1"); err != nil {
+		t.Fatalf("Set alpha: %v", err)
+	}
+	if err := v.Set("beta", "val2"); err != nil {
+		t.Fatalf("Set beta: %v", err)
+	}
+
+	infos, err := v.List()
+	if err != nil {
+		t.Fatalf("List: %v", err)
+	}
+	if len(infos) != 2 {
+		t.Fatalf("expected 2 secrets, got %d", len(infos))
+	}
+
+	keys := make(map[string]struct{}, len(infos))
+	for _, info := range infos {
+		keys[info.Key] = struct{}{}
+		if info.Created == "" || info.Updated == "" {
+			t.Errorf("expected timestamps for %s, got created=%q updated=%q", info.Key, info.Created, info.Updated)
+		}
+	}
+	for _, k := range []string{"alpha", "beta"} {
+		if _, ok := keys[k]; !ok {
+			t.Errorf("expected %q in list", k)
+		}
+	}
+}
+
+func TestOSVault_List_LegacyIndex(t *testing.T) {
+	v := newTestVault(t)
+
+	if err := os.MkdirAll(filepath.Dir(v.indexPath), 0o700); err != nil {
+		t.Fatalf("MkdirAll: %v", err)
+	}
+	legacy, _ := json.Marshal([]string{"legacy-a", "legacy-b"})
+	if err := os.WriteFile(v.indexPath, legacy, 0o600); err != nil {
+		t.Fatalf("WriteFile: %v", err)
+	}
+
+	infos, err := v.List()
+	if err != nil {
+		t.Fatalf("List: %v", err)
+	}
+	if len(infos) != 2 {
+		t.Fatalf("expected 2 legacy secrets, got %d", len(infos))
+	}
+	for _, info := range infos {
+		if info.Created == "" || info.Updated == "" {
+			t.Errorf("expected migrated timestamps for %s", info.Key)
+		}
 	}
 }
 
