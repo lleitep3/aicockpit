@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.29] - 2026-07-23
+
+### Changed since v0.4.28
+
+
+### Features
+No features
+
+### Bug Fixes
+No bug fixes
+
+### Performance
+No performance improvements
+
+### Breaking Changes
+No breaking changes
+
+### Documentation
+- transform readme into a direct onboarding funnel (#181)
+
+### Testing
+No test changes
+
+### Other Changes
+No other changes
+
+
+
 ## [0.4.28] - 2026-07-23
 
 ### Changed since v0.4.27
