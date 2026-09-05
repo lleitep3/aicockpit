@@ -280,9 +280,9 @@ func codexFeature(provider *Provider, name string) (*FeatureConfig, bool, error)
 		return nil, false, fmt.Errorf("codex feature %q is enabled but has no path", name)
 	}
 
-	copy := *feature
-	copy.Path = strings.TrimSpace(copy.Path)
-	return &copy, true, nil
+	featureCopy := *feature
+	featureCopy.Path = strings.TrimSpace(featureCopy.Path)
+	return &featureCopy, true, nil
 }
 
 func renderCodexSkill(name, description, body string) string {
