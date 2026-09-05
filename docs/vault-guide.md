@@ -4,6 +4,13 @@
 
 O Vault System do AICockpit é um sistema seguro de gerenciamento de segredos que utiliza o keyring nativo do sistema operacional para armazenar credenciais sensíveis como chaves de API, tokens e outros segredos.
 
+> [!IMPORTANT]
+> O estado de lock não é uma credencial: ele usa o formato v2 com AES-GCM e
+> chave aleatória no keyring. Em instalações com estado legado, execute
+> `cockpit vault migrate-state --confirm`; a migração preserva as credenciais,
+> descarta grants/desbloqueios antigos e começa bloqueada. Consulte
+> [Vault lock state v2](vault-state-v2.md) para limites e recuperação.
+
 ## Arquitetura
 
 ### Componentes Principais

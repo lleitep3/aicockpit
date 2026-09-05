@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"syscall"
 	"testing"
 
@@ -132,17 +133,59 @@ func TestMasterPassword_Persistence(t *testing.T) {
 	}
 }
 
+func TestMasterPassword_UsesVersionedPasswordKDF(t *testing.T) {
+	mp := newTestMasterPassword(t)
+	if err := mp.SetPassword("kdf-protected-password"); err != nil {
+		t.Fatalf("SetPassword: %v", err)
+	}
+
+	ciphertext, err := os.ReadFile(mp.storagePath)
+	if err != nil {
+		t.Fatalf("ReadFile: %v", err)
+	}
+	plaintext, err := decryptSystemData(ciphertext)
+	if err != nil {
+		t.Fatalf("decryptSystemData: %v", err)
+	}
+	parts := strings.Split(string(plaintext), "|")
+	if len(parts) != 2 || !strings.HasPrefix(parts[1], masterPasswordVerifierVersion+"$") {
+		t.Fatalf("expected versioned password verifier, got %q", string(plaintext))
+	}
+	if mp.Validate("kdf-protected-password") == false || mp.Validate("wrong-password") {
+		t.Fatal("password verifier validation result is incorrect")
+	}
+}
+
+func TestMasterPassword_RejectsLegacyFastVerifier(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "master_password.dat")
+	ciphertext, err := encryptSystemData([]byte("true|legacy-sha256-verifier"))
+	if err != nil {
+		t.Fatalf("encryptSystemData: %v", err)
+	}
+	if err := os.WriteFile(path, ciphertext, 0o600); err != nil {
+		t.Fatalf("WriteFile: %v", err)
+	}
+
+	mp := NewMasterPasswordAt(path)
+	if mp.InitializationError() == nil {
+		t.Fatal("legacy fast verifier must be rejected")
+	}
+	if mp.Validate("legacy-password") {
+		t.Fatal("legacy fast verifier must fail closed")
+	}
+}
+
 func TestMasterPassword_LoadCorruptFile(t *testing.T) {
 	mp := newTestMasterPassword(t)
 
 	if err := os.WriteFile(mp.storagePath, []byte("corrupt-data"), 0o600); err != nil {
 		t.Fatalf("WriteFile: %v", err)
 	}
-	if err := mp.load(); err != nil {
-		t.Fatalf("load: %v", err)
+	if err := mp.load(); err == nil {
+		t.Fatal("corrupt file should return an error")
 	}
 	if mp.IsEnabled() {
-		t.Error("corrupt file should leave password disabled")
+		t.Error("corrupt file must not enable a password")
 	}
 }
 
@@ -157,11 +200,25 @@ func TestMasterPassword_LoadInvalidFormat(t *testing.T) {
 	if err := os.WriteFile(mp.storagePath, cipherData, 0o600); err != nil {
 		t.Fatalf("WriteFile: %v", err)
 	}
-	if err := mp.load(); err != nil {
-		t.Fatalf("load: %v", err)
+	if err := mp.load(); err == nil {
+		t.Fatal("invalid format should return an error")
 	}
 	if mp.IsEnabled() {
-		t.Error("invalid format should leave password disabled")
+		t.Error("invalid format must not enable a password")
+	}
+}
+
+func TestMasterPassword_ConstructorFailsClosedOnCorruption(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "master_password.dat")
+	if err := os.WriteFile(path, []byte("corrupt"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	mp := NewMasterPasswordAt(path)
+	if mp.InitializationError() == nil {
+		t.Fatal("constructor must retain corruption error")
+	}
+	if mp.Validate("anything") {
+		t.Fatal("corrupt master-password state must not validate")
 	}
 }
 
@@ -279,5 +336,25 @@ func TestPromptAndValidate_NonTerminal(t *testing.T) {
 	// When reading the password fails, PromptAndValidate should return the error.
 	if err := mp.PromptAndValidate(); err == nil {
 		t.Error("expected error when stdin is not a terminal")
+	}
+}
+
+func TestMasterPassword_RejectsUnsafeOverwriteAndSaveFailures(t *testing.T) {
+	mp := newTestMasterPassword(t)
+	if err := mp.SetPassword("first-password"); err != nil {
+		t.Fatal(err)
+	}
+	if err := mp.SetPassword("second-password"); err == nil {
+		t.Fatal("SetPassword must not overwrite an enabled password")
+	}
+	mp.storagePath = t.TempDir()
+	if err := mp.ChangePassword("first-password", "second-password"); err == nil {
+		t.Fatal("ChangePassword must report persistence failure")
+	}
+	if err := mp.ForceSet("recovery-password"); err == nil {
+		t.Fatal("ForceSet must report persistence failure")
+	}
+	if err := mp.Disable(); err == nil {
+		t.Fatal("Disable must report persistence failure")
 	}
 }

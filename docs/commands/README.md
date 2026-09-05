@@ -14,12 +14,12 @@ Complete reference for all AICockpit CLI commands.
 | [`cockpit metrics`](metrics.md) | View and analyze metrics | STABLE |
 | [`cockpit update`](update.md) | Update to latest version | STABLE |
 | [`cockpit uninstall`](uninstall.md) | Remove AICockpit | STABLE |
+| `cockpit vault` | Manage secrets, credentials and lock state | AVAILABLE |
 
 ### Planned Commands
 
 | Command | Description | Status |
 |---------|-------------|--------|
-| `cockpit vault` | Manage secrets and credentials | PLANNED |
 | `cockpit pkg` | Package management | PLANNED |
 | `cockpit agent` | Agent management | PLANNED |
 | `cockpit skill` | Skill management | PLANNED |
