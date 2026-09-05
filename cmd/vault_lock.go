@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/lleitep3/aicockpit/internal/config"
@@ -16,6 +17,17 @@ import (
 // but can be overridden in tests.
 var promptPassword = vault.PromptPassword
 
+func validateMasterPassword(mp *vault.MasterPassword) error {
+	password, err := promptPassword()
+	if err != nil {
+		return fmt.Errorf("failed to read password: %w", err)
+	}
+	if !mp.Validate(password) {
+		return fmt.Errorf("invalid master password")
+	}
+	return nil
+}
+
 func NewVaultLockCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translator) *cobra.Command {
 	var reasonFlag string
 
@@ -26,26 +38,24 @@ func NewVaultLockCommand(log *logging.Manager, cfg *config.Config, t *i18n.Trans
 		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			mp := vault.NewMasterPassword()
+			if err := mp.InitializationError(); err != nil {
+				return fmt.Errorf("failed to load master password state: %w", err)
+			}
 
-			// Check for dev mode flag to skip master password
-			devMode := os.Getenv("COCKPIT_DEV_MODE") == "true"
-
-			// If master password not set and not in dev mode, require setting it first
-			if !mp.IsEnabled() && !devMode {
+			if !mp.IsEnabled() {
 				fmt.Println("⚠️  Master password is not set. For security, you must set it first.")
 				fmt.Println("  Run: cockpit vault set-master-password")
-				fmt.Println("  Or run: COCKPIT_DEV_MODE=true cockpit vault lock (not recommended)")
 				return fmt.Errorf("master password not set")
 			}
 
-			// Require master password if enabled and not in dev mode
-			if mp.IsEnabled() && !devMode {
-				if err := mp.PromptAndValidate(); err != nil {
-					return err
-				}
+			if err := validateMasterPassword(mp); err != nil {
+				return err
 			}
 
 			lm := vault.NewLockManager("")
+			if err := lm.InitializationError(); err != nil {
+				return fmt.Errorf("failed to load vault lock state: %w", err)
+			}
 
 			if reasonFlag == "" {
 				if len(args) > 0 {
@@ -96,26 +106,25 @@ func NewVaultUnlockCommand(log *logging.Manager, cfg *config.Config, t *i18n.Tra
 		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			mp := vault.NewMasterPassword()
+			if err := mp.InitializationError(); err != nil {
+				return fmt.Errorf("failed to load master password state: %w", err)
+			}
 
-			// Check for dev mode flag to skip master password
-			devMode := os.Getenv("COCKPIT_DEV_MODE") == "true"
-
-			// If master password not set and not in dev mode, require setting it first
-			if !mp.IsEnabled() && !devMode {
+			// Lock and unlock always require the configured master password.
+			if !mp.IsEnabled() {
 				fmt.Println("⚠️  Master password is not set. For security, you must set it first.")
 				fmt.Println("  Run: cockpit vault set-master-password")
-				fmt.Println("  Or run: COCKPIT_DEV_MODE=true cockpit vault lock (not recommended)")
 				return fmt.Errorf("master password not set")
 			}
 
-			// Require master password if enabled and not in dev mode
-			if mp.IsEnabled() && !devMode {
-				if err := mp.PromptAndValidate(); err != nil {
-					return err
-				}
+			if err := validateMasterPassword(mp); err != nil {
+				return err
 			}
 
 			lm := vault.NewLockManager("")
+			if err := lm.InitializationError(); err != nil {
+				return fmt.Errorf("failed to load vault lock state: %w", err)
+			}
 
 			if reasonFlag == "" {
 				if len(args) > 0 {
@@ -151,8 +160,10 @@ func NewVaultUnlockCommand(log *logging.Manager, cfg *config.Config, t *i18n.Tra
 						return fmt.Errorf("invalid timeout format: %w", err)
 					}
 
+					if err := lm.SetAutoLockTimeout(duration); err != nil {
+						return fmt.Errorf("failed to set auto-lock timeout: %w", err)
+					}
 					fmt.Printf("  Auto-lock in: %v\n", duration)
-					lm.SetAutoLockTimeout(duration)
 				}
 			}
 
@@ -173,7 +184,10 @@ func NewVaultStatusCommand(log *logging.Manager, cfg *config.Config, t *i18n.Tra
 		Long:  "Show current vault lock status, including which packages have access and lock history.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			lm := vault.NewLockManager("")
-			status := lm.GetStatus()
+			status, err := lm.GetStatusWithError()
+			if err != nil {
+				return fmt.Errorf("failed to load vault lock state: %w", err)
+			}
 
 			fmt.Println("=== Vault Lock Status ===")
 			fmt.Println()
@@ -251,6 +265,21 @@ func NewVaultSetMasterPasswordCommand(log *logging.Manager, cfg *config.Config, 
 		Long:  "Set a master password required for lock/unlock operations. This provides additional security.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			mp := vault.NewMasterPassword()
+			if err := mp.InitializationError(); err != nil {
+				return fmt.Errorf("failed to load master password state: %w", err)
+			}
+			var err error
+			var currentPassword string
+			if mp.IsEnabled() {
+				fmt.Print("Enter current master password: ")
+				currentPassword, err = promptPassword()
+				if err != nil {
+					return fmt.Errorf("failed to read password: %w", err)
+				}
+				if !mp.Validate(currentPassword) {
+					return fmt.Errorf("invalid current password")
+				}
+			}
 
 			// Prompt for new password
 			fmt.Print("Enter new master password: ")
@@ -275,7 +304,11 @@ func NewVaultSetMasterPasswordCommand(log *logging.Manager, cfg *config.Config, 
 			}
 
 			// Set password
-			err = mp.SetPassword(password1)
+			if mp.IsEnabled() {
+				err = mp.ChangePassword(currentPassword, password1)
+			} else {
+				err = mp.SetPassword(password1)
+			}
 			if err != nil {
 				return fmt.Errorf("failed to set master password: %w", err)
 			}
@@ -297,10 +330,16 @@ func NewVaultDisableMasterPasswordCommand(log *logging.Manager, cfg *config.Conf
 		Long:  "Disable master password protection. This reduces security (not recommended in production).",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			mp := vault.NewMasterPassword()
+			if err := mp.InitializationError(); err != nil {
+				return fmt.Errorf("failed to load master password state: %w", err)
+			}
 
 			if !mp.IsEnabled() {
 				fmt.Println("Master password is already disabled")
 				return nil
+			}
+			if err := validateMasterPassword(mp); err != nil {
+				return err
 			}
 
 			fmt.Print("WARNING: Disabling master password reduces security. Continue? (type 'DISABLE'): ")
@@ -332,6 +371,9 @@ func NewVaultChangeMasterPasswordCommand(log *logging.Manager, cfg *config.Confi
 		Long:  "Change the master password. Requires entering the current password first.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			mp := vault.NewMasterPassword()
+			if err := mp.InitializationError(); err != nil {
+				return fmt.Errorf("failed to load master password state: %w", err)
+			}
 
 			if !mp.IsEnabled() {
 				return fmt.Errorf("master password is not set. Use 'cockpit vault set-master-password' first")
@@ -409,18 +451,17 @@ func NewVaultFactoryResetCommand(log *logging.Manager, cfg *config.Config, t *i1
 				return fmt.Errorf("failed to clear secrets: %w", err)
 			}
 
-			// Reset lock manager state
-			lm := vault.NewLockManager("")
-			lm.Lock("Factory reset")
-
 			// Disable master password
 			mp := vault.NewMasterPassword()
-			mp.Disable()
+			if err := mp.Disable(); err != nil {
+				return fmt.Errorf("failed to disable master password: %w", err)
+			}
 
 			// Remove lock state file
-			os.Remove("/home/lleite/.cockpit/vault/lock_state.json")
-			os.Remove("/home/lleite/.cockpit/vault/master_password.dat")
-			os.Remove("/home/lleite/.cockpit/vault/permissions.json")
+			_ = os.Remove(vault.DefaultLockStatePath())
+			stateDir := filepath.Dir(vault.DefaultLockStatePath())
+			_ = os.Remove(filepath.Join(stateDir, "master_password.dat"))
+			_ = os.Remove(filepath.Join(stateDir, "permissions.json"))
 
 			fmt.Println("✓ Factory reset complete")
 			fmt.Println("  All secrets deleted")

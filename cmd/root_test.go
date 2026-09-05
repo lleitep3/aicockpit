@@ -10,11 +10,21 @@ import (
 	"github.com/lleitep3/aicockpit/internal/config"
 	"github.com/lleitep3/aicockpit/internal/i18n"
 	"github.com/lleitep3/aicockpit/internal/logging"
+	"github.com/lleitep3/aicockpit/internal/vault"
 	"github.com/spf13/cobra"
 )
 
 func newTestDeps(t *testing.T) (*logging.Manager, *config.Config, *i18n.Translator) {
 	t.Helper()
+	if os.Getenv("COCKPIT_DEV_MODE") == "true" {
+		mp := vault.NewMasterPassword()
+		if err := mp.SetPassword("test-master-password"); err != nil {
+			t.Fatalf("failed to prepare test master password: %v", err)
+		}
+		previousPrompt := promptPassword
+		promptPassword = func() (string, error) { return "test-master-password", nil }
+		t.Cleanup(func() { promptPassword = previousPrompt })
+	}
 	log, err := logging.NewManager(t.TempDir())
 	if err != nil {
 		t.Fatalf("failed to create logger: %v", err)

@@ -1,5 +1,10 @@
 # Evolução de Segurança do Vault - Propostas
 
+> [!NOTE]
+> Documento de propostas futuras. O P0-02 implementa o estado de lock v2, com
+> chave no keyring, migração explícita, persistência atômica e falha fechada;
+> não implementa as arquiteturas de serviço/identidade descritas aqui.
+
 ## 🚨 Problema Atual
 
 **Vulnerabilidade**: Qualquer aplicação que tenha acesso ao vault pode ler todos os secrets, não há segregação de acesso ou controle de permissões.

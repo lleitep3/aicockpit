@@ -3,6 +3,7 @@ package vault
 import (
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
 	"time"
 
@@ -119,18 +120,18 @@ func TestLockManager_PackageLocks(t *testing.T) {
 	}
 }
 
-func TestLockManager_CanPackageAccess_UnlockedWithoutGlobal(t *testing.T) {
+func TestLockManager_CanPackageAccess_RejectsIncoherentState(t *testing.T) {
 	lm := newTestLockManager(t)
 
 	// Simulate an unlocked vault without a global unlock flag by mutating state directly.
 	lm.state.IsLocked = false
 	lm.state.GlobalUnlock = false
 
-	if lm.IsVaultLocked() {
-		t.Error("vault should report unlocked when IsLocked is false")
+	if !lm.IsVaultLocked() {
+		t.Error("incoherent state must fail closed as locked")
 	}
-	if !lm.CanPackageAccess("any-package") {
-		t.Error("any package should be able to access an unlocked vault")
+	if lm.CanPackageAccess("any-package") {
+		t.Error("incoherent state must not grant access")
 	}
 }
 
@@ -170,6 +171,78 @@ func TestLockManager_GetStatus(t *testing.T) {
 	}
 	if status.LockedBy == "" && os.Getenv("USER") == "" && os.Getenv("USERNAME") == "" {
 		t.Log("no user env set, LockedBy may be uid-based")
+	}
+}
+
+func TestLockManager_StatusIsSnapshot(t *testing.T) {
+	lm := newTestLockManager(t)
+	if err := lm.UnlockPackage("snapshot-pkg", "test"); err != nil {
+		t.Fatal(err)
+	}
+	status := lm.GetStatus()
+	status.PackageLocks["injected"] = true
+	status.UnlockedPackages[0] = "injected"
+	fresh := lm.GetStatus()
+	if fresh.PackageLocks["injected"] || fresh.UnlockedPackages[0] == "injected" {
+		t.Fatal("GetStatus must not expose mutable internal state")
+	}
+}
+
+func TestLockManager_ConcurrentManagersPreserveTransitions(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "lock_state.json")
+	store := newFakeKeyStore()
+	lm1 := NewLockManagerWithKeyStore(path, store)
+	lm2 := NewLockManagerWithKeyStore(path, store)
+	items := []struct {
+		manager     *LockManager
+		packageName string
+	}{{lm1, "one"}, {lm2, "two"}}
+	var wg sync.WaitGroup
+	for _, item := range items {
+		item := item
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			if err := item.manager.UnlockPackage(item.packageName, "concurrent"); err != nil {
+				t.Errorf("UnlockPackage(%s): %v", item.packageName, err)
+			}
+		}()
+	}
+	wg.Wait()
+	final := NewLockManagerWithKeyStore(path, store)
+	if !final.IsPackageUnlocked("one") || !final.IsPackageUnlocked("two") {
+		t.Fatalf("concurrent transitions lost a grant: %+v", final.GetStatus())
+	}
+}
+
+func TestLockManager_FailClosedAndRejectsInvalidOperations(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "lock_state.json")
+	store := newFakeKeyStore()
+	writer := NewLockManagerWithKeyStore(path, store)
+	if err := writer.Unlock("seed"); err != nil {
+		t.Fatal(err)
+	}
+	store.getErr = os.ErrPermission
+	reader := NewLockManagerWithKeyStore(path, store)
+	if reader.InitializationError() == nil {
+		t.Fatal("keyring read failure must be retained")
+	}
+	if !reader.IsVaultLocked() || reader.CanPackageAccess("any") {
+		t.Fatal("unavailable state must fail closed")
+	}
+	if _, err := reader.GetStatusWithError(); err == nil {
+		t.Fatal("status must report unavailable state")
+	}
+	if err := writer.UnlockPackage("", "invalid"); err == nil {
+		t.Error("empty package must fail")
+	}
+	if err := writer.LockPackage(""); err == nil {
+		t.Error("empty package must fail")
+	}
+	if err := writer.SetAutoLockTimeout(0); err == nil {
+		t.Error("non-positive timeout must fail")
 	}
 }
 
