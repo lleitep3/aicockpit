@@ -125,7 +125,8 @@ func (m *Manager) AddTask(slug, title string) error {
 		return err
 	}
 
-	taskID := fmt.Sprintf("TASK-%d", time.Now().UnixMilli())
+	// Generate unique task ID using nanosecond precision
+	taskID := fmt.Sprintf("TASK-%d", time.Now().UnixNano())
 	task := Task{
 		ID:        taskID,
 		Title:     title,
@@ -210,6 +211,88 @@ func (m *Manager) ReorderTask(slug, taskID string, newIndex int) error {
 
 	proj.Metadata.Tasks = tasks
 	return m.SaveProject(proj)
+}
+
+// DeleteTask removes a task from a project and optionally deletes its GitHub issue
+func (m *Manager) DeleteTask(slug, taskID string, deleteGitHubIssue bool) error {
+	proj, err := m.GetProject(slug)
+	if err != nil {
+		return err
+	}
+
+	// Find task and get issue info before deletion
+	var taskToDelete *Task
+	taskIdx := -1
+	for i, t := range proj.Metadata.Tasks {
+		if t.ID == taskID {
+			taskToDelete = &proj.Metadata.Tasks[i]
+			taskIdx = i
+			break
+		}
+	}
+
+	if taskIdx == -1 {
+		return fmt.Errorf("task %s not found in project %s", taskID, slug)
+	}
+
+	// Delete GitHub issue if requested and issue exists
+	if deleteGitHubIssue && taskToDelete.IssueNumber > 0 {
+		if err := m.deleteGitHubIssue(taskToDelete); err != nil {
+			return fmt.Errorf("failed to delete GitHub issue: %w", err)
+		}
+	}
+
+	// Remove task from project
+	proj.Metadata.Tasks = append(proj.Metadata.Tasks[:taskIdx], proj.Metadata.Tasks[taskIdx+1:]...)
+
+	// Log the deletion
+	dateStr := time.Now().Format("2006-01-02 15:04")
+	entry := fmt.Sprintf("- **%s**: Task deletada: %s (ID: %s)\n", dateStr, taskToDelete.Title, taskID)
+	proj.Content = strings.TrimRight(proj.Content, "\n") + "\n" + entry
+
+	return m.SaveProject(proj)
+}
+
+// deleteGitHubIssue deletes a GitHub issue
+func (m *Manager) deleteGitHubIssue(task *Task) error {
+	if task.Repository == "" || task.IssueNumber == 0 {
+		return fmt.Errorf("task does not have GitHub issue information")
+	}
+
+	token := os.Getenv("GITHUB_TOKEN")
+	if token == "" {
+		return fmt.Errorf("GITHUB_TOKEN not found in environment")
+	}
+
+	repoURL := task.Repository
+	repoName := repoURL
+	if strings.Contains(repoURL, "github.com/") {
+		parts := strings.Split(repoURL, "github.com/")
+		repoName = strings.TrimSuffix(parts[len(parts)-1], ".git")
+	}
+
+	ownerRepo := strings.Split(repoName, "/")
+	if len(ownerRepo) != 2 {
+		return fmt.Errorf("invalid repository format: %s. Expected owner/repo", repoName)
+	}
+	owner, repo := ownerRepo[0], ownerRepo[1]
+
+	ctx := context.Background()
+	ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})
+	tc := oauth2.NewClient(ctx, ts)
+	client := github.NewClient(tc)
+
+	// Close the issue instead of deleting (GitHub doesn't allow issue deletion)
+	issueReq := &github.IssueRequest{
+		State: github.Ptr("closed"),
+	}
+
+	_, _, err := client.Issues.Edit(ctx, owner, repo, task.IssueNumber, issueReq)
+	if err != nil {
+		return fmt.Errorf("failed to close issue #%d: %w", task.IssueNumber, err)
+	}
+
+	return nil
 }
 
 // AddTracking appends a tracking log entry

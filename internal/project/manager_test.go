@@ -146,3 +146,53 @@ func TestTracking(t *testing.T) {
 		t.Errorf("expected content to contain tracking message")
 	}
 }
+
+func TestDeleteTask(t *testing.T) {
+	mgr, cleanup := setupTestManager(t)
+	defer os.RemoveAll(cleanup)
+
+	mgr.CreateProject("delete-proj", "Delete Test", "Desc")
+	mgr.AddTask("delete-proj", "Task to delete")
+
+	proj, _ := mgr.GetProject("delete-proj")
+	if len(proj.Metadata.Tasks) != 1 {
+		t.Fatalf("expected 1 task, got %d", len(proj.Metadata.Tasks))
+	}
+
+	taskID := proj.Metadata.Tasks[0].ID
+
+	// Delete task without deleting GitHub issue
+	err := mgr.DeleteTask("delete-proj", taskID, false)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	proj, _ = mgr.GetProject("delete-proj")
+	if len(proj.Metadata.Tasks) != 0 {
+		t.Errorf("expected 0 tasks after deletion, got %d", len(proj.Metadata.Tasks))
+	}
+
+	// Check that deletion was logged
+	if !strings.Contains(proj.Content, "Task deletada") {
+		t.Errorf("expected content to contain deletion log")
+	}
+}
+
+func TestDeleteTaskErrors(t *testing.T) {
+	mgr, cleanup := setupTestManager(t)
+	defer os.RemoveAll(cleanup)
+
+	mgr.CreateProject("error-proj", "Error Test", "Desc")
+
+	// Try to delete non-existent task
+	err := mgr.DeleteTask("error-proj", "non-existent", false)
+	if err == nil {
+		t.Errorf("expected error when deleting non-existent task")
+	}
+
+	// Try to delete from non-existent project
+	err = mgr.DeleteTask("non-existent", "task-1", false)
+	if err == nil {
+		t.Errorf("expected error when deleting from non-existent project")
+	}
+}

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"gopkg.in/yaml.v3"
 )
@@ -129,12 +130,14 @@ type Hook struct {
 
 // Metadata represents package metadata.
 type Metadata struct {
-	Tags        []string     `yaml:"tags,omitempty"`
-	Keywords    []string     `yaml:"keywords,omitempty"`
-	Maintainers []Maintainer `yaml:"maintainers,omitempty"`
-	Changelog   string       `yaml:"changelog,omitempty"`
-	Status      string       `yaml:"status,omitempty"` // alpha, beta, stable, deprecated
-	Support     SupportInfo  `yaml:"support,omitempty"`
+	Tags         []string     `yaml:"tags,omitempty"`
+	Keywords     []string     `yaml:"keywords,omitempty"`
+	Maintainers  []Maintainer `yaml:"maintainers,omitempty"`
+	Changelog    string       `yaml:"changelog,omitempty"`
+	Status       string       `yaml:"status,omitempty"` // alpha, beta, stable, deprecated
+	Support      SupportInfo  `yaml:"support,omitempty"`
+	CreationDate string       `yaml:"creation_date,omitempty"`
+	LastModified string       `yaml:"last_modified,omitempty"`
 }
 
 // Maintainer represents a package maintainer.
@@ -175,6 +178,13 @@ func SavePackage(packagePath string, pkg *Package) error {
 	if err := os.MkdirAll(packagePath, 0o755); err != nil {
 		return fmt.Errorf("failed to create package directory: %w", err)
 	}
+
+	// Set timestamps if not already set
+	now := time.Now().UTC().Format(time.RFC3339)
+	if pkg.Metadata.CreationDate == "" {
+		pkg.Metadata.CreationDate = now
+	}
+	pkg.Metadata.LastModified = now
 
 	data, err := yaml.Marshal(pkg)
 	if err != nil {
