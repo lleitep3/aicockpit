@@ -1,17 +1,17 @@
 package tracking
 
 import (
-	"github.com/lleitep3/aicockpit/internal/packages"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/lleitep3/aicockpit/internal/packages"
 )
 
 func TestInjectHeader(t *testing.T) {
 	// Setup temporary directory
-	dir, err := ioutil.TempDir("", "tracking_test")
+	dir, err := os.MkdirTemp("", "tracking_test")
 	if err != nil {
 		t.Fatalf("failed to create temp dir: %v", err)
 	}

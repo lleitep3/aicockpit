@@ -3,8 +3,9 @@ package tracking
 import (
 	"bufio"
 	"fmt"
-	"github.com/lleitep3/aicockpit/internal/packages"
 	"os"
+
+	"github.com/lleitep3/aicockpit/internal/packages"
 )
 
 // GenerateHeader creates the header comment string for a package.
