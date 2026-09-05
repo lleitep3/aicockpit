@@ -1,5 +1,11 @@
 # Resposta Crítica: Vault Security Real
 
+> [!NOTE]
+> Resposta baseada em uma proposta anterior. O P0-02 não implementa o serviço
+> de identidade de processo descrito abaixo; ele implementa o estado de lock v2
+> com keyring, migração explícita e falha fechada. Consulte
+> [Vault lock state v2](vault-state-v2.md) para o comportamento atual.
+
 ## 🚨 SUA CRÍTICA ESTÁ 100% CORRETA
 
 **Minha solução anterior com `--namespace` é vulnerável:**

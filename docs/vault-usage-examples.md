@@ -1,5 +1,10 @@
 # Como Aplicações Usam Secrets do Vault AICockpit
 
+> [!NOTE]
+> Os exemplos de credenciais continuam separados do estado de lock. Para
+> instalações com estado legado, consulte [Vault lock state v2](vault-state-v2.md)
+> e migre explicitamente antes de usar operações administrativas.
+
 ## Visão Geral
 
 Existem várias formas de uma aplicação acessar secrets armazenados no vault do AICockpit:

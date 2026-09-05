@@ -4,6 +4,12 @@
 
 Com o sistema de lock/unlock implementado, os pacotes devem seguir um padrão específico para garantir segurança e usabilidade.
 
+> [!NOTE]
+> Esta página documenta o uso de credenciais por namespace. Ela não substitui
+> autorização de processo: `--namespace` é uma convenção de armazenamento, não
+> uma prova de identidade. O estado de lock v2 é independente das credenciais;
+> consulte [Vault lock state v2](vault-state-v2.md) antes de migrar uma instalação.
+
 ## Regra de Ouro: **Sempre usar Namespace**
 
 Pacotes DEVEM sempre usar `--namespace` para acessar secrets. Isso garante:

@@ -3,6 +3,9 @@
 > [!NOTE]
 > **Fase de Desenvolvimento:** A arquitetura do Sistema de Cofre faz parte da **Fase 5** do *roadmap*. Esta estrutura lida com a segurança nativa de segredos na máquina host.
 
+> [!IMPORTANT]
+> **Contrato atual do estado de lock:** consulte [Vault lock state v2](../vault-state-v2.md) para o comportamento implementado. O estado usa AES-GCM com uma chave aleatória no keyring do sistema, falha fechada quando não pode ser lido e exige `cockpit vault migrate-state --confirm` para converter um estado legado. As credenciais armazenadas no keyring não são migradas nem apagadas por esse comando.
+
 O `Vault System` (`internal/vault`) é responsável pelo armazenamento seguro de chaves de API, tokens e segredos em geral que o AICockpit e seus Agentes precisam usar (como tokens da OpenAI, GitHub PAT, etc.).
 
 Em vez de armazenar segredos em arquivos de configuração estáticos (`config.yaml`) de forma não segura, o Vault se integra diretamente ao **Gerenciador de Credenciais do Sistema Operacional**, com recursos avançados de segurança incluindo lock/unlock, master password, isolamento de namespace e criptografia de estado.
@@ -33,7 +36,7 @@ Em vez de armazenar segredos em arquivos de configuração estáticos (`config.y
 ┌─────────────────────────────────────────────────────────────────┐
 │                Master Password (Opcional)                        │
 │  - Set, change, disable master password                         │
-│  - Requerido para lock/unlock (exceto em dev mode)              │
+│  - Requerido para lock/unlock quando habilitada                 │
 └───────────────────────────┬─────────────────────────────────────┘
                             │
                             ▼
@@ -101,7 +104,7 @@ type MasterPassword struct {
 **Funcionalidades:**
 - Definir master password (mínimo 8 caracteres)
 - Mudar master password (requer senha antiga)
-- Desabilitar master password (dev mode)
+- Desabilitar master password (operação administrativa explícita)
 - Armazenamento criptografado com chave específica do sistema
 
 **Comandos:**
@@ -113,24 +116,24 @@ cockpit vault disable-master-password
 
 ### 3. Criptografia de Estado
 
-Estado de lock é criptografado com AES-256-GCM e assinado com HMAC-SHA256:
+Estado de lock é um envelope v2 autenticado com AES-256-GCM. A chave de
+32 bytes é aleatória e fica no keyring do sistema; o arquivo contém apenas o
+identificador da chave, o nonce/ciphertext e a versão:
 
 ```go
 type EncryptedState struct {
-    Data      string `json:"data"`
-    Signature string `json:"signature"`
-    Nonce     string `json:"nonce"`
-    Version   string `json:"version"`
-    Salt      string `json:"salt"`
+    Version string `json:"version"`
+    KeyID   string `json:"key_id"`
+    Data    string `json:"data"`
 }
 ```
 
 **Recursos de Segurança:**
 - Criptografia AES-256-GCM
-- Assinatura HMAC-SHA256
-- Salt aleatório para derivação de chave
-- Detecção de adulteração
-- Fallback para defaults seguros se corrompido
+- Chave aleatória protegida pelo keyring nativo do SO
+- Detecção de adulteração e falhas de keyring
+- Falha fechada: estado inválido ou indisponível nega acesso
+- Persistência atômica e lock de arquivo para concorrência entre processos
 
 ### 4. Isolamento de Namespace
 
@@ -195,7 +198,8 @@ cockpit vault unlock --timeout 1h
 cockpit vault status
 ```
 
-**Nota:** Lock/unlock requer master password (exceto em dev mode).
+**Nota:** Lock/unlock requer master password quando ela está habilitada; falhas
+de leitura da senha ou do estado são reportadas e negam a operação.
 
 ### Gerenciamento de Master Password
 
@@ -206,7 +210,7 @@ cockpit vault set-master-password
 # Mudar master password (requer senha antiga)
 cockpit vault change-master-password
 
-# Desabilitar master password (dev mode, não recomendado)
+# Desabilitar master password (operação explícita, não recomendado)
 cockpit vault disable-master-password
 ```
 
@@ -219,14 +223,19 @@ cockpit vault factory-reset
 
 **Aviso:** Esta ação não pode ser desfeita. Use se esqueceu sua master password.
 
-### Dev Mode
+### Migração do estado de lock
 
-Para automação e testes, use dev mode para pular master password:
+Estados legados não são sobrescritos automaticamente. A migração deve ser
+explícita e cria um backup do arquivo antigo:
 
 ```bash
-COCKPIT_DEV_MODE=true cockpit vault lock
-COCKPIT_DEV_MODE=true cockpit vault unlock
+cockpit vault migrate-state --confirm
 ```
+
+Os grants de pacotes e desbloqueios globais do estado legado são descartados;
+as credenciais do keyring são preservadas. O estado v2 novo começa bloqueado.
+`COCKPIT_DEV_MODE` não desativa a verificação do estado nem a autenticação de
+produção; testes usam keyring falso e diretórios temporários.
 
 ## Modelo de Segurança
 
@@ -255,17 +264,13 @@ Auto-lock é implementado usando expiração por timestamp:
 
 1. **Criptografia:**
    - Estado criptografado com AES-256-GCM
-   - Chave derivada de info do sistema + salt aleatório
-   - Salt armazenado no estado criptografado
+   - Chave aleatória armazenada no keyring do sistema
+   - `key_id` identifica a chave sem expô-la no arquivo
 
-2. **Assinatura:**
-   - Assinatura HMAC-SHA256 sobre dados criptografados
-   - Derivação de chave baseada em salt previne falsificação
-   - Detecta modificações manuais de arquivo
-
-3. **Fallback:**
-   - Se verificação de assinatura falha, usa defaults seguros (locked)
-   - Previne bypass via adulteração de arquivo
+2. **Integridade e disponibilidade:**
+   - AES-GCM detecta modificações manuais do envelope
+   - Ausência da chave, corrupção ou erro do keyring falha fechada
+   - O arquivo é gravado atomicamente sob lock entre processos
 
 ## Estrutura de Arquivos
 
@@ -317,7 +322,7 @@ Veja o diretório `examples/` para exemplos completos:
 
 4. **Criptografia de Estado:**
    - Não pode ser modificado manualmente sem detecção
-   - Fallback para defaults seguros se corrompido
+   - Erros de corrupção não viram defaults desbloqueados
    - Usa criptografia padrão da indústria
 
 ## Como Funciona
@@ -360,7 +365,7 @@ sequenceDiagram
 4. **Validação de Input:** O sistema valida que valores vazios não são aceitos, evitando armazenamento incorreto.
 5. **Tratamento de Erros:** Erros são encapsulados com informações contextuais sem vazar dados sensíveis.
 6. **Lock por Padrão:** O vault inicia locked por segurança, requerendo unlock explícito.
-7. **Criptografia de Estado:** Estado de lock é criptografado e assinado para prevenir adulteração.
+7. **Criptografia de Estado:** Estado v2 é autenticado por AES-GCM com chave no keyring.
 8. **Auto-Lock:** Timeout automático previne acesso não autorizado após período de inatividade.
 
 ## Troubleshooting
@@ -409,6 +414,21 @@ cockpit vault unlock seu-pacote
 - **macOS:** Verifique as permissões do Keychain Access
 - **Windows:** Verifique se o Credential Manager está funcionando
 
+### Erro: "vault lock state unavailable" ou "vault lock state migration required"
+
+**Causa:** O estado v2 não pôde ser lido/descriptografado, a chave desapareceu do
+keyring ou o arquivo ainda usa o formato legado.
+
+**Solução:** Verifique o keyring do sistema. Para um estado legado, faça backup
+e execute a migração explicitamente:
+
+```bash
+cockpit vault migrate-state --confirm
+```
+
+Essa operação preserva as credenciais, descarta grants/desbloqueios legados e
+inicia o novo estado bloqueado.
+
 ### Erro: "master password not set"
 
 **Causa:** Operação de lock/unlock requer master password.
@@ -418,8 +438,9 @@ cockpit vault unlock seu-pacote
 # Definir master password
 cockpit vault set-master-password
 
-# Ou usar dev mode para automação
-COCKPIT_DEV_MODE=true cockpit vault unlock
+# Configure a senha antes de lock/unlock
+cockpit vault set-master-password
+cockpit vault unlock
 ```
 
 ## Detalhes de Implementação
@@ -460,7 +481,6 @@ type Manager interface {
 - `github.com/zalando/go-keyring`: Biblioteca para acesso ao keyring do sistema operacional
 - `golang.org/x/term`: Para input de senha invisível no modo interativo
 - `crypto/aes`: Criptografia AES-256
-- `crypto/hmac`: Assinatura HMAC
 - `crypto/sha256`: Hash SHA-256
 
 > **Próximo Passo:** Entenda como as informações são guardadas e interligadas no AICockpit lendo o [06. Base de Conhecimento (Knowledge Base)](06-knowledge-base.md).

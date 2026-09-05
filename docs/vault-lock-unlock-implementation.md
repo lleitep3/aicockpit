@@ -116,9 +116,10 @@ Error: vault is locked
 ## 📁 Arquivos Implementados
 
 1. **`internal/vault/lock_manager.go`** - Gerenciamento de lock/unlock
-2. **`cmd/vault_lock.go`** - Comandos CLI (lock, unlock, status)
-3. **`cmd/vault.go`** - Integração com verificação de lock
-4. **`examples/vault-lock-demo.go`** - Demonstração completa
+2. **`internal/vault/state_encryptor.go`** - Envelope v2 e keyring
+3. **`internal/vault/state_file_lock_*.go`** - Lock entre processos
+4. **`internal/vault/migration.go`** - Migração explícita do estado legado
+5. **`cmd/vault_lock.go`** e **`cmd/vault_migrate.go`** - Comandos CLI
 
 ## 🚀 Próximos Passos
 
@@ -126,7 +127,7 @@ Error: vault is locked
 2. **Integrar com Service** - Combinar lock/unlock com Service
 3. **Adicionar permissões** - Sistema de permissões por secret
 4. **Atualizar kb-graphify** - Usar novo sistema de lock/unlock
-5. **Documentação** - Adicionar ao README e docs
+5. **Documentação** - Atualizada em `docs/vault-state-v2.md` e na arquitetura do vault
 
 ## ✅ RESUMO
 
