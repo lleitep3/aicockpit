@@ -172,6 +172,26 @@ func NewProjectCommand(log *logging.Manager, cfg *config.Config, t *i18n.Transla
 		},
 	})
 
+	deleteCmd := &cobra.Command{
+		Use:   "delete <slug> <task-id>",
+		Short: "Deleta uma task (e sua issue no GitHub se sincronizada)",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			deleteIssue, _ := cmd.Flags().GetBool("delete-issue")
+			if err := getProjectManager().DeleteTask(args[0], args[1], deleteIssue); err != nil {
+				return err
+			}
+			if deleteIssue {
+				fmt.Println("✅ Task e issue do GitHub deletadas com sucesso.")
+			} else {
+				fmt.Println("✅ Task deletada com sucesso.")
+			}
+			return nil
+		},
+	}
+	deleteCmd.Flags().BoolP("delete-issue", "i", false, "Deleta também a issue do GitHub (se sincronizada)")
+	projectTaskCmd.AddCommand(deleteCmd)
+
 	projectTaskCmd.AddCommand(&cobra.Command{
 		Use:   "list <slug>",
 		Short: "Lista todas as tasks",
