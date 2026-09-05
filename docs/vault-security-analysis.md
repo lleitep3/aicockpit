@@ -1,5 +1,12 @@
 # Análise de Segurança do Vault - Vulnerabilidades e Soluções
 
+> [!NOTE]
+> Esta análise registra riscos e propostas de hardening anteriores. Para o
+> estado de lock já implementado, consulte [Vault lock state v2](vault-state-v2.md).
+> O formato v2 cobre confidencialidade/integridade do estado, persistência
+> atômica, concorrência e falha fechada; autorização forte por identidade de
+> processo continua sendo uma evolução separada.
+
 ## 🚨 Descoberta Crítica
 
 ### Pacotes que Usam o Vault Atualmente

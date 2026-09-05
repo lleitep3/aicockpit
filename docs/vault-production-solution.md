@@ -1,5 +1,10 @@
 # Vault Production Solution - Permissões e Compartilhamento
 
+> [!NOTE]
+> Proposta de produção/hardening. O comportamento implementado nesta entrega é
+> o estado de lock v2, descrito em [Vault lock state v2](vault-state-v2.md);
+> ACLs, grants persistentes e serviço de vault continuam sendo trabalho futuro.
+
 ## 🎯 Seus Pontos Excelentes
 
 ### 1. **Aplicação precisa apontar para pasta do vault?**

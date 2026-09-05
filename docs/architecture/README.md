@@ -22,6 +22,8 @@ Para garantir que você absorva o conteúdo da melhor forma sem se perder em jar
    Como o sistema indexa, busca e correlaciona o conteúdo semântico para os agentes locais.
 7. [**07. Project & Task Management**](07-project-management.md)
    A máquina de estados para workflows, a UI do dashboard e a integração bi-direcional de tickets com o GitHub.
+8. [**08. Tracking de Pacotes**](../tracking.md)
+   Como o AICockpit insere metadados de proveniência nos arquivos sincronizados a partir de pacotes instalados.
 
 ---
 *Dica: Todos os documentos desta pasta utilizam diagramas interativos para facilitar o entendimento dos fluxos.*

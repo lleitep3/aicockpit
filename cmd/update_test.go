@@ -322,6 +322,7 @@ func TestRunUpdateWithDeps_UserAccepts_UpdateSucceeds_DeclinesSetup(t *testing.T
 func TestRunUpdateWithDeps_UserAccepts_UpdateSucceeds_AcceptsSetup(t *testing.T) {
 	tmpDir := t.TempDir()
 	t.Setenv("HOME", tmpDir)
+	t.Chdir(tmpDir)
 
 	cockpitDir := filepath.Join(tmpDir, ".cockpit")
 	os.MkdirAll(cockpitDir, 0o755)

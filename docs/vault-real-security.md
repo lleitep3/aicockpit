@@ -1,5 +1,10 @@
 # Vault Security Real - Solução de Controle de Namespace
 
+> [!NOTE]
+> Proposta de arquitetura futura, não contrato da implementação atual. O
+> estado de lock v2 está documentado em [Vault lock state v2](vault-state-v2.md);
+> autorização forte baseada em identidade de processo permanece fora do P0-02.
+
 ## 🚨 Problema Crítico Identificado
 
 **A solução anterior com --namespace é vulnerável:**

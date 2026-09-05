@@ -1,5 +1,10 @@
 # Resposta Direta: Seus 3 Pontos Críticos
 
+> [!NOTE]
+> Esta é uma resposta de design anterior ao P0-02. O estado de lock atual está
+> em [Vault lock state v2](vault-state-v2.md); os comandos/serviços de socket e
+> permissões descritos aqui ainda não são o contrato implementado.
+
 ## 🎯 PONTO 1: Aplicação precisa apontar para pasta do vault?
 
 **Resposta: ❌ NÃO**

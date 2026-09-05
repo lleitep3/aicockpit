@@ -42,6 +42,7 @@ nav:
   - Guides:
     - Vault Guide: vault-guide.md
     - Logging & Metrics: LOGGING_AND_METRICS.md
+    - Tracking de Pacotes: tracking.md
     - Command Guide: COMMAND_DOCUMENTATION_GUIDE.md
   - Installation:
     - Guide: INSTALLATION.md
