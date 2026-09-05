@@ -9,6 +9,7 @@ O objetivo principal desta documentação é consolidar o formato **Canônico** 
 * [Devin (Cognition AI)](devin/README.md)
 * [Goose (Block)](goose/README.md)
 * [Antigravity (Google DeepMind)](antigravity/README.md)
+* Codex (OpenAI)
 
 ---
 
@@ -16,14 +17,20 @@ O objetivo principal desta documentação é consolidar o formato **Canônico** 
 
 Abaixo mapeamos os 5 pilares de *Context Engineering* do AICockpit e como eles se traduzem fisicamente para cada provedor.
 
-| Feature (AICockpit) | Conceito Canônico | Devin | Goose | Antigravity |
-| --- | --- | --- | --- | --- |
-| **Entrypoint** | Arquivo principal (bootstrap) lido ao iniciar. Injeta as *Golden Rules* e contexto inicial do Cockpit. | `AGENTS.md` (Root) ou `.devin/rules/` | `.goosehints` | `AGENTS.md` (Global ou `.agents/`) |
-| **Skills** | Capacidades modulares e ferramentas locais com dependências determinísticas. | **Skills**: `[project]/.devin/skills/` com `SKILL.md` (YAML Frontmatter). | **Extensions / MCP**: `~/.config/goose/config.yaml` mapeando servidores MCP. | **Skills**: `~/.gemini/config/skills/` com `SKILL.md` (YAML Frontmatter). |
-| **Rules** | Diretrizes de comportamento, regras de projeto e restrições absolutas. | **Project Context**: `AGENTS.md` ou regras injetadas em repositório. | **Hints**: Compiladas para o arquivo de contexto `.goosehints`. | **Rules**: Arquivo unificado `AGENTS.md` em `~/.gemini/config/rules/`. |
-| **Permissions** | Restrições de segurança do sistema local (Shell, File System). | **Allowed/Blocked**: Grants inseridos em `.devin/config.local.json`. | **Extension Config**: Mapeamento seguro no `config.yaml`. | **Grants JSON**: Liberadas via `grantedPermissions` no `config.json`. |
-| **Subagents** | Delegação e isolamento de processos extensos/repetitivos em background. | **Background Tasks**: Evocados por comandos internos para isolamento. | **Context Preservation**: Tarefas isoladas nativas do motor. | **Agents Registry**: `define_subagent` armazenado em `.agents/`. |
-| **Workflows** | Roteiros passo-a-passo e checklists repetitivos (Receitas). | **Workflow Skills**: Roteiros empacotados como Skills no `.devin/skills/`. | **Recipes**: Exportados e evocados como Goose Recipes. | **Workflow Skills**: Empacotados via `workflow-skill-creator`. |
+| Feature (AICockpit) | Conceito Canônico | Devin | Goose | Antigravity | Codex |
+| --- | --- | --- | --- | --- | --- |
+| **Entrypoint** | Arquivo principal (bootstrap) lido ao iniciar. Injeta as *Golden Rules* e contexto inicial do Cockpit. | `AGENTS.md` (Root) ou `.devin/rules/` | `.goosehints` | `AGENTS.md` (Global ou `.agents/`) | `AGENTS.md` (projeto) |
+| **Skills** | Capacidades modulares e ferramentas locais com dependências determinísticas. | **Skills**: `[project]/.devin/skills/` com `SKILL.md` (YAML Frontmatter). | **Extensions / MCP**: `~/.config/goose/config.yaml` mapeando servidores MCP. | **Skills**: `~/.gemini/config/skills/` com `SKILL.md` (YAML Frontmatter). | `.agents/skills/<name>/SKILL.md` |
+| **Rules** | Diretrizes de comportamento, regras de projeto e restrições absolutas. | **Project Context**: `AGENTS.md` ou regras injetadas em repositório. | **Hints**: Compiladas para o arquivo de contexto `.goosehints`. | **Rules**: Arquivo unificado `AGENTS.md` em `~/.gemini/config/rules/`. | Mescladas em `AGENTS.md` |
+| **Permissions** | Restrições de segurança do sistema local (Shell, File System). | **Allowed/Blocked**: Grants inseridos em `.devin/config.local.json`. | **Extension Config**: Mapeamento seguro no `config.yaml`. | **Grants JSON**: Liberadas via `grantedPermissions` no `config.json`. | `.codex/rules/aicockpit.rules` (`prefix_rule`) |
+| **Subagents** | Delegação e isolamento de processos extensos/repetitivos em background. | **Background Tasks**: Evocados por comandos internos para isolamento. | **Context Preservation**: Tarefas isoladas nativas do motor. | **Agents Registry**: `define_subagent` armazenado em `.agents/`. | `.codex/agents/<name>.toml` |
+| **Workflows** | Roteiros passo-a-passo e checklists repetitivos (Receitas). | **Workflow Skills**: Roteiros empacotados como Skills no `.devin/skills/`. | **Recipes**: Exportados e evocados como Goose Recipes. | **Workflow Skills**: Empacotados via `workflow-skill-creator`. | Skills em `.agents/skills/<name>/SKILL.md` |
+
+### Escopo atual do Codex
+
+O primeiro adapter do Codex gera apenas artefatos locais do projeto: `AGENTS.md`,
+skills, `.codex/rules/aicockpit.rules` e `.codex/agents/`. O suporte a escrita
+global via `CODEX_HOME`, hooks, MCP e App Server permanece no plano de evolução.
 
 ---
 

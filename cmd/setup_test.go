@@ -443,6 +443,7 @@ func TestNewSetupCommand_Constructor(t *testing.T) {
 func TestNewSetupCommand_Execute(t *testing.T) {
 	tmpDir := t.TempDir()
 	t.Setenv("HOME", tmpDir)
+	t.Chdir(tmpDir)
 
 	log, cfg, tr := newTestDeps(t)
 	cmd := NewSetupCommand(log, cfg, tr)
@@ -459,6 +460,7 @@ func TestNewSetupCommand_Execute(t *testing.T) {
 func TestRunSetup_Full(t *testing.T) {
 	tmpDir := t.TempDir()
 	t.Setenv("HOME", tmpDir)
+	t.Chdir(tmpDir)
 
 	log, cfg, tr := newTestDeps(t)
 
@@ -481,6 +483,7 @@ func TestRunSetup_Full(t *testing.T) {
 func TestRunSetup_PtBrLanguage(t *testing.T) {
 	tmpDir := t.TempDir()
 	t.Setenv("HOME", tmpDir)
+	t.Chdir(tmpDir)
 
 	log, cfg, tr := newTestDeps(t)
 
