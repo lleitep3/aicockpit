@@ -288,7 +288,24 @@ func (pd *PackageDownloader) DownloadPackageFromURL(ctx context.Context, downloa
 
 	// Extract all files
 	for _, file := range reader.File {
+		// ZipSlip: validate the entry path stays inside destDir.
+		cleanName := filepath.Clean(file.Name)
+		if strings.HasPrefix(cleanName, "..") || strings.Contains(cleanName, string(filepath.Separator)+".."+string(filepath.Separator)) || strings.HasSuffix(cleanName, string(filepath.Separator)+"..") {
+			return fmt.Errorf("zip entry %q escapes destination directory", file.Name)
+		}
+
 		destPath := filepath.Join(destDir, file.Name)
+		absDest, err := filepath.Abs(destPath)
+		if err != nil {
+			return fmt.Errorf("failed to resolve destination path: %w", err)
+		}
+		absBase, err := filepath.Abs(destDir)
+		if err != nil {
+			return fmt.Errorf("failed to resolve destination directory: %w", err)
+		}
+		if !strings.HasPrefix(absDest, absBase+string(filepath.Separator)) {
+			return fmt.Errorf("zip entry %q escapes destination directory", file.Name)
+		}
 
 		if strings.HasSuffix(file.Name, "/") {
 			if err := os.MkdirAll(destPath, 0o755); err != nil {
