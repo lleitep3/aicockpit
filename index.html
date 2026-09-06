@@ -1,0 +1,2286 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="AI Harness Engineering Platform">
+      
+      
+      
+        <link rel="canonical" href="https://lleitep3.github.io/aicockpit/">
+      
+      
+      
+        <link rel="next" href="QUICK_START/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>AICockpit</title>
+      
+    
+    
+      <link rel="stylesheet" href="assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#aicockpit-ai-harness-engineering-platform" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="." title="AICockpit" class="md-header__button md-logo" aria-label="AICockpit" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AICockpit
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Home
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/lleitep3/aicockpit" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lleitep3/aicockpit
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="QUICK_START/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Quick Start
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="FEATURES/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Features
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="architecture/01-overview/" class="md-tabs__link">
+          
+  
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="vault-guide/" class="md-tabs__link">
+          
+  
+  
+  Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="INSTALLATION.md" class="md-tabs__link">
+          
+  
+  
+  Installation
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="CONTRIBUTING/" class="md-tabs__link">
+          
+  
+  
+  Contributing
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="." title="AICockpit" class="md-nav__button md-logo" aria-label="AICockpit" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    AICockpit
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/lleitep3/aicockpit" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lleitep3/aicockpit
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="." class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-instalacao-e-setup-inicial" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🚀 1. Instalação e Setup Inicial
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-adicione-o-registry-oficial" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📦 2. Adicione o Registry Oficial
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-instale-os-modulos-essenciais" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🛠️ 3. Instale os Módulos Essenciais
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-trabalhe-junto-com-a-ia" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🤖 4. Trabalhe Junto com a IA
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#documentacao-e-arquitetura" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📚 Documentação e Arquitetura
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📚 Documentação e Arquitetura">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#getting-started" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Getting Started
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#features-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Features &amp; Usage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#development" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Development
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#project-information" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Project Information
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#developer-installation-from-source" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        💻 Developer Installation (From Source)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="💻 Developer Installation (From Source)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Prerequisites">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#linuxmacos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Linux/macOS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#windows" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Windows
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#initial-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Initial Setup
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#referencia-de-comandos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📋 Referência de Comandos
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📋 Referência de Comandos">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#core-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Core Commands
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metrics-analytics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metrics &amp; Analytics
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#security-secrets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Security &amp; Secrets
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#packages-extensibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Packages &amp; Extensibility
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#project-task-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Project &amp; Task Management
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#planned-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Planned Commands
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#internationalization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🌍 Internationalization
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#directory-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📁 Directory Structure
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#development_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔧 Development
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔧 Development">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#build-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Build Commands
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#identity-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧑‍💻 Identity File
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧑‍💻 Identity File">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#project-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Project Structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Testing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#code-quality" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📊 Code Quality
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#security" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔐 Security
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#logging-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📊 Logging &amp; Metrics
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#contributing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🤝 Contributing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🤝 Contributing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quick-contribution-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick Contribution Steps
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#license" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📄 License
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#support" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🙋 Support
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#roadmap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🗺️ Roadmap
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🗺️ Roadmap">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#phase-1-complete" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 1 ✅ (Complete)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-2-complete" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 2 ✅ (Complete)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-3-in-progress" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 3 (In Progress)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-4-vision" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 4 (Vision)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#project-statistics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📈 Project Statistics
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#learn-more" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎓 Learn More
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🎓 Learn More">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#for-users" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        For Users
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#for-developers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        For Developers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#for-project-managers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        For Project Managers
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#acknowledgments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🙌 Acknowledgments
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#contact" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📞 Contact
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📞 Contact">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#knowledge-base-kb" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Knowledge Base (KB)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="QUICK_START/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quick Start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="FEATURES/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Features
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="architecture/01-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="architecture/07-project-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="architecture/canonical-compiler.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Canonical Compiler
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="architecture/04-package-registries/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Registries
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="architecture/05-vault-system/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Vault System
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="architecture/06-knowledge-base/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Knowledge Base
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="vault-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Vault Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="LOGGING_AND_METRICS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logging & Metrics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="tracking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tracking de Pacotes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="COMMAND_DOCUMENTATION_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Command Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Installation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="INSTALLATION.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="INSTALLATION_SCRIPTS.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scripts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="INSTALLATION_OPTIONS.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Options
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Contributing
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="CONTRIBUTING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="AGENTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AI Agents Directives
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="aicockpit-ai-harness-engineering-platform">AICockpit - AI Harness Engineering Platform<a class="headerlink" href="#aicockpit-ai-harness-engineering-platform" title="Permanent link">&para;</a></h1>
+<p><a href="https://github.com/lleitep3/aicockpit/actions/workflows/test.yml"><img alt="Test and Lint" src="https://github.com/lleitep3/aicockpit/workflows/Test%20and%20Lint/badge.svg" /></a>
+<a href="https://github.com/lleitep3/aicockpit/actions/workflows/build.yml"><img alt="Build" src="https://github.com/lleitep3/aicockpit/workflows/Build/badge.svg" /></a>
+<a href="https://golang.org"><img alt="Go Version" src="https://img.shields.io/badge/go-1.26+-blue.svg" /></a>
+<a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-green.svg" /></a></p>
+<p>O <strong>AICockpit</strong> é o sistema operacional local definitivo para IAs autônomas. Ele amplifica as capacidades do seu Agente de IA favorito (como Antigravity, Devin ou Claude), fornecendo um <strong>Cofre Seguro (Vault)</strong> nativo, um <strong>Dashboard Visual</strong> para humanos colaborarem com a IA, e um <strong>Gerenciador de Habilidades (Packages)</strong> integrado.</p>
+<hr />
+<h2 id="1-instalacao-e-setup-inicial">🚀 1. Instalação e Setup Inicial<a class="headerlink" href="#1-instalacao-e-setup-inicial" title="Permanent link">&para;</a></h2>
+<p>Comece instalando a CLI localmente (requer Go 1.26+):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># 1. Instale o AICockpit via Go</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>go<span class="w"> </span>install<span class="w"> </span>github.com/lleitep3/aicockpit@latest
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># 2. Rode o setup interativo (Selecione sua IA preferida, ex: Antigravity)</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>cockpit<span class="w"> </span>setup
+</code></pre></div>
+<h2 id="2-adicione-o-registry-oficial">📦 2. Adicione o Registry Oficial<a class="headerlink" href="#2-adicione-o-registry-oficial" title="Permanent link">&para;</a></h2>
+<p>O ecossistema do Cockpit é extensível. Conecte-se ao registry oficial para ter acesso às melhores ferramentas e habilidades:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>cockpit<span class="w"> </span>pkg<span class="w"> </span>registry<span class="w"> </span>add<span class="w"> </span>default<span class="w"> </span>https://github.com/lleitep3/cockpit-registry
+</code></pre></div>
+<h2 id="3-instale-os-modulos-essenciais">🛠️ 3. Instale os Módulos Essenciais<a class="headerlink" href="#3-instale-os-modulos-essenciais" title="Permanent link">&para;</a></h2>
+<p>Para uma experiência completa (incluindo interface visual e gestão de tarefas Kanban), instale os pacotes e utilize os recursos nativos:</p>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Instale a interface visual interativa (UI)</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>cockpit<span class="w"> </span>pkg<span class="w"> </span>install<span class="w"> </span>cockpit-dashboard
+</code></pre></div>
+<em>(Nota: O gerenciador Kanban <code>cockpit project</code> já é nativo no core da CLI!)</em></p>
+<h2 id="4-trabalhe-junto-com-a-ia">🤖 4. Trabalhe Junto com a IA<a class="headerlink" href="#4-trabalhe-junto-com-a-ia" title="Permanent link">&para;</a></h2>
+<p>Agora sua infraestrutura está pronta! Abra o terminal, inicie sua IA (como Antigravity ou Devin) e trabalhe de forma integrada:</p>
+<blockquote>
+<p><strong>Você:</strong> <em>"IA, use o <code>cockpit project</code> para criar uma nova tarefa para refatorar o login. Depois abra o dashboard visual."</em></p>
+</blockquote>
+<p>A IA irá utilizar automaticamente as habilidades locais que você instalou e interagir com o Cofre Seguro do seu sistema operacional, sem precisar expor chaves de API em texto plano!</p>
+<hr />
+<h2 id="documentacao-e-arquitetura">📚 Documentação e Arquitetura<a class="headerlink" href="#documentacao-e-arquitetura" title="Permanent link">&para;</a></h2>
+<h3 id="getting-started">Getting Started<a class="headerlink" href="#getting-started" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong><a href="docs/QUICK_START.md">Quick Start Guide</a></strong> - Get up and running in 5 minutes</li>
+<li><strong><a href="docs/INSTALLATION.md">Installation Guide</a></strong> - Detailed installation instructions</li>
+<li><strong><a href="docs/INSTALLATION_SCRIPTS.md">Installation Scripts</a></strong> - How the installation scripts work</li>
+<li><strong><a href="docs/INSTALLATION_OPTIONS.md">Installation Options</a></strong> - User-level vs System-wide installation</li>
+</ul>
+<h3 id="features-usage">Features &amp; Usage<a class="headerlink" href="#features-usage" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong><a href="docs/FEATURES.md">Features Overview</a></strong> - Complete list of features and capabilities</li>
+<li><strong><a href="docs/LOGGING_AND_METRICS.md">Logging &amp; Metrics</a></strong> - How to use the logging and metrics system</li>
+<li><strong><a href="docs/METRICS_COMMAND_VERIFICATION.md">Metrics Command Verification</a></strong> - Verify metrics command is working</li>
+</ul>
+<h3 id="development">Development<a class="headerlink" href="#development" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong><a href="CONTRIBUTING/">Contributing Guide</a></strong> - How to contribute to AICockpit</li>
+<li><strong><a href="AGENTS/">AI Agent Guidelines</a></strong> - Comprehensive guide for AI agents developing on AICockpit</li>
+<li><strong><a href="docs/CI-CD.md">CI/CD Pipeline</a></strong> - CI/CD workflow and automation details</li>
+<li><strong><a href="docs/architecture/canonical-compiler.md">SDLC Guidelines</a></strong> - Software Development Lifecycle standards</li>
+</ul>
+<h3 id="project-information">Project Information<a class="headerlink" href="#project-information" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong><a href="docs/EXECUTIVE_SUMMARY.md">Executive Summary</a></strong> - High-level project overview</li>
+<li><strong><a href="docs/IMPLEMENTATION_SUMMARY.md">Implementation Summary</a></strong> - Phase 1 implementation details</li>
+<li><strong><a href="docs/SESSION_SUMMARY.md">Session Summary</a></strong> - Latest session summary</li>
+<li><strong><a href="docs/GLOBAL_INSTALLATION_VERIFIED.md">Global Installation Verified</a></strong> - Installation verification</li>
+</ul>
+<h2 id="developer-installation-from-source">💻 Developer Installation (From Source)<a class="headerlink" href="#developer-installation-from-source" title="Permanent link">&para;</a></h2>
+<h3 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Go 1.26 or later</strong></li>
+<li>Linux, macOS, or Windows</li>
+<li>Git</li>
+</ul>
+<h4 id="linuxmacos">Linux/macOS<a class="headerlink" href="#linuxmacos" title="Permanent link">&para;</a></h4>
+<p><strong>Option 1: User-Level Installation (Recommended)</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Clone the repository</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>git<span class="w"> </span>clone<span class="w"> </span>git@github.com:lleitep3/aicockpit.git
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="nb">cd</span><span class="w"> </span>aicockpit
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="c1"># Build and install (automatic PATH configuration)</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>make<span class="w"> </span>install
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="c1"># Verify installation</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>cockpit<span class="w"> </span>--version
+</code></pre></div>
+<p><strong>Option 2: System-Wide Installation (Global)</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Build and install globally (requires sudo)</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>make<span class="w"> </span>install-global
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># Verify installation</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>cockpit<span class="w"> </span>--version
+</code></pre></div>
+<h4 id="windows">Windows<a class="headerlink" href="#windows" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c"># Build and install</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">make</span> <span class="nb">install-win</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="c"># Verify installation</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="n">cockpit</span> <span class="p">-</span><span class="n">-version</span>
+</code></pre></div>
+<h3 id="initial-setup">Initial Setup<a class="headerlink" href="#initial-setup" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Run setup wizard</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>cockpit<span class="w"> </span>setup
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="c1"># Check system health</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>cockpit<span class="w"> </span>doctor
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="c1"># View configuration</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>cockpit<span class="w"> </span>info
+</code></pre></div>
+<p>For more details, see <a href="docs/QUICK_START.md">Quick Start Guide</a>.</p>
+<h2 id="referencia-de-comandos">📋 Referência de Comandos<a class="headerlink" href="#referencia-de-comandos" title="Permanent link">&para;</a></h2>
+<h3 id="core-commands">Core Commands<a class="headerlink" href="#core-commands" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong><code>cockpit setup</code></strong> - Interactive setup wizard</li>
+<li>Select language (English, Portuguese)</li>
+<li>Choose AI provider (Claude, GPT, Devin, Antigravity, Goose)</li>
+<li>
+<p>Initialize vault and configuration</p>
+</li>
+<li>
+<p><strong><code>cockpit info</code></strong> - Display AICockpit information</p>
+</li>
+<li>Show current configuration</li>
+<li>List installed packages</li>
+<li>
+<p>Display file locations</p>
+</li>
+<li>
+<p><strong><code>cockpit doctor</code></strong> - Health check</p>
+</li>
+<li>Verify all components are properly configured</li>
+<li>Check directory structure</li>
+<li>
+<p>Validate configuration files</p>
+</li>
+<li>
+<p><strong><code>cockpit uninstall</code></strong> - Remove AICockpit</p>
+</li>
+<li>Safely uninstall and remove all data</li>
+</ul>
+<h3 id="metrics-analytics">Metrics &amp; Analytics<a class="headerlink" href="#metrics-analytics" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong><code>cockpit metrics list</code></strong> - View execution metrics</li>
+<li>Filter by command, status, or date</li>
+<li>Limit results</li>
+<li>
+<p>View all command executions</p>
+</li>
+<li>
+<p><strong><code>cockpit metrics stats</code></strong> - Show execution statistics</p>
+</li>
+<li>Total executions and success rate</li>
+<li>Average duration</li>
+<li>Command frequency</li>
+<li>
+<p>Error types</p>
+</li>
+<li>
+<p><strong><code>cockpit metrics logs</code></strong> - View log files</p>
+</li>
+<li>List all log files</li>
+<li>View logs for specific date</li>
+<li>Check log file details</li>
+</ul>
+<h3 id="security-secrets">Security &amp; Secrets<a class="headerlink" href="#security-secrets" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong><code>cockpit vault set</code></strong> - Store a secret securely in the OS Keyring</li>
+<li><strong><code>cockpit vault get</code></strong> - Retrieve a secret</li>
+<li><strong><code>cockpit vault remove</code></strong> - Remove a secret</li>
+</ul>
+<h3 id="packages-extensibility">Packages &amp; Extensibility<a class="headerlink" href="#packages-extensibility" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong><code>cockpit pkg install</code></strong> - Install a new package (e.g. <code>cockpit-dashboard</code>)</li>
+<li><strong><code>cockpit pkg search</code></strong> - Search for available packages in registries</li>
+<li><strong><code>cockpit pkg upgrade</code></strong> - Upgrade installed packages</li>
+<li><strong><code>cockpit pkg registry</code></strong> - Manage multiple package registries</li>
+</ul>
+<h3 id="project-task-management">Project &amp; Task Management<a class="headerlink" href="#project-task-management" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong><code>cockpit project sync</code></strong> - Sync local tasks bi-directionally with GitHub Issues</li>
+<li><strong><code>cockpit project add</code></strong> - Create a new task in the Kanban board</li>
+<li><strong><code>cockpit project move</code></strong> - Change the state of a task (todo, in_progress, done)</li>
+</ul>
+<h3 id="planned-commands">Planned Commands<a class="headerlink" href="#planned-commands" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong><code>cockpit agents</code></strong> - Manage AI agents</li>
+<li><strong><code>cockpit skills</code></strong> - Manage skills explicitly</li>
+<li><strong><code>cockpit rules</code></strong> - Manage rules explicitly</li>
+</ul>
+<h2 id="internationalization">🌍 Internationalization<a class="headerlink" href="#internationalization" title="Permanent link">&para;</a></h2>
+<p>AICockpit supports multiple languages:</p>
+<ul>
+<li>English (en-us)</li>
+<li>Portuguese Brazilian (pt-br)</li>
+</ul>
+<p>Set language globally:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>cockpit<span class="w"> </span>--language<span class="w"> </span>pt-br<span class="w"> </span>info
+</code></pre></div>
+<h2 id="directory-structure">📁 Directory Structure<a class="headerlink" href="#directory-structure" title="Permanent link">&para;</a></h2>
+<p>AICockpit creates the following structure in <code>~/.cockpit/</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>~/.cockpit/
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>├── config.yaml          # Configuration file
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>├── metrics.json         # Execution metrics
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>├── logs/                # Log files (daily rotation)
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>│   ├── cockpit-2026-06-20.log
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>│   ├── cockpit-2026-06-21.log
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>│   └── ...
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>├── cache/               # Cache directory
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>├── packages/            # Installed packages
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>├── vault/               # Secrets vault
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>├── agents/              # AI agents
+<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>├── skills/              # Skills
+<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a>├── rules/               # Rules
+<a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a>├── hooks/               # Hooks
+<a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a>└── kb/                  # Knowledge bases
+</code></pre></div>
+<h2 id="development_1">🔧 Development<a class="headerlink" href="#development_1" title="Permanent link">&para;</a></h2>
+<h3 id="build-commands">Build Commands<a class="headerlink" href="#build-commands" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>make<span class="w"> </span><span class="nb">help</span><span class="w">              </span><span class="c1"># Show all available commands</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>make<span class="w"> </span>build<span class="w">             </span><span class="c1"># Build the binary</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>make<span class="w"> </span><span class="nb">test</span><span class="w">              </span><span class="c1"># Run tests with coverage</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>make<span class="w"> </span>lint<span class="w">              </span><span class="c1"># Run linters</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>make<span class="w"> </span>fmt<span class="w">               </span><span class="c1"># Format code</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>make<span class="w"> </span>check<span class="w">             </span><span class="c1"># Run all checks</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>make<span class="w"> </span>clean<span class="w">             </span><span class="c1"># Clean build artifacts</span>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>make<span class="w"> </span>install-hooks<span class="w">     </span><span class="c1"># Install git pre-commit hooks</span>
+</code></pre></div>
+<h2 id="identity-file">🧑‍💻 Identity File<a class="headerlink" href="#identity-file" title="Permanent link">&para;</a></h2>
+<p>AICockpit supports a local <code>identity.md</code> file to store your personal developer profile, workspace preferences and AI communication conventions.</p>
+<ul>
+<li>Use <code>internal/assets/default_cockpit/identity-example.md</code> as a starting point.</li>
+<li>Copy it to <code>identity.md</code> and update your own name, role, location, stack and workflow preferences.</li>
+<li><code>identity.md</code> is ignored by Git to keep personal identity data local.</li>
+</ul>
+<h3 id="project-structure">Project Structure<a class="headerlink" href="#project-structure" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>aicockpit/
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>├── cmd/                    # CLI commands
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>│   ├── setup.go
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>│   ├── info.go
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>│   ├── doctor.go
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>│   ├── uninstall.go
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>│   ├── metrics.go
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>│   └── root.go
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>├── internal/               # Internal packages
+<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a>│   ├── config/            # Configuration management
+<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>│   ├── logger/            # Logging system (deprecated)
+<a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a>│   ├── i18n/              # Internationalization
+<a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a>│   └── logging/           # New logging &amp; metrics system
+<a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a>├── scripts/                # Installation scripts
+<a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a>│   ├── install.sh         # Linux/macOS installer
+<a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a>│   └── install.ps1        # Windows installer
+<a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a>├── .github/                # GitHub configuration
+<a id="__codelineno-10-18" name="__codelineno-10-18" href="#__codelineno-10-18"></a>│   ├── workflows/         # GitHub Actions
+<a id="__codelineno-10-19" name="__codelineno-10-19" href="#__codelineno-10-19"></a>│   └── PULL_REQUEST_TEMPLATE.md
+<a id="__codelineno-10-20" name="__codelineno-10-20" href="#__codelineno-10-20"></a>├── docs/                   # Documentation
+<a id="__codelineno-10-21" name="__codelineno-10-21" href="#__codelineno-10-21"></a>├── main.go                 # Entry point
+<a id="__codelineno-10-22" name="__codelineno-10-22" href="#__codelineno-10-22"></a>├── Makefile                # Build automation
+<a id="__codelineno-10-23" name="__codelineno-10-23" href="#__codelineno-10-23"></a>├── CONTRIBUTING.md         # Contribution guidelines
+<a id="__codelineno-10-24" name="__codelineno-10-24" href="#__codelineno-10-24"></a>└── README.md               # This file
+</code></pre></div>
+<h3 id="testing">Testing<a class="headerlink" href="#testing" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># Run all tests</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>make<span class="w"> </span><span class="nb">test</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="c1"># Run specific package tests</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>go<span class="w"> </span><span class="nb">test</span><span class="w"> </span>-v<span class="w"> </span>./internal/config
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="c1"># View coverage report</span>
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>go<span class="w"> </span>tool<span class="w"> </span>cover<span class="w"> </span>-html<span class="o">=</span>coverage.out
+</code></pre></div>
+<h2 id="code-quality">📊 Code Quality<a class="headerlink" href="#code-quality" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Linting</strong>: <code>go vet</code> and golangci-lint</li>
+<li><strong>Testing</strong>: Unit tests with ≥90% coverage target (current: 68.0% — work in progress)</li>
+<li><strong>Formatting</strong>: <code>go fmt</code> compliance</li>
+<li><strong>Documentation</strong>: Comprehensive guides and examples</li>
+<li><strong>CI/CD</strong>: GitHub Actions for automated validation</li>
+</ul>
+<h2 id="security">🔐 Security<a class="headerlink" href="#security" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Secrets are stored in OS keyrings (planned)</li>
+<li>All operations are logged</li>
+<li>Configuration is user-specific</li>
+<li>No sensitive data in logs</li>
+<li>Pre-commit hooks validate code quality</li>
+</ul>
+<h2 id="logging-metrics">📊 Logging &amp; Metrics<a class="headerlink" href="#logging-metrics" title="Permanent link">&para;</a></h2>
+<p>AICockpit automatically tracks all command executions with detailed metrics:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1"># View execution metrics</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>cockpit<span class="w"> </span>metrics<span class="w"> </span>list
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="c1"># View statistics</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>cockpit<span class="w"> </span>metrics<span class="w"> </span>stats
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="c1"># View log files</span>
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>cockpit<span class="w"> </span>metrics<span class="w"> </span>logs
+<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a>
+<a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="c1"># Filter by command</span>
+<a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a>cockpit<span class="w"> </span>metrics<span class="w"> </span>list<span class="w"> </span>--command<span class="w"> </span>setup
+<a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a>
+<a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a><span class="c1"># Filter by status</span>
+<a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a>cockpit<span class="w"> </span>metrics<span class="w"> </span>list<span class="w"> </span>--status<span class="w"> </span>error
+<a id="__codelineno-12-15" name="__codelineno-12-15" href="#__codelineno-12-15"></a>
+<a id="__codelineno-12-16" name="__codelineno-12-16" href="#__codelineno-12-16"></a><span class="c1"># Filter by date</span>
+<a id="__codelineno-12-17" name="__codelineno-12-17" href="#__codelineno-12-17"></a>cockpit<span class="w"> </span>metrics<span class="w"> </span>list<span class="w"> </span>--date<span class="w"> </span><span class="m">2026</span>-06-20
+</code></pre></div>
+<p><strong>Features:</strong>
+- Daily log rotation (cockpit-YYYY-MM-DD.log)
+- JSON format for easy parsing
+- Automatic metrics collection
+- Success/failure tracking
+- Performance metrics
+- Error analysis</p>
+<p>See <a href="docs/LOGGING_AND_METRICS.md">Logging &amp; Metrics Documentation</a> for details.</p>
+<h2 id="contributing">🤝 Contributing<a class="headerlink" href="#contributing" title="Permanent link">&para;</a></h2>
+<p>We welcome contributions! Please follow these guidelines:</p>
+<ol>
+<li><strong>Read the <a href="CONTRIBUTING/">Contributing Guide</a></strong> - Important guidelines and standards</li>
+<li><strong>Semantic Commits</strong> - Use conventional commit format</li>
+<li><strong>PR Requirements</strong> - Include [MAJOR], [MINOR], or [PATCH] in PR title</li>
+<li><strong>Tests</strong> - Write tests for new features</li>
+<li><strong>Quality</strong> - Run <code>make check</code> before committing</li>
+</ol>
+<h3 id="quick-contribution-steps">Quick Contribution Steps<a class="headerlink" href="#quick-contribution-steps" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># 1. Fork and clone</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>git<span class="w"> </span>clone<span class="w"> </span>git@github.com:YOUR_USERNAME/aicockpit.git
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="nb">cd</span><span class="w"> </span>aicockpit
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="c1"># 2. Create feature branch</span>
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>git<span class="w"> </span>checkout<span class="w"> </span>-b<span class="w"> </span>feature/your-feature
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="c1"># 3. Install pre-commit hooks</span>
+<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>make<span class="w"> </span>install-hooks
+<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a>
+<a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a><span class="c1"># 4. Make changes and commit</span>
+<a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a>git<span class="w"> </span>add<span class="w"> </span>.
+<a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">"feat(scope): description"</span>
+<a id="__codelineno-13-14" name="__codelineno-13-14" href="#__codelineno-13-14"></a>
+<a id="__codelineno-13-15" name="__codelineno-13-15" href="#__codelineno-13-15"></a><span class="c1"># 5. Run checks</span>
+<a id="__codelineno-13-16" name="__codelineno-13-16" href="#__codelineno-13-16"></a>make<span class="w"> </span>check
+<a id="__codelineno-13-17" name="__codelineno-13-17" href="#__codelineno-13-17"></a>
+<a id="__codelineno-13-18" name="__codelineno-13-18" href="#__codelineno-13-18"></a><span class="c1"># 6. Push and create PR</span>
+<a id="__codelineno-13-19" name="__codelineno-13-19" href="#__codelineno-13-19"></a>git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>feature/your-feature
+</code></pre></div>
+<h2 id="license">📄 License<a class="headerlink" href="#license" title="Permanent link">&para;</a></h2>
+<p>This project is licensed under the Apache License 2.0 - see the <a href="LICENSE">LICENSE</a> file for details.</p>
+<h2 id="support">🙋 Support<a class="headerlink" href="#support" title="Permanent link">&para;</a></h2>
+<p>For issues, questions, or suggestions:</p>
+<ol>
+<li>Check <a href="https://github.com/lleitep3/aicockpit/issues">existing issues</a></li>
+<li>Create a <a href="https://github.com/lleitep3/aicockpit/issues/new">new issue</a></li>
+<li>Join discussions</li>
+</ol>
+<h2 id="roadmap">🗺️ Roadmap<a class="headerlink" href="#roadmap" title="Permanent link">&para;</a></h2>
+<h3 id="phase-1-complete">Phase 1 ✅ (Complete)<a class="headerlink" href="#phase-1-complete" title="Permanent link">&para;</a></h3>
+<ul>
+<li>✅ Core CLI structure</li>
+<li>✅ Configuration system</li>
+<li>✅ Logging, Metrics, and i18n</li>
+<li>✅ Installation scripts (user-level &amp; system-wide)</li>
+</ul>
+<h3 id="phase-2-complete">Phase 2 ✅ (Complete)<a class="headerlink" href="#phase-2-complete" title="Permanent link">&para;</a></h3>
+<ul>
+<li>✅ Vault system (keyring integration)</li>
+<li>✅ Package management (<code>cockpit pkg</code> and registries)</li>
+<li>✅ Project management (Kanban &amp; GitHub Sync)</li>
+<li>✅ Visual Dashboard (SvelteKit/FastAPI)</li>
+<li>✅ Knowledge base search (BM25 + Graph Traversal)</li>
+</ul>
+<h3 id="phase-3-in-progress">Phase 3 (In Progress)<a class="headerlink" href="#phase-3-in-progress" title="Permanent link">&para;</a></h3>
+<ul>
+<li>[ ] Agent management system</li>
+<li>[ ] Skills and rules framework</li>
+<li>[ ] Hooks system</li>
+<li>[ ] Advanced metrics &amp; token analytics</li>
+</ul>
+<h3 id="phase-4-vision">Phase 4 (Vision)<a class="headerlink" href="#phase-4-vision" title="Permanent link">&para;</a></h3>
+<ul>
+<li>[ ] AI-powered autonomous optimization</li>
+<li>[ ] Performance and cost analysis trends</li>
+</ul>
+<h2 id="project-statistics">📈 Project Statistics<a class="headerlink" href="#project-statistics" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Total Commits</strong>: 120+</li>
+<li><strong>Lines of Code</strong>: 28000+</li>
+<li><strong>Lines of Documentation</strong>: 18000+</li>
+<li><strong>Test Coverage</strong>: 68.0%</li>
+<li><strong>Tests Passing</strong>: 737/737 in 12 packages ✓</li>
+</ul>
+<h2 id="learn-more">🎓 Learn More<a class="headerlink" href="#learn-more" title="Permanent link">&para;</a></h2>
+<h3 id="for-users">For Users<a class="headerlink" href="#for-users" title="Permanent link">&para;</a></h3>
+<ul>
+<li><a href="docs/QUICK_START.md">Quick Start Guide</a> - Get started quickly</li>
+<li><a href="docs/INSTALLATION.md">Installation Guide</a> - Detailed setup instructions</li>
+<li><a href="docs/FEATURES.md">Features Overview</a> - All available features</li>
+<li><a href="docs/LOGGING_AND_METRICS.md">Logging &amp; Metrics</a> - How to use metrics</li>
+</ul>
+<h3 id="for-developers">For Developers<a class="headerlink" href="#for-developers" title="Permanent link">&para;</a></h3>
+<ul>
+<li><a href="CONTRIBUTING/">Contributing Guide</a> - How to contribute</li>
+<li><a href="docs/architecture/canonical-compiler.md">SDLC Guidelines</a> - Development standards</li>
+<li><a href="AGENTS/">AI Agent Guidelines</a> - For AI agents working with AICockpit</li>
+</ul>
+<h3 id="for-project-managers">For Project Managers<a class="headerlink" href="#for-project-managers" title="Permanent link">&para;</a></h3>
+<ul>
+<li><a href="docs/EXECUTIVE_SUMMARY.md">Executive Summary</a> - High-level overview</li>
+<li><a href="docs/IMPLEMENTATION_SUMMARY.md">Implementation Summary</a> - Phase 1 details</li>
+<li><a href="docs/SESSION_SUMMARY.md">Session Summary</a> - Latest work summary</li>
+</ul>
+<h2 id="acknowledgments">🙌 Acknowledgments<a class="headerlink" href="#acknowledgments" title="Permanent link">&para;</a></h2>
+<p>AICockpit is built with:</p>
+<ul>
+<li><a href="https://golang.org/">Go</a> - Programming language</li>
+<li><a href="https://cobra.dev/">Cobra</a> - CLI framework</li>
+<li><a href="https://github.com/features/actions">GitHub Actions</a> - CI/CD</li>
+</ul>
+<h2 id="contact">📞 Contact<a class="headerlink" href="#contact" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>GitHub</strong>: <a href="https://github.com/lleitep3/aicockpit">lleitep3/aicockpit</a></li>
+<li><strong>Issues</strong>: <a href="https://github.com/lleitep3/aicockpit/issues">GitHub Issues</a></li>
+<li><strong>Discussions</strong>: <a href="https://github.com/lleitep3/aicockpit/discussions">GitHub Discussions</a></li>
+</ul>
+<hr />
+<p><strong>Made with ❤️ for AI systems everywhere</strong></p>
+<h3 id="knowledge-base-kb">Knowledge Base (KB)<a class="headerlink" href="#knowledge-base-kb" title="Permanent link">&para;</a></h3>
+<ul>
+<li><a href="docs/kb/guides">KB Guides</a> - Explore all available AICockpit CLI guides</li>
+<li><a href="docs/kb/guides/package-manager.md">Package Manager Guide</a></li>
+<li><a href="docs/architecture/canonical-compiler.md">Canonical Compiler Architecture</a></li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "toc.integrate", "search.suggest", "search.highlight", "content.code.copy"], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

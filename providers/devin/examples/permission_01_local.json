@@ -1,0 +1,17 @@
+{
+  "version": "1",
+  "allowed_commands": [
+    "npm run build",
+    "npm run test",
+    "git add .",
+    "git commit -m *"
+  ],
+  "denied_commands": [
+    "rm -rf",
+    "sudo"
+  ],
+  "allowed_directories": [
+    "/workspace/src",
+    "/workspace/tests"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "grantedPermissions": [
+    {
+      "Action": "read_file",
+      "Target": "/home/lleite/projects/aicockpit"
+    },
+    {
+      "Action": "write_file",
+      "Target": "/home/lleite/projects/aicockpit"
+    }
+  ]
+}
