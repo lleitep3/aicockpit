@@ -261,6 +261,27 @@ metadata:
 
 ### Dependencies
 
+Packages must declare every runtime dependency explicitly. Use `dependencies` for
+other Cockpit packages, `external-dependencies` for libraries and binaries, and
+`requirements.environment` for environment variables consumed by the package.
+Integration credentials such as `GITHUB_TOKEN` belong to the integration package,
+not to the Cockpit core.
+
+```yaml
+dependencies:
+  - name: vault
+    version: ">=1.0.0"
+requirements:
+  cockpit: ">=0.4.0"
+  environment:
+    - name: GITHUB_TOKEN
+      required: true
+      source: vault
+      secret: true
+external-dependencies:
+  binaries: [git]
+```
+
 ```yaml
 dependencies:
   - name: "package-name"

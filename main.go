@@ -24,8 +24,7 @@ func main() {
 	cockpitDir := config.GetCockpitDir()
 	log, err := logging.NewManager(cockpitDir)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: Failed to initialize logging: %v\n", err)
-		os.Exit(1)
+		fmt.Fprintf(os.Stderr, "Warning: unable to record Cockpit logs: %v. Logging is important for understanding AI usage.\n", err)
 	}
 	defer log.Close()
 

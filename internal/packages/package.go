@@ -52,9 +52,18 @@ type Package struct {
 
 // Requirements represents version requirements.
 type Requirements struct {
-	Cockpit string `yaml:"cockpit"`
-	Go      string `yaml:"go,omitempty"`
-	Node    string `yaml:"node,omitempty"`
+	Cockpit     string                   `yaml:"cockpit"`
+	Go          string                   `yaml:"go,omitempty"`
+	Node        string                   `yaml:"node,omitempty"`
+	Environment []EnvironmentRequirement `yaml:"environment,omitempty"`
+}
+
+// EnvironmentRequirement documents an environment variable consumed by a package.
+type EnvironmentRequirement struct {
+	Name     string `yaml:"name"`
+	Required bool   `yaml:"required,omitempty"`
+	Source   string `yaml:"source,omitempty"` // env, vault, or either
+	Secret   bool   `yaml:"secret,omitempty"`
 }
 
 // Dependency represents a package dependency.
@@ -66,9 +75,10 @@ type Dependency struct {
 
 // ExternalDeps represents external dependencies.
 type ExternalDeps struct {
-	Go     []string `yaml:"go,omitempty"`
-	Node   []string `yaml:"node,omitempty"`
-	System []string `yaml:"system,omitempty"`
+	Go       []string `yaml:"go,omitempty"`
+	Node     []string `yaml:"node,omitempty"`
+	System   []string `yaml:"system,omitempty"`
+	Binaries []string `yaml:"binaries,omitempty"`
 }
 
 // Features represents all features in a package.
