@@ -238,6 +238,37 @@ func TestGetPackageFromCache_Found(t *testing.T) {
 	}
 }
 
+func TestGetPackageFromCache_UsesRegistryRelativePath(t *testing.T) {
+	tmpDir := t.TempDir()
+	rc := NewRegistryCache(tmpDir)
+
+	packagePath := filepath.Join(tmpDir, "cache", "registries", "my-registry", "packages", "github-tools")
+	if err := os.MkdirAll(packagePath, 0o755); err != nil {
+		t.Fatalf("setup: %v", err)
+	}
+
+	got, err := rc.GetPackageFromCache("my-registry", "packages/github-tools")
+	if err != nil {
+		t.Fatalf("GetPackageFromCache failed: %v", err)
+	}
+	if got != packagePath {
+		t.Errorf("got path %q, want %q", got, packagePath)
+	}
+}
+
+func TestGetPackageFromCache_RejectsPathTraversal(t *testing.T) {
+	tmpDir := t.TempDir()
+	rc := NewRegistryCache(tmpDir)
+
+	for _, packagePath := range []string{"../outside", "packages/../../outside", ".."} {
+		t.Run(packagePath, func(t *testing.T) {
+			if _, err := rc.GetPackageFromCache("my-registry", packagePath); err == nil {
+				t.Fatalf("expected invalid package path error for %q", packagePath)
+			}
+		})
+	}
+}
+
 func TestGetPackageFromCache_RegistryExistsButPackageMissing(t *testing.T) {
 	tmpDir := t.TempDir()
 	rc := NewRegistryCache(tmpDir)
