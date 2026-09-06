@@ -8,19 +8,11 @@ import (
 	"time"
 
 	"github.com/lleitep3/aicockpit/internal/env"
+	runtimepaths "github.com/lleitep3/aicockpit/internal/runtime"
 )
 
 // baseDir is the root tracking directory. It can be overridden via env var TRACKING_DIR.
-var baseDir = func() string {
-	if v := os.Getenv(env.TrackingDir.String()); v != "" {
-		return v
-	}
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return ".cockpit/tracking"
-	}
-	return filepath.Join(home, ".cockpit", "tracking")
-}()
+var baseDir = filepath.Join(".cockpit", "tracking")
 
 // Event represents a generic tracking event.
 type Event struct {
@@ -32,7 +24,14 @@ type Event struct {
 // ensureDayDir ensures a directory for the current UTC day exists and returns its path.
 func ensureDayDir() (string, error) {
 	day := time.Now().UTC().Format("2006-01-02")
-	dir := filepath.Join(baseDir, day)
+	root, err := runtimepaths.DataDir(baseDir)
+	if err != nil {
+		return "", err
+	}
+	if legacy := os.Getenv(env.TrackingDir.String()); legacy != "" {
+		root = legacy
+	}
+	dir := filepath.Join(root, "tracking", day)
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return "", fmt.Errorf("tracking: cannot create day dir %s: %w", dir, err)
 	}
