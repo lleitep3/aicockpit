@@ -121,6 +121,8 @@ ai_provider: "claude"
 
 ## Environment Variables
 
+For the complete list of variables used by the Cockpit core, see the [environment variables reference](../reference/environment-variables.md). Integration packages must document their own variables in their package manifest.
+
 | Variable | Description |
 |----------|-------------|
 | `COCKPIT_HOME` | Override default home directory (~/.cockpit) |

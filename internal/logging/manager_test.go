@@ -24,20 +24,22 @@ func TestNewManager(t *testing.T) {
 	}
 }
 
-func TestNewManagerInvalidDir(t *testing.T) {
-	// Point cockpitDir to a file so that MkdirAll fails when trying to
-	// create <file>/logs.
+func TestNewManagerFallsBackFromInvalidDir(t *testing.T) {
+	// Point cockpitDir to a file so that the preferred logs path is invalid.
 	tmpDir := t.TempDir()
 	blocker := filepath.Join(tmpDir, "blocker")
 	if err := os.WriteFile(blocker, []byte("x"), 0o644); err != nil {
 		t.Fatalf("setup: %v", err)
 	}
 
-	// cockpitDir = blocker/sub  →  MkdirAll will fail because blocker is a file
-	_, err := NewManager(filepath.Join(blocker, "sub"))
-	if err == nil {
-		t.Fatal("expected error from NewManager with invalid dir, got nil")
+	mgr, err := NewManager(filepath.Join(blocker, "sub"))
+	if err != nil {
+		t.Fatalf("expected temp fallback, got error: %v", err)
 	}
+	if mgr.GetFileLogger() == nil {
+		t.Fatal("expected file logger after temp fallback")
+	}
+	defer mgr.Close()
 }
 
 func TestManagerGetters(t *testing.T) {

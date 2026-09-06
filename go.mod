@@ -2,7 +2,7 @@ module github.com/lleitep3/aicockpit
 
 go 1.26
 
-toolchain go1.26.5
+toolchain go1.26.6
 
 require (
 	github.com/google/go-github/v68 v68.0.0
