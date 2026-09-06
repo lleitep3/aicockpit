@@ -1,4 +1,4 @@
-.PHONY: help build test lint fmt check clean install install-global install-win uninstall install-hooks
+.PHONY: help build test lint fmt check clean install install-local install-global install-win uninstall install-hooks
 
 # Variables
 BINARY_NAME=cockpit
@@ -18,6 +18,7 @@ help:
 	@echo "  make check           - Run all checks (fmt + lint + test + build)"
 	@echo "  make clean           - Clean build artifacts"
 	@echo "  make install         - Install to ~/.local/bin (user-level, Linux/macOS)"
+	@echo "  make install-local   - Install locally and configure Codex sandbox logs"
 	@echo "  make install-global  - Install to /usr/local/bin (system-wide, Linux/macOS)"
 	@echo "  make install-win     - Install binary (Windows PowerShell)"
 	@echo "  make install-hooks   - Install git pre-commit hooks"
@@ -56,7 +57,9 @@ clean:
 	@rm -rf bin/ $(COVERAGE_FILE)
 	@echo "✓ Clean completed"
 
-install: build
+install: install-local
+
+install-local: build
 	@bash scripts/install.sh
 
 install-global: build
