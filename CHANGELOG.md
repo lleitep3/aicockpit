@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 No features
 
 ### Bug Fixes
-No bug fixes
+- resolve registry-relative package paths (#219)
 
 ### Performance
 No performance improvements
@@ -20,7 +20,7 @@ No performance improvements
 No breaking changes
 
 ### Documentation
-No documentation changes
+- update CHANGELOG.md for changes since v0.4.36 [skip ci] (#218)
 
 ### Testing
 No test changes
