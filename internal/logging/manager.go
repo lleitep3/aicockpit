@@ -11,8 +11,6 @@ import (
 	"github.com/lleitep3/aicockpit/internal/env"
 )
 
-const logDirEnv = "COCKPIT_LOG_DIR"
-
 // resolveLogDir selects a writable log directory without making logging a
 // prerequisite for running a command. An explicit path wins; otherwise use
 // the operating system's temporary directory.
