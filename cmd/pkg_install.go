@@ -86,7 +86,11 @@ func NewPkgInstallCommand(svc services.PackageService, cfg *config.Config) *cobr
 			fmt.Printf("\nCopying package from cache...\n")
 
 			// Get package path from cache
-			packageCachePath, err := svc.GetPackageFromCache(registryName, packageName)
+			packagePath := pkgEntry.Path
+			if packagePath == "" {
+				packagePath = packageName
+			}
+			packageCachePath, err := svc.GetPackageFromCache(registryName, packagePath)
 			if err != nil {
 				return fmt.Errorf("failed to find package in cache: %w", err)
 			}

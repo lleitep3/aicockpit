@@ -101,8 +101,8 @@ func (rc *RegistryCache) GetPackageIndexPath(registryName string) string {
 }
 
 // GetPackagePath returns the path to a package in cache
-func (rc *RegistryCache) GetPackagePath(registryName, packageName string) string {
-	return filepath.Join(rc.GetRegistryCachePath(registryName), packageName)
+func (rc *RegistryCache) GetPackagePath(registryName, packagePath string) string {
+	return filepath.Join(rc.GetRegistryCachePath(registryName), packagePath)
 }
 
 // LoadPackageIndexFromCache loads package index from local cache
@@ -149,13 +149,23 @@ func (rc *RegistryCache) ListPackagesInCache(registryName string) ([]string, err
 }
 
 // GetPackageFromCache gets a package from cache
-func (rc *RegistryCache) GetPackageFromCache(registryName, packageName string) (string, error) {
-	packagePath := rc.GetPackagePath(registryName, packageName)
-
-	// Check if package exists
-	if _, err := os.Stat(packagePath); err != nil {
-		return "", fmt.Errorf("package not found in cache: %s", packageName)
+func (rc *RegistryCache) GetPackageFromCache(registryName, packagePath string) (string, error) {
+	registryPath := rc.GetRegistryCachePath(registryName)
+	cleanPath := filepath.Clean(packagePath)
+	if cleanPath == "." || cleanPath == ".." || strings.HasPrefix(cleanPath, ".."+string(filepath.Separator)) {
+		return "", fmt.Errorf("invalid package path: %s", packagePath)
 	}
 
-	return packagePath, nil
+	cachedPath := rc.GetPackagePath(registryName, cleanPath)
+	relativePath, err := filepath.Rel(registryPath, cachedPath)
+	if err != nil || relativePath == ".." || strings.HasPrefix(relativePath, ".."+string(filepath.Separator)) {
+		return "", fmt.Errorf("invalid package path: %s", packagePath)
+	}
+
+	// Check if package exists
+	if _, err := os.Stat(cachedPath); err != nil {
+		return "", fmt.Errorf("package not found in cache: %s", packagePath)
+	}
+
+	return cachedPath, nil
 }
