@@ -15,6 +15,11 @@ This will:
 - Build the binary
 - Copy it to `~/.local/bin/cockpit`
 - Make it executable
+- Ensure `$CODEX_HOME/config.toml` (or `~/.codex/config.toml`) allows Codex
+  `workspace-write` access to `~/.cockpit/logs`
+
+The Codex change is idempotent and preserves unrelated configuration. Updates
+use the same installation path through `make install-local`.
 
 ### Step 2: Add to PATH
 

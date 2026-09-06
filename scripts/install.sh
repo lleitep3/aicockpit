@@ -62,6 +62,16 @@ else
 fi
 echo -e "${GREEN}✓ Binary installed to $COCKPIT_PATH${NC}\n"
 
+# Keep the Codex sandbox configuration in sync on both fresh installs and
+# updates. The command performs a safe, idempotent merge with user settings.
+echo -e "${BLUE}Configuring Codex sandbox...${NC}"
+if "$COCKPIT_PATH" codex configure-sandbox; then
+    echo -e "${GREEN}✓ Codex sandbox configured${NC}\n"
+else
+    echo -e "${RED}Error: failed to configure Codex sandbox${NC}"
+    exit 1
+fi
+
 # Function to check if PATH already contains the directory
 path_already_added() {
     local shell_config="$1"

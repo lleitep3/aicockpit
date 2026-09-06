@@ -58,6 +58,17 @@ Copy-Item -Path $BinaryPath -Destination $CockpitPath -Force
 Write-Success "✓ Binary installed to $CockpitPath"
 Write-Host ""
 
+# Keep the Codex sandbox configuration in sync on both fresh installs and
+# updates. The command performs a safe, idempotent merge with user settings.
+Write-Info "Configuring Codex sandbox..."
+& $CockpitPath codex configure-sandbox
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "Error: failed to configure Codex sandbox"
+    exit 1
+}
+Write-Success "✓ Codex sandbox configured"
+Write-Host ""
+
 # Check if PATH already contains the directory
 $CurrentPath = [Environment]::GetEnvironmentVariable("PATH", "User")
 $PathAlreadyAdded = $CurrentPath -like "*\.local\bin*"
