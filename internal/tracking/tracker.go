@@ -11,7 +11,7 @@ import (
 	runtimepaths "github.com/lleitep3/aicockpit/internal/runtime"
 )
 
-// baseDir is the root tracking directory. It can be overridden via env var TRACKING_DIR.
+// baseDir is the default tracking directory used when no runtime root is available.
 var baseDir = filepath.Join(".cockpit", "tracking")
 
 // Event represents a generic tracking event.

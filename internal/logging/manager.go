@@ -5,11 +5,47 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
+	"runtime"
 	"time"
 
 	"github.com/lleitep3/aicockpit/internal/env"
 	runtimepaths "github.com/lleitep3/aicockpit/internal/runtime"
 )
+
+// resolveLogDir selects a writable log directory without making logging a
+// prerequisite for running a command. An explicit path wins; otherwise use
+// the operating system's temporary directory.
+func resolveLogDir(cockpitDir string) (string, error) {
+	candidates := []string{}
+	if configured := os.Getenv(env.CockpitLogDir.String()); configured != "" {
+		candidates = append(candidates, configured)
+	}
+	candidates = append(candidates, filepath.Join(cockpitDir, "logs"))
+	tempRoot := os.TempDir()
+	if runtime.GOOS == "windows" {
+		candidates = append(candidates, filepath.Join(tempRoot, "AICockpit", "logs"))
+	} else {
+		candidates = append(candidates, filepath.Join(tempRoot, "aicockpit", "logs"))
+	}
+
+	var lastErr error
+	for _, candidate := range candidates {
+		if err := os.MkdirAll(candidate, 0o755); err != nil {
+			lastErr = err
+			continue
+		}
+		probe, err := os.CreateTemp(candidate, ".write-test-*")
+		if err != nil {
+			lastErr = err
+			continue
+		}
+		probeName := probe.Name()
+		_ = probe.Close()
+		_ = os.Remove(probeName)
+		return candidate, nil
+	}
+	return "", fmt.Errorf("no writable log directory found: %w", lastErr)
+}
 
 // Manager manages all logging operations
 type Manager struct {
