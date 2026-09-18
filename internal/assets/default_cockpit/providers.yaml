@@ -67,6 +67,36 @@ providers:
         path: ".codex/agents"
         description: "Project-local Codex custom agents"
 
+  # GitHub Copilot - global CLI workspace rooted at ~/.copilot
+  github-copilot:
+    enabled: true
+    name: "GitHub Copilot"
+    description: "GitHub Copilot CLI global workspace"
+    workspace: "~/.copilot"
+    binary: ""
+    version: "1.0.0"
+    features:
+      rules:
+        enabled: true
+        path: "~/.copilot/AGENTS.md"
+        description: "Global Copilot instructions and golden rules"
+      skills:
+        enabled: true
+        path: "~/.copilot/skills"
+        description: "Reusable GitHub Copilot skills"
+      workflows:
+        enabled: true
+        path: "~/.copilot/workflows"
+        description: "Workflow playbooks mapped as markdown checklists"
+      permissions:
+        enabled: true
+        path: "~/.copilot/permissions.json"
+        description: "Global permission policy for Copilot CLI"
+      agents:
+        enabled: true
+        path: "~/.copilot/agents"
+        description: "Custom subagents for GitHub Copilot"
+
   # Devin - Autonomous AI agent by Cognition
   devin:
     enabled: true
