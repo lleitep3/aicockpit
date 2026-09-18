@@ -1,6 +1,8 @@
 package providers
 
 import (
+	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -108,18 +110,12 @@ func parseSkills(homeDir string) ([]CanonicalSkill, error) {
 			ScriptFiles: make(map[string]string),
 		}
 
-		// Optionally load scripts
-		scriptsDir := filepath.Join(skillsDir, skillName, "scripts")
-		scriptEntries, err := os.ReadDir(scriptsDir)
-		if err == nil {
-			for _, se := range scriptEntries {
-				if !se.IsDir() {
-					if sd, err := os.ReadFile(filepath.Join(scriptsDir, se.Name())); err == nil {
-						skill.ScriptFiles[filepath.Join("scripts", se.Name())] = string(sd)
-					}
-				}
-			}
+		// Keep the complete resource tree: SKILL.md may link references or UI metadata.
+		resources, err := loadSkillResources(filepath.Join(skillsDir, skillName))
+		if err != nil {
+			return nil, fmt.Errorf("load resources for skill %s: %w", skillName, err)
 		}
+		skill.ScriptFiles = resources
 
 		skills = append(skills, skill)
 	}
@@ -291,4 +287,46 @@ func parseAgents(homeDir string) ([]CanonicalAgent, error) {
 	}
 
 	return agents, nil
+}
+
+// loadSkillResources preserves relative paths and bytes for the standard skill
+// resource directories. Symlinks are rejected rather than reading outside the skill.
+func loadSkillResources(root string) (map[string]string, error) {
+	files := make(map[string]string)
+	for _, directory := range []string{"scripts", "references", "assets", "agents"} {
+		resourceRoot := filepath.Join(root, directory)
+		if _, err := os.Lstat(resourceRoot); os.IsNotExist(err) {
+			continue
+		} else if err != nil {
+			return nil, err
+		}
+		err := filepath.WalkDir(resourceRoot, func(path string, entry fs.DirEntry, walkErr error) error {
+			if walkErr != nil {
+				return walkErr
+			}
+			if entry.Type()&os.ModeSymlink != 0 {
+				return fmt.Errorf("skill resource symlink is not supported: %s", path)
+			}
+			if entry.IsDir() {
+				return nil
+			}
+			if !entry.Type().IsRegular() {
+				return fmt.Errorf("unsupported skill resource: %s", path)
+			}
+			content, err := os.ReadFile(path)
+			if err != nil {
+				return err
+			}
+			relative, err := filepath.Rel(root, path)
+			if err != nil {
+				return err
+			}
+			files[relative] = string(content)
+			return nil
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+	return files, nil
 }

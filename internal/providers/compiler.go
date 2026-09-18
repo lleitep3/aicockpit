@@ -5,7 +5,7 @@ type CanonicalSkill struct {
 	Name        string
 	Description string
 	Content     string
-	ScriptFiles map[string]string // e.g. "scripts/deploy.sh" -> "#!/bin/bash..."
+	ScriptFiles map[string]string // Relative resource paths under scripts, references, assets and agents; values preserve file bytes.
 }
 
 // CanonicalRule represents a behavioral guideline or constraint.
