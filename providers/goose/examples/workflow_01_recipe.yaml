@@ -1,0 +1,13 @@
+name: "Create React Component"
+description: "Scaffolds a new React component with tests and storybook"
+parameters:
+  - name: component_name
+    description: "The name of the component in PascalCase"
+    required: true
+steps:
+  - run: |
+      mkdir -p src/components/${component_name}
+      touch src/components/${component_name}/${component_name}.tsx
+      touch src/components/${component_name}/${component_name}.test.tsx
+      touch src/components/${component_name}/${component_name}.stories.tsx
+  - message: "I have created the files. Please implement a basic boilerplate for a functional component in ${component_name}.tsx."

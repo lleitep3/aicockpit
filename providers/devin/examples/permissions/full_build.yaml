@@ -1,0 +1,6 @@
+allowed_commands:
+  - make
+  - go build
+  - go test
+denied_commands:
+  - sudo

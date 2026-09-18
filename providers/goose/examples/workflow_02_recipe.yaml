@@ -1,0 +1,10 @@
+name: "Database Migration"
+description: "Create and apply a new Prisma migration"
+parameters:
+  - name: migration_name
+    required: true
+steps:
+  - message: "Please update the schema.prisma file with the requested changes."
+  - run: "npx prisma format"
+  - run: "npx prisma migrate dev --name ${migration_name}"
+  - run: "npx prisma generate"

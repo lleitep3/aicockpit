@@ -1,0 +1,4 @@
+extensions:
+  - name: github_mcp
+    cmd: npx
+    args: ["-y", "@modelcontextprotocol/server-github"]

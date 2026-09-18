@@ -1,0 +1,9 @@
+# config.yaml (Goose extensions block)
+extensions:
+  github:
+    cmd: npx
+    args:
+      - "-y"
+      - "@modelcontextprotocol/server-github"
+    envs:
+      GITHUB_PERSONAL_ACCESS_TOKEN: "your_token_here"
