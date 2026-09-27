@@ -14,8 +14,7 @@ capabilities:
 # Required skills
 skills:
   - "go-development"
-  - "file-management"
-  - "git-operations"
+  - "package-creation"
 
 # Required hooks
 hooks:
@@ -26,7 +25,7 @@ config:
   timeout: 300
   max_retries: 3
   log_level: "info"
-  parallel_tasks: 4
+  parallel_tasks: 1
 
 # Dependencies
 dependencies:

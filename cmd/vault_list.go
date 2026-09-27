@@ -21,11 +21,9 @@ func NewVaultListCommand(log *logging.Manager, cfg *config.Config, t *i18n.Trans
 		Long:  "List all secrets in the vault with their creation and last update timestamps.",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// Namespace mode bypasses lock checks
-			if namespaceFlag == "" {
-				if err := checkVaultAccess("list"); err != nil {
-					return err
-				}
+			// Namespaces never bypass authorization or the vault lock.
+			if err := checkNamespaceAccess(namespaceFlag, false); err != nil {
+				return err
 			}
 
 			var v vault.Manager

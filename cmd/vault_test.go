@@ -14,6 +14,8 @@ import (
 func TestVaultCommands(t *testing.T) {
 	// Enable mock keyring for testing
 	keyring.MockInit()
+	t.Setenv("HOME", t.TempDir())
+	unlockTestVault(t)
 	log, _ := logging.NewManager("")
 	cfg := &config.Config{Version: "0.1.0", Language: "en-us"}
 	translator := i18n.New("en-us")
@@ -118,11 +120,12 @@ func TestVaultSet_WithValueFlag_WithNamespace(t *testing.T) {
 	tmpDir := t.TempDir()
 	t.Setenv("HOME", tmpDir)
 
+	unlockTestVault(t)
 	log, _ := logging.NewManager("")
 	cfg := &config.Config{Version: "0.1.0", Language: "en-us"}
 	translator := i18n.New("en-us")
 
-	// With namespace — bypasses vault access check
+	// Namespace access still requires the unlocked vault
 	setCmd := NewVaultSetCommand(log, cfg, translator)
 	var out bytes.Buffer
 	setCmd.SetOut(&out)
@@ -144,11 +147,12 @@ func TestVaultSet_EmptyValue(t *testing.T) {
 	tmpDir := t.TempDir()
 	t.Setenv("HOME", tmpDir)
 
+	unlockTestVault(t)
 	log, _ := logging.NewManager("")
 	cfg := &config.Config{Version: "0.1.0", Language: "en-us"}
 	translator := i18n.New("en-us")
 
-	// With namespace (bypasses vault access check) + --value=""
+	// With namespace and an unlocked vault + --value=""
 	setCmd := NewVaultSetCommand(log, cfg, translator)
 	setCmd.SetArgs([]string{"mykey", "--value", "", "--namespace", "test"})
 	err := setCmd.Execute()
@@ -164,6 +168,7 @@ func TestVaultGet_WithNamespace_Success(t *testing.T) {
 	tmpDir := t.TempDir()
 	t.Setenv("HOME", tmpDir)
 
+	unlockTestVault(t)
 	log, _ := logging.NewManager("")
 	cfg := &config.Config{Version: "0.1.0", Language: "en-us"}
 	translator := i18n.New("en-us")
@@ -193,6 +198,7 @@ func TestVaultRemove_WithNamespace_Success(t *testing.T) {
 	tmpDir := t.TempDir()
 	t.Setenv("HOME", tmpDir)
 
+	unlockTestVault(t)
 	log, _ := logging.NewManager("")
 	cfg := &config.Config{Version: "0.1.0", Language: "en-us"}
 	translator := i18n.New("en-us")
@@ -224,6 +230,7 @@ func TestVaultGet_NotFound(t *testing.T) {
 	t.Setenv("COCKPIT_DEV_MODE", "1")
 	defer t.Setenv("COCKPIT_DEV_MODE", "")
 
+	unlockTestVault(t)
 	log, _ := logging.NewManager("")
 	cfg := &config.Config{Version: "0.1.0", Language: "en-us"}
 	translator := i18n.New("en-us")
@@ -243,6 +250,7 @@ func TestVaultRemove_NotFound(t *testing.T) {
 	t.Setenv("COCKPIT_DEV_MODE", "1")
 	defer t.Setenv("COCKPIT_DEV_MODE", "")
 
+	unlockTestVault(t)
 	log, _ := logging.NewManager("")
 	cfg := &config.Config{Version: "0.1.0", Language: "en-us"}
 	translator := i18n.New("en-us")

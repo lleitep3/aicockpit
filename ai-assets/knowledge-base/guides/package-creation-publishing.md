@@ -135,7 +135,7 @@ O processo de publicação a partir do `local-registry` segue o seguinte fluxo:
 
 1. **Nova Feature Branch**: Nunca envie commits diretamente para a branch `main`. Crie uma branch de trabalho no repositório `cockpit-registry`:
    `git checkout -b feature/pkg-nome-do-pacote`
-2. **Copiar os arquivos**: Copie o diretório do seu pacote de `~/.cockpit/local-registry/nome-do-pacote` para a raiz do repositório da registry.
+2. **Copiar os arquivos**: Copie o diretório do seu pacote de `~/.cockpit/local-registry/nome-do-pacote` para `packages/<nome-do-pacote>/` (confirme o caminho no índice da registry).
 3. **Atualizar o Índice (`package-index.yaml`)**: Insira a entrada de metadados do seu pacote no final da lista:
    ```yaml
      - name: "video"
@@ -147,8 +147,8 @@ O processo de publicação a partir do `local-registry` segue o seguinte fluxo:
        tags:
          - video
          - token-optimization
-       path: "video"
-       url: "https://github.com/lleitep3/cockpit-registry/tree/main/video"
+       path: "packages/video"
+       url: "https://github.com/lleitep3/cockpit-registry/tree/main/packages/video"
        supported_providers:
          - antigravity
        features:
@@ -165,3 +165,15 @@ O processo de publicação a partir do `local-registry` segue o seguinte fluxo:
    `git commit -m "feat(nome-do-pacote): register new package"`
    `git push origin feature/pkg-nome-do-pacote`
 5. **PR**: Crie o Pull Request no GitHub para mesclagem na branch `main`.
+
+
+## Contrato de configuração e evidências
+
+Consulte `package-profiles.md` para configurações por namespace, referências ao vault
+e injeção de ambiente no processo filho. Não duplique o armazenamento de credenciais.
+O namespace é uma fronteira da CLI, não um sandbox para código hostil do mesmo usuário.
+
+Validação de manifesto não substitui testes de comportamento. Teste falhas de paths,
+dependências ausentes, bloqueio do vault e exposição de segredos. Relate separadamente
+testes locais, simulação de navegador, integração real e checks da CI. Siga o workflow
+`cockpit-evolution.md`; nenhum comando `cockpit agent` deve ser presumido existente.
