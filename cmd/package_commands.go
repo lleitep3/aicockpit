@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/lleitep3/aicockpit/internal/config"
 	"github.com/lleitep3/aicockpit/internal/packages"
@@ -106,7 +107,7 @@ func executePackageCommand(packageName, packagePath string, args []string) error
 	scriptPath := filepath.Join(packagePath, "bin", packageName)
 	if _, err := os.Stat(scriptPath); err == nil {
 		// Execute the script
-		return executeScript(scriptPath, args)
+		return executePackageScript(packageName, scriptPath, args)
 	}
 
 	// Also try the package name directly (for packages like hello-world with hello command)
@@ -116,7 +117,7 @@ func executePackageCommand(packageName, packagePath string, args []string) error
 		// Execute the first script found
 		scriptPath := filepath.Join(packagePath, "bin", entries[0].Name())
 		if !entries[0].IsDir() {
-			return executeScript(scriptPath, args)
+			return executePackageScript(packageName, scriptPath, args)
 		}
 	}
 
@@ -128,6 +129,23 @@ func executePackageCommand(packageName, packagePath string, args []string) error
 	}
 
 	return fmt.Errorf("package %s has no executable", packageName)
+}
+
+// executePackageScript scopes supported nested Cockpit calls to the package.
+// This context is not an OS security boundary for untrusted same-user programs.
+func executePackageScript(packageName, scriptPath string, args []string) error {
+	child := exec.Command(scriptPath, args...)
+	for _, item := range os.Environ() {
+		name, _, _ := strings.Cut(item, "=")
+		if !strings.EqualFold(name, "COCKPIT_PACKAGE_CONTEXT") {
+			child.Env = append(child.Env, item)
+		}
+	}
+	child.Env = append(child.Env, "COCKPIT_PACKAGE_CONTEXT="+packageName)
+	child.Stdin = os.Stdin
+	child.Stdout = os.Stdout
+	child.Stderr = os.Stderr
+	return child.Run()
 }
 
 // executeScript executes a script file

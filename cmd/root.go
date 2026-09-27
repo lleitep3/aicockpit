@@ -45,6 +45,7 @@ func NewRootCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translator
 	rootCmd.AddCommand(NewDoctorCommand(log, cfg, t))
 	rootCmd.AddCommand(NewUninstallCommand(log, cfg, t))
 	rootCmd.AddCommand(NewVaultCommand(log, cfg, t))
+	rootCmd.AddCommand(NewConfigCommand())
 	rootCmd.AddCommand(NewMetricsCommand(log, cfg, t))
 	rootCmd.AddCommand(NewKBCommand(log, cfg, t))
 	rootCmd.AddCommand(NewPkgCommand(cfg))
@@ -187,7 +188,11 @@ func decorateCommands(cmd *cobra.Command, log *logging.Manager) {
 			cmdName := c.CommandPath()
 			cmdName = strings.TrimPrefix(cmdName, c.Root().Name()+" ")
 
-			log.LogCommand(cmdName, args, status, exitCode, duration, "", err)
+			telemetryArgs := args
+			if strings.HasPrefix(cmdName, "config ") {
+				telemetryArgs = nil
+			}
+			log.LogCommand(cmdName, telemetryArgs, status, exitCode, duration, "", err)
 			return err
 		}
 	} else if origRun != nil {

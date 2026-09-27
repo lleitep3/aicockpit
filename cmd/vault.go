@@ -109,6 +109,7 @@ func getCurrentProcessName() string {
 // NewVaultSetCommand creates the vault set subcommand.
 func NewVaultSetCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translator) *cobra.Command {
 	var valueFlag string
+	var stdinFlag bool
 	var namespaceFlag string
 
 	setCmd := &cobra.Command{
@@ -117,17 +118,25 @@ func NewVaultSetCommand(log *logging.Manager, cfg *config.Config, t *i18n.Transl
 		Long:  "Store a secret securely. If --value is not provided, you will be prompted to enter it securely.",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// Only check vault access if NOT using namespace (namespace provides isolation)
-			if namespaceFlag == "" {
-				if err := checkVaultAccess("set"); err != nil {
-					return err
-				}
+			// Namespaces never bypass authorization or the vault lock.
+			if err := checkNamespaceAccess(namespaceFlag, true); err != nil {
+				return err
 			}
 
 			key := args[0]
 			value := valueFlag
 			namespace := namespaceFlag
 
+			if stdinFlag {
+				if cmd.Flags().Changed("value") {
+					return fmt.Errorf("--stdin and --value cannot be combined")
+				}
+				var err error
+				value, err = readProfileSecret(cmd, true)
+				if err != nil {
+					return err
+				}
+			}
 			// Prompt if value not provided
 			if value == "" {
 				fmt.Fprintf(cmd.OutOrStdout(), "Enter secret for '%s': ", key)
@@ -165,6 +174,7 @@ func NewVaultSetCommand(log *logging.Manager, cfg *config.Config, t *i18n.Transl
 		},
 	}
 
+	setCmd.Flags().BoolVar(&stdinFlag, "stdin", false, "Read secret from stdin without exposing it in process arguments")
 	setCmd.Flags().StringVar(&valueFlag, "value", "", "The secret value (discouraged, leaves traces in shell history)")
 	setCmd.Flags().StringVar(&namespaceFlag, "namespace", "", "Vault namespace for isolation (recommended for security)")
 
@@ -181,11 +191,9 @@ func NewVaultGetCommand(log *logging.Manager, cfg *config.Config, t *i18n.Transl
 		Long:  "Retrieve a secret from the vault and print it to standard output.",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// Only check vault access if NOT using namespace (namespace provides isolation)
-			if namespaceFlag == "" {
-				if err := checkVaultAccess("get"); err != nil {
-					return err
-				}
+			// Namespaces never bypass authorization or the vault lock.
+			if err := checkNamespaceAccess(namespaceFlag, false); err != nil {
+				return err
 			}
 
 			key := args[0]
@@ -226,11 +234,9 @@ func NewVaultRemoveCommand(log *logging.Manager, cfg *config.Config, t *i18n.Tra
 		Long:  "Delete a securely stored secret from the vault.",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// Only check vault access if NOT using namespace (namespace provides isolation)
-			if namespaceFlag == "" {
-				if err := checkVaultAccess("remove"); err != nil {
-					return err
-				}
+			// Namespaces never bypass authorization or the vault lock.
+			if err := checkNamespaceAccess(namespaceFlag, true); err != nil {
+				return err
 			}
 
 			key := args[0]

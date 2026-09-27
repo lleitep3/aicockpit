@@ -23,7 +23,14 @@ echo "  ✓ Static analysis: OK"
 
 # 3. Unit tests
 echo "  • Running unit tests..."
-go test ./...
+(
+    # Hooks inherit repository-local Git variables. Test fixtures create their
+    # own repositories and must not inherit this worktree/index selection.
+    while IFS= read -r variable; do
+        unset "$variable"
+    done < <(git rev-parse --local-env-vars)
+    go test ./...
+)
 echo "  ✓ Unit tests: OK"
 
 echo "✅ All checks passed successfully! Proceeding with commit."
