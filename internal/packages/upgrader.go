@@ -75,7 +75,7 @@ func (u *Upgrader) Upgrade(packageName, sourcePath string) (result error) {
 		if result != nil {
 			if err := tx.restore(); err != nil {
 				keepLock = true
-				result = fmt.Errorf("%w; rollback failed: %v; recover from %s", result, err, tx.dir)
+				result = fmt.Errorf("%w; rollback failed: %w; recover from %s", result, err, tx.dir)
 			} else {
 				result = fmt.Errorf("%w; managed files restored; recovery snapshot: %s (external hook effects are not rolled back)", result, tx.dir)
 			}
