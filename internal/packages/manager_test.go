@@ -294,14 +294,14 @@ func TestRunPackageHooks_MissingScript(t *testing.T) {
 	tmpDir := t.TempDir()
 	pm := NewPackageManager(tmpDir)
 
-	// Hook pointing to a non-existent script — should be skipped, not error
+	// Missing hooks must not silently report successful installation.
 	hooks := []Hook{
 		{Script: "scripts/nonexistent.sh", Description: "Missing hook"},
 	}
 
 	err := pm.RunPackageHooks(tmpDir, hooks)
-	if err != nil {
-		t.Errorf("Expected missing script to be skipped, got error: %v", err)
+	if err == nil {
+		t.Fatal("Expected missing script to fail")
 	}
 }
 

@@ -194,3 +194,20 @@ Scoped statement coverage: batch.go 96.8%, update_unified.go 90.3%; these are no
 repository-wide percentages. Final focused run passed 43 tests after CLI messages
 were adjusted. Invalid child JSON/schema outcomes are discarded, and the parent
 reports a handoff failure rather than treating partial parsed data as authoritative.
+
+## Validação real e fechamento (28/09/2026 UTC)
+
+Escopo: corrigir snapshots de dependências com links relativos internos, exigir hooks
+existentes e confinados, corrigir os manifests de Playwright/Graphify e reconciliar
+o inventário local preservando backups. Sem alterar infraestrutura AWS.
+
+Critérios: regressão de rollback com links; rejeição de links externos e em assets
+exportados; hook ausente/falhando não pode indicar sucesso; CI verde antes do merge;
+release instalada e lote real seguido de segunda execução sem mudanças.
+
+Rollback: snapshots locais retidos, binário anterior preservado, configuração dos
+registries copiada antes da manutenção. Fontes locais sem publicação permanecem
+identificadas como locais; não interpretar ausência de upstream como versão oficial.
+
+Documentação final: Partilhar ABA WU-006/WU-013, G-PLAN; evidências técnicas sem
+promover gates clínicos, de produção ou observabilidade sem medição.

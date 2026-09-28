@@ -259,6 +259,15 @@ func (p *Package) Validate(packagePath string) error {
 		return fmt.Errorf("provider features configuration is required")
 	}
 
+	if packagePath != "" {
+		for _, hooks := range [][]Hook{p.Installation.PreInstall, p.Installation.PostInstall, p.Installation.PreUninstall, p.Installation.PostUninstall} {
+			for _, hook := range hooks {
+				if _, err := validateHookFile(packagePath, hook.Script); err != nil {
+					return err
+				}
+			}
+		}
+	}
 	return nil
 }
 
