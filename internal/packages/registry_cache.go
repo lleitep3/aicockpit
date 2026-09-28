@@ -43,13 +43,6 @@ func (rc *RegistryCache) EnsureRegistry(registry RegistryConfig) error {
 	return rc.updateRegistry(rc.GetRegistryCachePath(registry.Name), registry)
 }
 
-// isCloned checks if a registry is already cloned
-func (rc *RegistryCache) isCloned(cachePath string) bool {
-	gitDir := filepath.Join(cachePath, ".git")
-	_, err := os.Stat(gitDir)
-	return err == nil
-}
-
 // cloneRegistry clones a registry to cache
 func (rc *RegistryCache) cloneRegistry(registry RegistryConfig, cachePath string) error {
 	// Create cache directory if it doesn't exist
