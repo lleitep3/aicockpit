@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Features
+No features
+
+### Bug Fixes
+- preserve confined runtime links and validate hooks (#248)
+
+### Performance
+No performance improvements
+
+### Breaking Changes
+No breaking changes
+
+### Documentation
+No documentation changes
+
+### Testing
+No test changes
+
+### Other Changes
+No other changes
+
+
 ## [0.4.45] - 2026-09-28
 
 ### Changed since v0.4.44
