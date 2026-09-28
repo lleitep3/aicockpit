@@ -19,14 +19,28 @@ import (
 
 // NewUpdateCommand creates the update command.
 func NewUpdateCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translator) *cobra.Command {
-	return &cobra.Command{
-		Use:   "update",
-		Short: "Update AICockpit to the latest version",
-		Long:  "Build the official release in isolation and replace this executable with recovery support. Requires Git and Go. Optionally run setup using the new executable.",
+	options := unifiedOptions{}
+	command := &cobra.Command{
+		Use:     "update",
+		Short:   "Update AICockpit to the latest version",
+		Long:    "Update the binary, installed packages, or both. Without flags, use the interactive binary update. Scoped updates require --yes; --check only inspects versions and refreshes registry caches. Binary updates require Git and Go. Reports distinguish partial failures.",
+		Example: "  cockpit update --all --check\n  cockpit update --all --yes --report update-result.json\n  cockpit update --packages-only --yes",
+		Args:    cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if options.all || options.binaryOnly || options.packagesOnly || options.yes || options.check || options.report != "" {
+				return runUnifiedUpdate(cmd, cfg, options)
+			}
 			return runUpdate(log, cfg, t)
 		},
 	}
+	command.Flags().BoolVar(&options.all, "all", false, "Update the binary and installed packages")
+	command.Flags().BoolVar(&options.binaryOnly, "binary-only", false, "Update only the binary")
+	command.Flags().BoolVar(&options.packagesOnly, "packages-only", false, "Update only installed packages")
+	command.Flags().BoolVarP(&options.yes, "yes", "y", false, "Apply without prompts; never runs interactive setup")
+	command.Flags().BoolVar(&options.check, "check", false, "Check versions without activation or deploy (refreshes registry caches)")
+	command.Flags().StringVar(&options.report, "report", "", "Write a versioned JSON outcome report to this file")
+	command.MarkFlagsMutuallyExclusive("all", "binary-only", "packages-only")
+	return command
 }
 
 func runUpdate(log *logging.Manager, cfg *config.Config, t *i18n.Translator) error {
@@ -99,6 +113,7 @@ func runUpdateWithDeps(log *logging.Manager, cfg *config.Config, t *i18n.Transla
 
 // performUpdate builds the official release outside the caller's repository.
 func performUpdate(targetVersion string) error {
+	fmt.Printf("Preparing official binary %s in isolated staging...\n", targetVersion)
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Minute)
 	defer cancel()
 	backup, err := update.NewBinaryUpdater().Update(ctx, targetVersion)
