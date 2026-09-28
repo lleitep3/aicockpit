@@ -117,10 +117,10 @@ func TestIsNewerVersion(t *testing.T) {
 			expected: false,
 		},
 		{
-			name:     "latest has more parts",
+			name:     "invalid latest has more parts",
 			latest:   "0.1.0.1",
 			current:  "0.1.0",
-			expected: true,
+			expected: false,
 		},
 	}
 
@@ -171,5 +171,19 @@ func TestGetReleaseNotes_NotFound(t *testing.T) {
 	_, err := service.GetReleaseNotes("0.2.0")
 	if err == nil {
 		t.Error("GetReleaseNotes() should return error when release not found")
+	}
+}
+
+func TestReleaseVersionOrdering(t *testing.T) {
+	s := NewUpdateService()
+	for _, test := range []struct {
+		latest, current string
+		want            bool
+	}{
+		{"1.0.0", "1.0.0-rc.1", true}, {"1.0.0-rc.1", "1.0.0", false}, {"1.0.0+build", "1.0.0", false}, {"2.0.0", "unknown", false},
+	} {
+		if got := s.isNewerVersion(test.latest, test.current); got != test.want {
+			t.Errorf("%s vs %s: %v", test.latest, test.current, got)
+		}
 	}
 }

@@ -103,3 +103,38 @@ untracked files, changed configured origin, invalid/symbolic indexes, lock
 contention, clone failure and injected directory-rename failures. Full suite:
 1,296 passing tests; the subsequent validation-centralization change also passed
 57 focused tests. macOS/Windows execution and the binary updater remain pending.
+
+## Binary update implementation plan
+Release v0.4.43 has no downloadable assets. This delivery uses the planned source
+fallback: clone the official HTTPS repository at the exact version tag into a
+private directory beside the resolved executable, confirm HEAD matches that tag,
+compile with an explicit embedded version and validate --version before activation.
+Never run Git or Make in the user's working repository. Preserve a complete binary
+backup, replace via same-filesystem rename, probe the installed executable and
+restore on probe failure. A per-executable lock prevents overlapping updates;
+retain recovery material and a lock if restoration fails. After activation, setup
+must run in the new executable, never the old in-memory code.
+
+Three logical parts: isolated build, transactional activation, CLI/version wiring.
+Requires Git, Go/toolchain download and write permission to the executable's parent.
+No cloud resources/cost; staging/source/backups consume local disk. Windows fails
+before mutation until a dedicated replacement helper is implemented. Linux is the
+native validation target; macOS behavior is not claimed tested. Prebuilt artifacts,
+checksums, Windows helper and update --all remain future work. Tests use temporary
+executables, injected failures and an isolated real Go build; never replace the
+operator's installed executable during development.
+
+## Binary delivery validation
+The isolated binary updater reaches 92.8% statement coverage. The complete
+suite passed 1,311 tests before the final additional focused fixtures; 32 focused
+tests then passed, including a real local Git tag and Go build, branch/tag collision,
+version mismatch, candidate/build/backup/rename failures, failed recovery retaining
+the lock, preserved symlink/permissions and new-executable setup dispatch. Lint of
+the changes and go vet passed. No operator installation was replaced.
+
+This is the source-build fallback, not a checksum-verified prebuilt download or
+signed-tag verification. Trust is the fixed official HTTPS origin plus checking
+that the checked-out commit matches the requested tag. User Git/Go overrides that
+could redirect the isolated build are excluded; dependency versions come from the
+release with module updates disabled. A working Git/Go installation and network
+for source/dependencies/toolchain may be needed. Recovery snapshots remain on disk.

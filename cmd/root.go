@@ -24,7 +24,7 @@ func NewRootCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translator
 	rootCmd := &cobra.Command{
 		Use:     "cockpit",
 		Short:   t.T("welcome"),
-		Version: cfg.Version,
+		Version: version.GetVersion(),
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			t.SetLanguage(cfg.Language)
 
