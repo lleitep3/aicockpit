@@ -81,9 +81,21 @@ func NewPkgUpgradeCommand(svc services.PackageService, cfg *config.Config) *cobr
 
 			fmt.Printf("Upgrading to version: %s\n", pkgEntry.Version)
 
-			packageCachePath, err := svc.GetPackageFromCache(registryName, packageName)
+			packagePath := pkgEntry.Path
+			if packagePath == "" {
+				packagePath = packageName // Legacy indexes stored packages at the root.
+			}
+			packageCachePath, err := svc.GetPackageFromCache(registryName, packagePath)
 			if err != nil {
 				return fmt.Errorf("failed to find package in cache: %w", err)
+			}
+
+			candidate, err := packages.LoadPackage(packageCachePath)
+			if err != nil {
+				return fmt.Errorf("failed to read candidate: %w", err)
+			}
+			if candidate.Name != packageName || candidate.Version != pkgEntry.Version {
+				return fmt.Errorf("candidate identity/version does not match registry index")
 			}
 
 			fmt.Printf("\nPerforming upgrade...\n")
@@ -91,7 +103,7 @@ func NewPkgUpgradeCommand(svc services.PackageService, cfg *config.Config) *cobr
 				return fmt.Errorf("failed to upgrade package: %w", err)
 			}
 
-			fmt.Printf("✓ Package %s upgraded successfully to %s\n", packageName, pkgEntry.Version)
+			fmt.Printf("Package %s activated at %s; deploying assets...\n", packageName, pkgEntry.Version)
 
 			// Emit package upgraded event
 			svc.EmitEvent(events.Event{
@@ -108,9 +120,10 @@ func NewPkgUpgradeCommand(svc services.PackageService, cfg *config.Config) *cobr
 			// Redeploy to active providers
 			fmt.Printf("\nRedeploying to active providers...\n")
 			if err := svc.TriggerDeploy(""); err != nil {
-				fmt.Printf("  ⚠ Deploy warning: %v\n", err)
+				return fmt.Errorf("package %s activated at %s, but provider deploy failed; retry cockpit deploy: %w", packageName, pkgEntry.Version, err)
 			}
 
+			fmt.Printf("✓ Package %s upgraded and deployed successfully to %s\n", packageName, pkgEntry.Version)
 			return nil
 		},
 	}
