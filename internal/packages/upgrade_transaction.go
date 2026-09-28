@@ -18,6 +18,7 @@ func safeUpgradeName(name string) bool { return upgradeName.MatchString(name) &&
 type upgradeSnapshot struct {
 	target, backup string
 	existed        bool
+	allowLinks     bool
 }
 type upgradeTransaction struct {
 	dir, stage string
@@ -32,9 +33,16 @@ func relativeUpgradePath(path string) bool {
 // checkUpgradeTree refuses links and special files instead of dereferencing a
 // package-controlled path while copying or restoring managed assets.
 func checkUpgradeTree(root string) error {
+	return checkUpgradeTreeLinks(root, false)
+}
+
+func checkUpgradeTreeLinks(root string, allowLinks bool) error {
 	return filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
+		}
+		if d.Type()&os.ModeSymlink != 0 && allowLinks && path != root {
+			return validateInternalUpgradeLink(root, path)
 		}
 		if d.Type()&os.ModeSymlink != 0 || (!d.IsDir() && !d.Type().IsRegular()) {
 			return fmt.Errorf("unsupported link or special file in upgrade: %s", path)
@@ -44,7 +52,10 @@ func checkUpgradeTree(root string) error {
 }
 
 func validateUpgradePackage(pkg *Package, root string) error {
-	if err := checkUpgradeTree(root); err != nil {
+	if err := checkUpgradeTreeLinks(root, true); err != nil {
+		return err
+	}
+	if err := checkUpgradeTree(filepath.Join(root, "cockpit-package.yml")); err != nil {
 		return err
 	}
 	groups := [][]Feature{pkg.Features.Modules, pkg.Features.Skills, pkg.Features.Agents, pkg.Features.Rules, pkg.Features.Workflows}
@@ -53,11 +64,17 @@ func validateUpgradePackage(pkg *Package, root string) error {
 			if !safeUpgradeName(f.Name) || !relativeUpgradePath(f.Path) {
 				return fmt.Errorf("invalid feature name or path")
 			}
+			if err := validateUpgradeAsset(root, f.Path); err != nil {
+				return err
+			}
 		}
 	}
 	for _, f := range pkg.Features.KB {
 		if !relativeUpgradePath(f.Path) {
 			return fmt.Errorf("invalid KB path")
+		}
+		if err := validateUpgradeAsset(root, f.Path); err != nil {
+			return err
 		}
 	}
 	if err := pkg.Validate(root); err != nil {
@@ -111,7 +128,11 @@ func checkUpgradeParents(root, target string) error {
 }
 
 func snapshotUpgradePath(target, backup string) (upgradeSnapshot, error) {
-	item := upgradeSnapshot{target: target, backup: backup}
+	return snapshotUpgradePathWithLinks(target, backup, false)
+}
+
+func snapshotUpgradePathWithLinks(target, backup string, allowLinks bool) (upgradeSnapshot, error) {
+	item := upgradeSnapshot{target: target, backup: backup, allowLinks: allowLinks}
 	info, err := os.Lstat(target)
 	if os.IsNotExist(err) {
 		return item, nil
@@ -119,7 +140,7 @@ func snapshotUpgradePath(target, backup string) (upgradeSnapshot, error) {
 	if err != nil {
 		return item, err
 	}
-	if err := checkUpgradeTree(target); err != nil {
+	if err := checkUpgradeTreeLinks(target, allowLinks); err != nil {
 		return item, err
 	}
 	item.existed = true
@@ -127,7 +148,7 @@ func snapshotUpgradePath(target, backup string) (upgradeSnapshot, error) {
 		if err := os.MkdirAll(backup, 0700); err != nil {
 			return item, err
 		}
-		return item, copyDir(target, backup)
+		return item, copyUpgradeTree(target, backup)
 	}
 	return item, copyFile(target, backup)
 }
@@ -158,11 +179,11 @@ func prepareUpgrade(root, installed, source string, oldPkg, newPkg *Package) (*u
 	if err := os.Mkdir(tx.stage, 0700); err != nil {
 		return nil, err
 	}
-	if err := copyDir(source, tx.stage); err != nil {
+	if err := copyUpgradeTree(source, tx.stage); err != nil {
 		return nil, fmt.Errorf("failed to stage candidate: %w", err)
 	}
 	for i, path := range paths {
-		item, err := snapshotUpgradePath(path, filepath.Join(dir, fmt.Sprintf("snapshot-%d", i)))
+		item, err := snapshotUpgradePathWithLinks(path, filepath.Join(dir, fmt.Sprintf("snapshot-%d", i)), i == 0)
 		if err != nil {
 			return nil, fmt.Errorf("failed to snapshot managed path: %w", err)
 		}
@@ -190,7 +211,7 @@ func (tx *upgradeTransaction) restore() error {
 		}
 		var info os.FileInfo
 		if item.existed {
-			if err := checkUpgradeTree(item.backup); err != nil {
+			if err := checkUpgradeTreeLinks(item.backup, item.allowLinks); err != nil {
 				failures = append(failures, err)
 				continue
 			}
@@ -212,7 +233,7 @@ func (tx *upgradeTransaction) restore() error {
 		if info.IsDir() {
 			err = os.MkdirAll(item.target, 0700)
 			if err == nil {
-				err = copyDir(item.backup, item.target)
+				err = copyUpgradeTree(item.backup, item.target)
 			}
 		} else {
 			err = os.MkdirAll(filepath.Dir(item.target), 0700)

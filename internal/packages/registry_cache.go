@@ -53,7 +53,12 @@ func (rc *RegistryCache) cloneRegistry(registry RegistryConfig, cachePath string
 	ctx, cancel := gitContext()
 	defer cancel()
 
-	_, err := rc.gitRunner.Run(ctx, "", "clone", "--depth", "1", "-b", registry.Branch, "--", registry.URL, cachePath)
+	args := []string{"clone", "--depth", "1"}
+	if registry.Branch != "" {
+		args = append(args, "-b", registry.Branch)
+	}
+	args = append(args, "--", registry.URL, cachePath)
+	_, err := rc.gitRunner.Run(ctx, "", args...)
 	if err != nil {
 		return fmt.Errorf("failed to clone registry: %w", err)
 	}

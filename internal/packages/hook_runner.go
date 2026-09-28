@@ -58,7 +58,7 @@ func validateHookScript(packageDir, script string) (string, error) {
 
 // Run executes a list of hooks from the given package directory.
 // Each hook's Script path is relative to packageDir and must stay inside it.
-// If a hook script does not exist it is skipped with a warning.
+// Missing, linked or non-regular scripts fail instead of reporting false success.
 func (h *HookRunner) Run(packageDir string, hooks []Hook) error {
 	absPackageDir, err := filepath.Abs(packageDir)
 	if err != nil {
@@ -66,15 +66,9 @@ func (h *HookRunner) Run(packageDir string, hooks []Hook) error {
 	}
 
 	for _, hook := range hooks {
-		scriptPath, err := validateHookScript(absPackageDir, hook.Script)
+		scriptPath, err := validateHookFile(absPackageDir, hook.Script)
 		if err != nil {
 			return fmt.Errorf("invalid hook script %q: %w", hook.Script, err)
-		}
-
-		// Skip missing scripts with a warning instead of hard-failing.
-		if _, err := os.Stat(scriptPath); os.IsNotExist(err) {
-			fmt.Printf("  ⚠ Hook script not found (skipping): %s\n", hook.Script)
-			continue
 		}
 
 		desc := hook.Description
@@ -104,4 +98,27 @@ func (h *HookRunner) Run(packageDir string, hooks []Hook) error {
 		}
 	}
 	return nil
+}
+
+// validateHookFile applies the same contract during planning and execution.
+func validateHookFile(packageDir, script string) (string, error) {
+	path, err := validateHookScript(packageDir, script)
+	if err != nil {
+		return "", err
+	}
+	root, err := filepath.Abs(packageDir)
+	if err != nil {
+		return "", err
+	}
+	if err := checkUpgradeParents(root, path); err != nil {
+		return "", err
+	}
+	info, err := os.Lstat(path)
+	if err != nil {
+		return "", fmt.Errorf("hook script unavailable %s: %w", script, err)
+	}
+	if !info.Mode().IsRegular() {
+		return "", fmt.Errorf("hook script must be a regular file: %s", script)
+	}
+	return path, nil
 }
