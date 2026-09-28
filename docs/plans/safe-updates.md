@@ -138,3 +138,59 @@ that the checked-out commit matches the requested tag. User Git/Go overrides tha
 could redirect the isolated build are excluded; dependency versions come from the
 release with module updates disabled. A working Git/Go installation and network
 for source/dependencies/toolchain may be needed. Recovery snapshots remain on disk.
+
+## Unified update implementation plan
+Add explicit --all/--binary-only/--packages-only scopes, --yes, --check and
+--report <file>. Existing plain update keeps its interactive binary flow. Scoped
+mutation requires --yes; --check refreshes registry caches but never activates
+packages/binaries, runs hooks or deploys. JSON reports use a versioned schema in
+a separate file so human output from existing package hooks cannot corrupt JSON.
+
+Update the binary first. After successful replacement, launch the new executable
+for the package-only phase and combine its report with the binary outcome. If the
+binary is current or fails, still inspect/update packages with the running binary.
+Report partial failures with nonzero exit status. Read installed manifests strictly,
+refresh each needed enabled registry once per run, honor configured priority,
+reject stale lookups and downgrades, verify candidate identity/version, and deploy
+once after successful package activations. Continue independent packages after an
+individual failure; do not promise a global transaction across hooks/providers.
+
+Tests: current binary with pending packages, binary failure with package success,
+new-executable handoff, check mode without mutation, partial package/deploy failure,
+missing/invalid manifest, disabled registry, idempotent second run, invalid scopes
+and JSON report errors. Validate with temporary Git registries and installed trees;
+no live installation changes. Three logical parts: batch engine, CLI/handoff,
+tests/documentation. No cloud resources; existing local snapshot disk costs apply.
+
+## Unified command usage and outcomes
+- Inspect: `cockpit update --all --check --report update-plan.json`.
+- Apply: `cockpit update --all --yes --report update-result.json`.
+- Limit scope with `--binary-only` or `--packages-only`; scopes are exclusive.
+- A scoped invocation without --yes or --check fails immediately with guidance.
+- Plain `cockpit update` retains the interactive binary-only behavior.
+
+The versioned JSON contains `schema_version`, `check` and `outcomes`; each outcome
+has component/name, optional from/to/message, and a status: current, available,
+updated, skipped, blocked or failed. Failed/blocked outcomes give nonzero exit.
+A dev binary is explicitly skipped, not reported as a current release. Package
+activation and provider deployment have separate outcomes. Report-writing failures
+return an error after printing the component results; they do not undo updates.
+
+Selection uses enabled registries in configured priority order, without persistent
+origin/pin metadata. Unregistered or invalid installed packages are reported as
+failures, not silently omitted. Package symlinks require manual reconciliation.
+Independent packages continue after failures; cross-package dependencies/hooks do
+not have a global rollback. Registry refresh snapshots and temporary child reports
+remain on disk. Check mode refreshes caches but does not run install hooks/deploy.
+
+Validation: complete suite 1,355 passing tests; race detector 427 passing tests in
+cmd/internal/update; real local Git package lifecycle check/apply/repeat; subprocess
+fixtures verify new-executable arguments and partial/missing/invalid reports.
+Binary replacement itself remains covered by the earlier isolated updater tests;
+no live operator binary/package was changed by this delivery. Linux validation;
+existing Windows binary-update limitation still applies.
+
+Scoped statement coverage: batch.go 96.8%, update_unified.go 90.3%; these are not
+repository-wide percentages. Final focused run passed 43 tests after CLI messages
+were adjusted. Invalid child JSON/schema outcomes are discarded, and the parent
+reports a handoff failure rather than treating partial parsed data as authoritative.
