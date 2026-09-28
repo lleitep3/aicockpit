@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.45] - 2026-09-28
+
+### Changed since v0.4.44
+
+
 ### Features
 - coordinate binary and package updates with outcome reports (#245)
 
@@ -27,6 +32,7 @@ No test changes
 
 ### Other Changes
 No other changes
+
 
 
 ## [0.4.44] - 2026-09-28
