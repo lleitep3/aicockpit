@@ -43,36 +43,6 @@ func TestNewUpdateCommand(t *testing.T) {
 	}
 }
 
-func TestPerformUpdate_NotInGitRepo(t *testing.T) {
-	tmpDir := t.TempDir()
-	// Ensure we're not in a git repo
-	origDir, _ := os.Getwd()
-	defer os.Chdir(origDir)
-	os.Chdir(tmpDir)
-
-	err := performUpdate("1.0.0")
-	if err == nil {
-		t.Error("performUpdate() should fail when not in git repo")
-	}
-}
-
-func TestPerformUpdate_InGitRepo_FetchFails(t *testing.T) {
-	tmpDir := t.TempDir()
-	// Create a fake .git dir so performUpdate passes the first check
-	if err := os.MkdirAll(filepath.Join(tmpDir, ".git"), 0o755); err != nil {
-		t.Fatalf("MkdirAll: %v", err)
-	}
-	origDir, _ := os.Getwd()
-	defer os.Chdir(origDir)
-	os.Chdir(tmpDir)
-
-	// git fetch will fail because it's not a real repo
-	err := performUpdate("1.0.0")
-	if err == nil {
-		t.Error("performUpdate() should fail when git fetch fails")
-	}
-}
-
 func TestRunCommand_Success(t *testing.T) {
 	err := runCommand("echo", "hello")
 	if err != nil {
@@ -247,7 +217,7 @@ func TestRunUpdateWithDeps_UserDeclines(t *testing.T) {
 	}
 }
 
-func TestRunUpdateWithDeps_UserAccepts_NoGitDir(t *testing.T) {
+func TestRunUpdateWithDeps_UserAccepts_PreparationFails(t *testing.T) {
 	tmpDir := t.TempDir()
 	t.Setenv("HOME", tmpDir)
 
@@ -263,7 +233,10 @@ func TestRunUpdateWithDeps_UserAccepts_NoGitDir(t *testing.T) {
 	tr := i18n.New("en-us")
 
 	mock := &mockUpdateCheckerUpdate{version: "9.9.9", releaseURL: "https://example.com"}
-	// User says yes but performUpdate will fail (no .git dir in cwd)
+	original := performUpdateFunc
+	performUpdateFunc = func(string) error { return fmt.Errorf("isolated build failed") }
+	defer func() { performUpdateFunc = original }()
+	// A preparation failure must propagate without changing the current directory.
 	stdin := pipeWithInput(t, "y\n")
 
 	// Change to a temp dir without .git
@@ -273,7 +246,7 @@ func TestRunUpdateWithDeps_UserAccepts_NoGitDir(t *testing.T) {
 
 	err = runUpdateWithDeps(log, cfg, tr, mock, stdin)
 	if err == nil {
-		t.Error("expected error when no .git dir")
+		t.Error("expected isolated build error")
 	}
 }
 
@@ -320,6 +293,26 @@ func TestRunUpdateWithDeps_UserAccepts_UpdateSucceeds_DeclinesSetup(t *testing.T
 }
 
 func TestRunUpdateWithDeps_UserAccepts_UpdateSucceeds_AcceptsSetup(t *testing.T) {
+	originalCommand := runCommandFunc
+	calledSetup := false
+	runCommandFunc = func(name string, args ...string) error {
+		executable, err := os.Executable()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if name != executable || len(args) != 1 || args[0] != "setup" {
+			t.Fatalf("wrong new executable setup: %s %v", name, args)
+		}
+		calledSetup = true
+		return nil
+	}
+	defer func() { runCommandFunc = originalCommand }()
+	defer func() {
+		if !calledSetup {
+			t.Error("new executable setup not called")
+		}
+	}()
+
 	tmpDir := t.TempDir()
 	t.Setenv("HOME", tmpDir)
 	t.Chdir(tmpDir)
@@ -347,156 +340,13 @@ func TestRunUpdateWithDeps_UserAccepts_UpdateSucceeds_AcceptsSetup(t *testing.T)
 	os.Stdin = stdin
 	defer func() { os.Stdin = origStdin }()
 
-	// runSetup may fail (providers) — that's fine, we just exercise the branches
-	_ = runUpdateWithDeps(log, cfg, tr, mock, stdin)
-}
-
-func TestPerformUpdate_NoGitDir(t *testing.T) {
-	tmpDir := t.TempDir()
-	origDir, _ := os.Getwd()
-	os.Chdir(tmpDir)
-	defer os.Chdir(origDir)
-
-	if err := performUpdate("1.0.0"); err == nil {
-		t.Error("expected error when .git doesn't exist")
+	if err := runUpdateWithDeps(log, cfg, tr, mock, stdin); err != nil {
+		t.Fatal(err)
 	}
 }
 
-func TestPerformUpdate_FetchFails(t *testing.T) {
-	tmpDir := t.TempDir()
-	// Create .git dir to pass the first check
-	os.MkdirAll(filepath.Join(tmpDir, ".git"), 0o755)
-
-	origDir, _ := os.Getwd()
-	os.Chdir(tmpDir)
-	defer os.Chdir(origDir)
-
-	// Use real runCommand — git fetch will fail since it's not a real repo
-	origCmd := runCommandFunc
-	runCommandFunc = runCommandDefault
-	defer func() { runCommandFunc = origCmd }()
-
-	err := performUpdate("1.0.0")
-	if err == nil {
-		t.Error("expected error when git fetch fails")
-	}
-}
-
-func TestPerformUpdate_AllCommandsSucceed(t *testing.T) {
-	tmpDir := t.TempDir()
-	os.MkdirAll(filepath.Join(tmpDir, ".git"), 0o755)
-
-	origDir, _ := os.Getwd()
-	os.Chdir(tmpDir)
-	defer os.Chdir(origDir)
-
-	// Mock all commands to succeed
-	origCmd := runCommandFunc
-	runCommandFunc = func(name string, args ...string) error { return nil }
-	defer func() { runCommandFunc = origCmd }()
-
-	err := performUpdate("1.0.0")
-	if err != nil {
-		t.Errorf("performUpdate with mocked commands error = %v", err)
-	}
-}
-
-func TestPerformUpdate_CheckoutFails(t *testing.T) {
-	tmpDir := t.TempDir()
-	os.MkdirAll(filepath.Join(tmpDir, ".git"), 0o755)
-
-	origDir, _ := os.Getwd()
-	os.Chdir(tmpDir)
-	defer os.Chdir(origDir)
-
-	callCount := 0
-	origCmd := runCommandFunc
-	runCommandFunc = func(name string, args ...string) error {
-		callCount++
-		if callCount == 2 { // checkout (second call)
-			return fmt.Errorf("checkout failed")
-		}
-		return nil
-	}
-	defer func() { runCommandFunc = origCmd }()
-
-	err := performUpdate("1.0.0")
-	if err == nil {
-		t.Error("expected error when checkout fails")
-	}
-}
-
-func TestPerformUpdate_PullFails(t *testing.T) {
-	tmpDir := t.TempDir()
-	os.MkdirAll(filepath.Join(tmpDir, ".git"), 0o755)
-
-	origDir, _ := os.Getwd()
-	os.Chdir(tmpDir)
-	defer os.Chdir(origDir)
-
-	callCount := 0
-	origCmd := runCommandFunc
-	runCommandFunc = func(name string, args ...string) error {
-		callCount++
-		if callCount == 3 { // pull (third call)
-			return fmt.Errorf("pull failed")
-		}
-		return nil
-	}
-	defer func() { runCommandFunc = origCmd }()
-
-	err := performUpdate("1.0.0")
-	if err == nil {
-		t.Error("expected error when pull fails")
-	}
-}
-
-func TestPerformUpdate_BuildFails(t *testing.T) {
-	tmpDir := t.TempDir()
-	os.MkdirAll(filepath.Join(tmpDir, ".git"), 0o755)
-
-	origDir, _ := os.Getwd()
-	os.Chdir(tmpDir)
-	defer os.Chdir(origDir)
-
-	callCount := 0
-	origCmd := runCommandFunc
-	runCommandFunc = func(name string, args ...string) error {
-		callCount++
-		if callCount == 4 { // make build (fourth call)
-			return fmt.Errorf("build failed")
-		}
-		return nil
-	}
-	defer func() { runCommandFunc = origCmd }()
-
-	err := performUpdate("1.0.0")
-	if err == nil {
-		t.Error("expected error when build fails")
-	}
-}
-
-func TestPerformUpdate_InstallFails(t *testing.T) {
-	tmpDir := t.TempDir()
-	os.MkdirAll(filepath.Join(tmpDir, ".git"), 0o755)
-
-	origDir, _ := os.Getwd()
-	os.Chdir(tmpDir)
-	defer os.Chdir(origDir)
-
-	callCount := 0
-	origCmd := runCommandFunc
-	runCommandFunc = func(name string, args ...string) error {
-		callCount++
-		if callCount == 5 { // make install-local (fifth call)
-			return fmt.Errorf("install failed")
-		}
-		return nil
-	}
-	defer func() { runCommandFunc = origCmd }()
-
-	err := performUpdate("1.0.0")
-	if err == nil {
-		t.Error("expected error when install fails")
+func TestPerformUpdateRejectsInvalidRelease(t *testing.T) {
+	if err := performUpdate("../not-a-release"); err == nil {
+		t.Fatal("invalid release accepted")
 	}
 }

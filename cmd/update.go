@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -21,7 +22,7 @@ func NewUpdateCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translat
 	return &cobra.Command{
 		Use:   "update",
 		Short: "Update AICockpit to the latest version",
-		Long:  "Check for updates and upgrade AICockpit to the latest version. Will automatically run setup after update.",
+		Long:  "Build the official release in isolation and replace this executable with recovery support. Requires Git and Go. Optionally run setup using the new executable.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runUpdate(log, cfg, t)
 		},
@@ -81,55 +82,30 @@ func runUpdateWithDeps(log *logging.Manager, cfg *config.Config, t *i18n.Transla
 
 	// Ask if user wants to run setup
 	fmt.Print("Would you like to run setup now? (y/n): ")
-	reader = bufio.NewReader(stdin)
 	input, _ = reader.ReadString('\n')
 	input = strings.TrimSpace(strings.ToLower(input))
 
 	if input == "y" || input == "yes" || input == "s" || input == "sim" {
 		fmt.Println("Running setup...")
-		return runSetup(log, cfg, t)
+		executable, err := os.Executable()
+		if err != nil {
+			return err
+		}
+		return runCommand(executable, "setup")
 	}
 
 	return nil
 }
 
-// performUpdate performs the actual update by pulling the latest version from git
+// performUpdate builds the official release outside the caller's repository.
 func performUpdate(targetVersion string) error {
-	// Check if we're in a git repository
-	if _, err := os.Stat(".git"); os.IsNotExist(err) {
-		return fmt.Errorf("not in a git repository, automatic update not available")
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Minute)
+	defer cancel()
+	backup, err := update.NewBinaryUpdater().Update(ctx, targetVersion)
+	if err != nil {
+		return err
 	}
-
-	// Fetch latest changes
-	fmt.Println("Fetching latest changes...")
-	if err := runCommand("git", "fetch", "origin"); err != nil {
-		return fmt.Errorf("failed to fetch: %w", err)
-	}
-
-	// Checkout the latest version tag
-	fmt.Printf("Checking out version %s...\n", targetVersion)
-	if err := runCommand("git", "checkout", "v"+targetVersion); err != nil {
-		return fmt.Errorf("failed to checkout version: %w", err)
-	}
-
-	// Pull latest changes
-	fmt.Println("Pulling latest changes...")
-	if err := runCommand("git", "pull", "origin", "v"+targetVersion); err != nil {
-		return fmt.Errorf("failed to pull: %w", err)
-	}
-
-	// Rebuild the application
-	fmt.Println("Rebuilding AICockpit...")
-	if err := runCommand("make", "build"); err != nil {
-		return fmt.Errorf("failed to build: %w", err)
-	}
-
-	// Install locally
-	fmt.Println("Installing AICockpit...")
-	if err := runCommand("make", "install-local"); err != nil {
-		return fmt.Errorf("failed to install: %w", err)
-	}
-
+	fmt.Printf("Previous executable preserved: %s\n", backup)
 	return nil
 }
 
@@ -143,6 +119,7 @@ func runCommand(name string, args ...string) error {
 
 func runCommandDefault(name string, args ...string) error {
 	cmd := exec.Command(name, args...)
+	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()

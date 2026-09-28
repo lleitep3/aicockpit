@@ -11,6 +11,7 @@ import (
 	"github.com/lleitep3/aicockpit/internal/i18n"
 	"github.com/lleitep3/aicockpit/internal/logging"
 	"github.com/lleitep3/aicockpit/internal/vault"
+	"github.com/lleitep3/aicockpit/internal/version"
 	"github.com/spf13/cobra"
 )
 
@@ -418,4 +419,16 @@ func TestCheckForUpdatesWithService_SetLastUpdateCheckFails(t *testing.T) {
 	mock := &mockUpdateChecker{version: "", releaseURL: ""}
 	stdin := strings.NewReader("")
 	checkForUpdatesWithService(log, cfg, tr, stdin, false, mock)
+}
+
+func TestRootVersionUsesBuildMetadata(t *testing.T) {
+	cfg := &config.Config{Version: "stale-config", Language: "en-us"}
+	log, err := logging.NewManager(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	command := NewRootCommand(log, cfg, i18n.New("en-us"))
+	if command.Version != version.GetVersion() {
+		t.Fatalf("wrong version: %s", command.Version)
+	}
 }

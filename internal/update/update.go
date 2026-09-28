@@ -11,6 +11,7 @@ import (
 
 	"github.com/lleitep3/aicockpit/internal/resilience"
 	"github.com/lleitep3/aicockpit/internal/version"
+	"golang.org/x/mod/semver"
 )
 
 const (
@@ -115,24 +116,11 @@ func (s *Service) CheckForUpdates() (string, string, error) {
 	return "", "", nil
 }
 
-// isNewerVersion compares two version strings and returns true if the second is newer
+// isNewerVersion compares valid semantic versions and rejects automatic downgrade.
 func (s *Service) isNewerVersion(latest, current string) bool {
-	latestParts := strings.Split(latest, ".")
-	currentParts := strings.Split(current, ".")
-
-	for i := 0; i < len(latestParts) && i < len(currentParts); i++ {
-		var latestNum, currentNum int
-		fmt.Sscanf(latestParts[i], "%d", &latestNum)
-		fmt.Sscanf(currentParts[i], "%d", &currentNum)
-
-		if latestNum > currentNum {
-			return true
-		} else if latestNum < currentNum {
-			return false
-		}
-	}
-
-	return len(latestParts) > len(currentParts)
+	latest = "v" + strings.TrimPrefix(latest, "v")
+	current = "v" + strings.TrimPrefix(current, "v")
+	return semver.IsValid(latest) && semver.IsValid(current) && semver.Compare(latest, current) > 0
 }
 
 // GetReleaseNotes fetches the release notes for a specific version
