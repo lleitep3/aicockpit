@@ -63,12 +63,43 @@ The full Linux suite passed (1,255 tests before two additional snapshot tests),
 and `go vet ./...` passed. New fixtures cover rollback after post-install failure,
 complete manifest backups, canonical customization preservation, absent assets,
 nested index paths, legacy index compatibility and explicit deployment failures.
-Coverage still needs expansion before review: the initial measurement was 80.6%
-for transaction helpers, 79.7% for the upgrader and 93.2% for the command. Do not
-mark the 90% requirement complete. No live installation was replaced.
+Follow-up validation expanded rollback coverage to 90.7% across `upgrader.go`
+and `upgrade_transaction.go` (individual files: 84.1% and 94.4%). The new registry
+refresh code reaches 93.8%; the upgrade CLI reaches 93.8%. These scoped figures
+are not the repository-wide coverage. No live installation was replaced.
 
 Package trees containing symbolic links or special files are rejected before
 activation in this first implementation. Snapshots are retained under backups;
 operators must reconcile a stale lock after confirming no updater is running.
 A failed restore retains the lock and reports the recovery snapshot location.
 This lock serializes upgrade commands only, not install/uninstall commands.
+
+## Registry refresh implementation plan
+Use a fresh shallow clone of the configured URL/branch, validate its index, then
+swap directories under a per-registry writer lock. Retain the previous cache,
+including local commits and untracked files. Clone/validation failures preserve
+the active cache. No cloud resources or recurring cost; retained clones consume
+local disk until explicitly cleaned by the operator. Test divergent histories,
+changed origin, invalid index, busy lock and preserved user files with local Git.
+Also prevent accidental package downgrades; explicit version requests remain
+available. Binary replacement remains a separate delivery.
+
+## Registry delivery behavior and validation
+A failed refresh now stops package selection; it does not install from stale
+cache or silently switch to a lower-priority registry. Browsing/listing retain
+existing warning-and-cache behavior. Automatic downgrade is rejected, including
+with `--force`; `pkg upgrade name@version` permits an explicitly requested version
+when that exact version is present in the selected index. No persistent version
+pin or installed-origin metadata is introduced by this delivery.
+
+Fresh clones are staged beside the active cache. Prior directories and failed
+staging directories are retained and their recovery paths are reported where
+applicable. A failed restoration retains the writer lock. This does not serialize
+readers with writers or promise automatic recovery from process termination;
+operators must reconcile retained directories/locks before retrying after a crash.
+
+Validated using real temporary Git repositories on Linux: divergent histories,
+untracked files, changed configured origin, invalid/symbolic indexes, lock
+contention, clone failure and injected directory-rename failures. Full suite:
+1,296 passing tests; the subsequent validation-centralization change also passed
+57 focused tests. macOS/Windows execution and the binary updater remain pending.

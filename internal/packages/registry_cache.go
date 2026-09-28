@@ -16,6 +16,7 @@ import (
 type RegistryCache struct {
 	cacheDir  string
 	gitRunner *resilience.GitRunner
+	rename    func(string, string) error
 }
 
 // NewRegistryCache creates a new registry cache manager
@@ -23,6 +24,7 @@ func NewRegistryCache(cockpitDir string) *RegistryCache {
 	return &RegistryCache{
 		cacheDir:  filepath.Join(cockpitDir, "cache", "registries"),
 		gitRunner: resilience.DefaultGitRunner(),
+		rename:    os.Rename,
 	}
 }
 
@@ -38,18 +40,7 @@ func (rc *RegistryCache) GetRegistryCachePath(registryName string) string {
 
 // EnsureRegistry ensures the registry is cloned and up-to-date
 func (rc *RegistryCache) EnsureRegistry(registry RegistryConfig) error {
-	cachePath := rc.GetRegistryCachePath(registry.Name)
-
-	// Check if registry is already cloned
-	if rc.isCloned(cachePath) {
-		// Update existing clone
-		fmt.Printf("Updating registry cache: %s\n", registry.Name)
-		return rc.updateRegistry(cachePath, registry)
-	}
-
-	// Clone registry
-	fmt.Printf("Cloning registry: %s\n", registry.Name)
-	return rc.cloneRegistry(registry, cachePath)
+	return rc.updateRegistry(rc.GetRegistryCachePath(registry.Name), registry)
 }
 
 // isCloned checks if a registry is already cloned
@@ -69,7 +60,7 @@ func (rc *RegistryCache) cloneRegistry(registry RegistryConfig, cachePath string
 	ctx, cancel := gitContext()
 	defer cancel()
 
-	_, err := rc.gitRunner.Run(ctx, "", "clone", "--depth", "1", "-b", registry.Branch, registry.URL, cachePath)
+	_, err := rc.gitRunner.Run(ctx, "", "clone", "--depth", "1", "-b", registry.Branch, "--", registry.URL, cachePath)
 	if err != nil {
 		return fmt.Errorf("failed to clone registry: %w", err)
 	}
@@ -80,19 +71,7 @@ func (rc *RegistryCache) cloneRegistry(registry RegistryConfig, cachePath string
 
 // updateRegistry updates an existing registry clone
 func (rc *RegistryCache) updateRegistry(cachePath string, registry RegistryConfig) error {
-	ctx, cancel := gitContext()
-	defer cancel()
-
-	if _, err := rc.gitRunner.Run(ctx, "", "-C", cachePath, "fetch", "origin", registry.Branch); err != nil {
-		return fmt.Errorf("failed to fetch registry: %w", err)
-	}
-
-	if _, err := rc.gitRunner.Run(ctx, "", "-C", cachePath, "pull", "origin", registry.Branch); err != nil {
-		return fmt.Errorf("failed to pull registry: %w", err)
-	}
-
-	fmt.Printf("✓ Registry updated successfully\n")
-	return nil
+	return rc.refreshRegistry(cachePath, registry)
 }
 
 // GetPackageIndexPath returns the path to package-index.yaml in cache

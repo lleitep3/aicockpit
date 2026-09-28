@@ -36,7 +36,7 @@ func (s *upgradeTestService) UpgradePackage(name, path string) error {
 func (s *upgradeTestService) TriggerDeploy(string) error { return s.deployErr }
 
 func TestUpgradeIndexPathAndDeployOutcome(t *testing.T) {
-	for _, scenario := range []string{"nested-path", "deploy-failure", "index-mismatch"} {
+	for _, scenario := range []string{"nested-path", "deploy-failure", "index-mismatch", "downgrade", "explicit-downgrade", "invalid-version"} {
 		t.Run(scenario, func(t *testing.T) {
 			root := setupLocalGitRegistry(t)
 			base, cfg := testPkgArgs(t)
@@ -50,6 +50,12 @@ func TestUpgradeIndexPathAndDeployOutcome(t *testing.T) {
 				t.Fatal(err)
 			}
 			pkg.Version = "1.0.0"
+			if scenario == "downgrade" || scenario == "explicit-downgrade" {
+				pkg.Version = "3.0.0"
+			}
+			if scenario == "invalid-version" {
+				pkg.Version = "unknown"
+			}
 			if err := packages.SavePackage(installed, pkg); err != nil {
 				t.Fatal(err)
 			}
@@ -67,13 +73,20 @@ func TestUpgradeIndexPathAndDeployOutcome(t *testing.T) {
 				}
 			}
 			cmd := NewPkgUpgradeCommand(svc, cfg)
-			cmd.SetArgs([]string{"hello-pkg"})
+			args := []string{"hello-pkg"}
+			if scenario == "explicit-downgrade" {
+				args = []string{"hello-pkg@2.0.0"}
+			}
+			if scenario == "downgrade" {
+				args = []string{"hello-pkg", "--force"}
+			}
+			cmd.SetArgs(args)
 			err = cmd.Execute()
-			if svc.path != "packages/hello-pkg" {
+			if scenario != "downgrade" && scenario != "invalid-version" && svc.path != "packages/hello-pkg" {
 				t.Fatalf("wrong path %q", svc.path)
 			}
 			switch scenario {
-			case "nested-path":
+			case "nested-path", "explicit-downgrade":
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -81,7 +94,7 @@ func TestUpgradeIndexPathAndDeployOutcome(t *testing.T) {
 				if err == nil || !strings.Contains(err.Error(), "retry cockpit deploy") {
 					t.Fatalf("missing partial failure: %v", err)
 				}
-			case "index-mismatch":
+			case "downgrade", "invalid-version", "index-mismatch":
 				if err == nil || svc.upgraded {
 					t.Fatalf("mismatched candidate activated: %v", err)
 				}
