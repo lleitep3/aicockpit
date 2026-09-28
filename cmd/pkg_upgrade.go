@@ -10,6 +10,7 @@ import (
 	"github.com/lleitep3/aicockpit/internal/packages"
 	"github.com/lleitep3/aicockpit/internal/services"
 	"github.com/spf13/cobra"
+	"golang.org/x/mod/semver"
 )
 
 // NewPkgUpgradeCommand creates the pkg upgrade command.
@@ -67,13 +68,21 @@ func NewPkgUpgradeCommand(svc services.PackageService, cfg *config.Config) *cobr
 			fmt.Printf("Searching for package: %s\n", packageName)
 			pkgEntry, registryName, err := svc.GetPackage(packageName, registriesToSearch)
 			if err != nil {
-				return fmt.Errorf("package not found in registry: %s", packageName)
+				return fmt.Errorf("package lookup failed for %s: %w", packageName, err)
 			}
 
 			if version != "" && pkgEntry.Version != version {
 				return fmt.Errorf("package version %s not found (available: %s)", version, pkgEntry.Version)
 			}
 
+			current := "v" + strings.TrimPrefix(oldPkg.Version, "v")
+			available := "v" + strings.TrimPrefix(pkgEntry.Version, "v")
+			if !semver.IsValid(current) || !semver.IsValid(available) {
+				return fmt.Errorf("cannot safely compare package versions: installed %s, available %s", oldPkg.Version, pkgEntry.Version)
+			}
+			if semver.Compare(available, current) < 0 && version == "" {
+				return fmt.Errorf("refusing automatic downgrade from %s to %s; request %s@%s explicitly", oldPkg.Version, pkgEntry.Version, packageName, pkgEntry.Version)
+			}
 			if pkgEntry.Version == oldPkg.Version && !force {
 				fmt.Printf("Package %s is already up to date (%s)\n", packageName, oldPkg.Version)
 				return nil

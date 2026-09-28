@@ -151,11 +151,19 @@ func TestGetPackage(t *testing.T) {
 	tmpDir := t.TempDir()
 	createTestRegistry(t, tmpDir)
 
+	remote := registryRemote(t)
+	data, err := os.ReadFile(filepath.Join(tmpDir, "cache", "registries", "test-registry", "package-index.yaml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	registryFile(t, remote, "package-index.yaml", string(data))
+	registryGit(t, remote, "add", ".")
+	registryGit(t, remote, "commit", "-m", "index")
 	rm := NewRegistryManager(tmpDir)
 	registries := []RegistryConfig{
 		{
 			Name:     "test-registry",
-			URL:      "https://github.com/test/packages",
+			URL:      remote,
 			Branch:   "main",
 			Enabled:  true,
 			Priority: 1,
@@ -844,7 +852,7 @@ func TestGetPackage_LoadIndexError(t *testing.T) {
 	}
 }
 
-func TestGetPackage_FallbackRegistry(t *testing.T) {
+func TestGetPackage_RejectsStaleFallback(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// First registry has no cache.
@@ -857,7 +865,7 @@ func TestGetPackage_FallbackRegistry(t *testing.T) {
 		Version:     "1.0",
 		Name:        "Second Registry",
 		Description: "Second",
-		URL:         "https://github.com/test/packages",
+		URL:         "/nonexistent/registry",
 		Maintainer:  "Test",
 		Email:       "test@example.com",
 		Metadata:    RegistryMetadata{TotalPackages: 1, Categories: []string{"tools"}},
@@ -872,19 +880,13 @@ func TestGetPackage_FallbackRegistry(t *testing.T) {
 
 	rm := NewRegistryManager(tmpDir)
 	registries := []RegistryConfig{
-		{Name: "first", URL: "https://github.com/test/packages", Branch: "main", Enabled: true, Priority: 1},
-		{Name: "second", URL: "https://github.com/test/packages", Branch: "main", Enabled: true, Priority: 2},
+		{Name: "first", URL: "/nonexistent/registry", Branch: "main", Enabled: true, Priority: 1},
+		{Name: "second", URL: "/nonexistent/registry", Branch: "main", Enabled: true, Priority: 2},
 	}
 
-	pkg, registryName, err := rm.GetPackage("fallback-pkg", registries)
-	if err != nil {
-		t.Fatalf("GetPackage failed: %v", err)
-	}
-	if pkg.Name != "fallback-pkg" {
-		t.Errorf("Expected 'fallback-pkg', got '%s'", pkg.Name)
-	}
-	if registryName != "second" {
-		t.Errorf("Expected registry 'second', got '%s'", registryName)
+	_, _, err := rm.GetPackage("fallback-pkg", registries)
+	if err == nil {
+		t.Fatal("must not silently select stale/lower-priority cache when refresh fails")
 	}
 }
 

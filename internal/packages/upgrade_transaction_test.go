@@ -283,3 +283,103 @@ func TestUpgradeFailedRecoveryRetainsLock(t *testing.T) {
 		t.Fatalf("unsafe retry accepted: %v", err)
 	}
 }
+
+func TestUpgradeRejectsHookCandidateChanges(t *testing.T) {
+	for _, script := range []string{
+		"mv cockpit-package.yml unavailable.yml",
+		"sed -i 's/2.0.0/9.0.0/g' cockpit-package.yml",
+		"mv skills/test.md skills/missing.md",
+		"mv cockpit-package.yml old.yml; mkdir cockpit-package.yml",
+	} {
+		t.Run(script, func(t *testing.T) {
+			root := t.TempDir()
+			pm := NewPackageManager(root)
+			if err := pm.InstallPackage(writeUpgradeFixture(t, root, "1.0.0", "skill", ""), nil); err != nil {
+				t.Fatal(err)
+			}
+			source := writeUpgradeFixture(t, root, "2.0.0", "skill", "  pre_install:\n    - script: change.sh\n")
+			if err := os.WriteFile(filepath.Join(source, "change.sh"), []byte("#!/bin/sh\n"+script+"\n"), 0700); err != nil {
+				t.Fatal(err)
+			}
+			if err := pm.UpgradePackage("safe-pkg", source); err == nil {
+				t.Fatal("invalid hook candidate accepted")
+			}
+			pkg, err := pm.GetInstalledPackage("safe-pkg")
+			if err != nil || pkg.Version != "1.0.0" {
+				t.Fatalf("old version lost: %v %v", pkg, err)
+			}
+		})
+	}
+}
+
+func TestUpgradeSnapshotPreparationFailures(t *testing.T) {
+	for _, kind := range []string{"invalid-old-name", "parent-file", "backup-parent-file", "source-missing", "installed-link"} {
+		t.Run(kind, func(t *testing.T) {
+			root := t.TempDir()
+			source := writeUpgradeFixture(t, root, "1.0.0", "skill", "")
+			pkg, err := LoadPackage(source)
+			if err != nil {
+				t.Fatal(err)
+			}
+			installed := filepath.Join(root, "packages", "safe-pkg")
+			if err := os.MkdirAll(installed, 0700); err != nil {
+				t.Fatal(err)
+			}
+			switch kind {
+			case "invalid-old-name":
+				pkg.Features.Skills[0].Name = "../escape"
+			case "parent-file":
+				if err := os.WriteFile(filepath.Join(root, "skills"), nil, 0600); err != nil {
+					t.Fatal(err)
+				}
+			case "backup-parent-file":
+				if err := os.WriteFile(filepath.Join(root, "backups"), nil, 0600); err != nil {
+					t.Fatal(err)
+				}
+			case "source-missing":
+				source = filepath.Join(root, "missing")
+			case "installed-link":
+				if err := os.Symlink(source, filepath.Join(installed, "link")); err != nil {
+					t.Skip(err)
+				}
+			}
+			if _, err := prepareUpgrade(root, installed, source, pkg, pkg); err == nil {
+				t.Fatal("invalid preparation succeeded")
+			}
+		})
+	}
+}
+
+func TestUpgradePermissionFailures(t *testing.T) {
+	probe := t.TempDir()
+	if err := os.Chmod(probe, 0500); err != nil {
+		t.Skip(err)
+	}
+	t.Cleanup(func() { _ = os.Chmod(probe, 0700) })
+	if err := os.WriteFile(filepath.Join(probe, "probe"), nil, 0600); err == nil {
+		t.Skip("permissions not enforced")
+	}
+	root := t.TempDir()
+	source := writeUpgradeFixture(t, root, "1.0.0", "skill", "")
+	pkg, err := LoadPackage(source)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// A read-only destination must fail before an installed package is touched.
+	if _, err := snapshotUpgradePath(source, filepath.Join(probe, "snapshot")); err == nil {
+		t.Fatal("snapshot unexpectedly writable")
+	}
+	if err := os.MkdirAll(filepath.Join(root, "backups"), 0500); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chmod(filepath.Join(root, "backups"), 0700) })
+	if _, err := prepareUpgrade(root, filepath.Join(root, "packages", "safe-pkg"), source, pkg, pkg); err == nil {
+		t.Fatal("read-only backup accepted")
+	}
+	// Failed restoration must return an error and preserve recovery material.
+	target := filepath.Join(probe, "target")
+	tx := upgradeTransaction{dir: filepath.Join(probe, "backups", "transaction"), snapshots: []upgradeSnapshot{{target: target, backup: source, existed: true}}}
+	if err := tx.restore(); err == nil {
+		t.Fatal("restore failure swallowed")
+	}
+}

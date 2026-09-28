@@ -178,7 +178,7 @@ func (rm *RegistryManager) GetPackage(packageName string, registries []RegistryC
 
 		// Ensure registry is cloned and up-to-date
 		if err := rm.cache.EnsureRegistry(registry); err != nil {
-			fmt.Printf("Warning: failed to sync registry %s: %v\n", registry.Name, err)
+			return nil, "", fmt.Errorf("cannot select package from registry %s: refresh failed: %w", registry.Name, err)
 		}
 
 		// Load package index from cache
