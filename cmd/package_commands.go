@@ -67,9 +67,15 @@ func LoadPackageCommands(rootCmd *cobra.Command) error {
 func createPackageCommand(pkg *packages.Package, packageName, packagePath string) *cobra.Command {
 	// Try to get the command name from the package features
 	commandName := getPackageCommandName(pkg, packageName)
+	// Keep the package identity stable when a manifest chooses a short command.
+	var aliases []string
+	if commandName != packageName {
+		aliases = []string{packageName}
+	}
 
 	return &cobra.Command{
 		Use:                commandName,
+		Aliases:            aliases,
 		Short:              pkg.Description,
 		Long:               pkg.Description,
 		DisableFlagParsing: true,

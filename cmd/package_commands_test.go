@@ -402,3 +402,40 @@ func TestExecuteScript_ScriptFails(t *testing.T) {
 		t.Error("executeScript with failing script should error")
 	}
 }
+
+// A renamed primary command must keep the package identity callable.
+func TestPackageCommandStableAlias(t *testing.T) {
+	cases := []struct {
+		name, primary, invoked string
+		alias                  bool
+	}{
+		{"short command", "cp", "cp", true},
+		{"legacy package name", "cp", "ai-dlc-flow", true},
+		{"unchanged name", "ai-dlc-flow", "ai-dlc-flow", false},
+		{"fallback", "", "ai-dlc-flow", false},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			directory := t.TempDir()
+			if err := os.Mkdir(filepath.Join(directory, "bin"), 0o755); err != nil {
+				t.Fatal(err)
+			}
+			// Validate routing, unchanged arguments, and the package namespace.
+			script := "#!/bin/sh\n[ \"$COCKPIT_PACKAGE_CONTEXT\" = ai-dlc-flow ] && [ \"$1\" = control-panel ] && [ \"$2\" = --example ]\n"
+			if err := os.WriteFile(filepath.Join(directory, "bin", "ai-dlc-flow"), []byte(script), 0o755); err != nil {
+				t.Fatal(err)
+			}
+			pkg := &packages.Package{Features: packages.Features{Modules: []packages.Feature{{Name: tc.primary}}}}
+			command := createPackageCommand(pkg, "ai-dlc-flow", directory)
+			if (len(command.Aliases) == 1) != tc.alias {
+				t.Fatalf("aliases = %v", command.Aliases)
+			}
+			root := &cobra.Command{Use: "cockpit"}
+			root.AddCommand(command)
+			root.SetArgs([]string{tc.invoked, "control-panel", "--example"})
+			if err := root.Execute(); err != nil {
+				t.Fatal(err)
+			}
+		})
+	}
+}
