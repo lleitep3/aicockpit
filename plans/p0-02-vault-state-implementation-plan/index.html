@@ -1,0 +1,1419 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="AI Harness Engineering Platform">
+      
+      
+      
+        <link rel="canonical" href="https://lleitep3.github.io/aicockpit/plans/p0-02-vault-state-implementation-plan/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>P0-02 / UH-02 — Plano de implementação: proteção do estado de bloqueio - AICockpit</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#p0-02-uh-02-plano-de-implementacao-protecao-do-estado-de-bloqueio" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="AICockpit" class="md-header__button md-logo" aria-label="AICockpit" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AICockpit
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              P0-02 / UH-02 — Plano de implementação: proteção do estado de bloqueio
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/lleitep3/aicockpit" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lleitep3/aicockpit
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../QUICK_START/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Quick Start
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../FEATURES/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Features
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../architecture/01-overview/" class="md-tabs__link">
+          
+  
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../vault-guide/" class="md-tabs__link">
+          
+  
+  
+  Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../INSTALLATION.md" class="md-tabs__link">
+          
+  
+  
+  Installation
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../CONTRIBUTING/" class="md-tabs__link">
+          
+  
+  
+  Contributing
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="AICockpit" class="md-nav__button md-logo" aria-label="AICockpit" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    AICockpit
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/lleitep3/aicockpit" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lleitep3/aicockpit
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../QUICK_START/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quick Start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../FEATURES/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Features
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/01-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/07-project-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/canonical-compiler.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Canonical Compiler
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/04-package-registries/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Registries
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/05-vault-system/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Vault System
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/06-knowledge-base/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Knowledge Base
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vault-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Vault Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../LOGGING_AND_METRICS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logging & Metrics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tracking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tracking de Pacotes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../COMMAND_DOCUMENTATION_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Command Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Installation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../INSTALLATION.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../INSTALLATION_SCRIPTS.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scripts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../INSTALLATION_OPTIONS.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Options
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Contributing
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CONTRIBUTING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../AGENTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AI Agents Directives
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="p0-02-uh-02-plano-de-implementacao-protecao-do-estado-de-bloqueio">P0-02 / UH-02 — Plano de implementação: proteção do estado de bloqueio<a class="headerlink" href="#p0-02-uh-02-plano-de-implementacao-protecao-do-estado-de-bloqueio" title="Permanent link">&para;</a></h1>
+<p>Status: pronto para implementação em outra sessão, preferencialmente Luna.
+Data da análise: 2026-09-04. Nenhuma mudança de código foi feita nesta tarefa de planejamento.</p>
+<p>Contexto: <a href="../PRODUCT_VISION.md">visão de produto</a> e <a href="user-harness-roadmap.md">backlog</a>.</p>
+<h2 id="1-objetivo-e-limite-da-entrega">1. Objetivo e limite da entrega<a class="headerlink" href="#1-objetivo-e-limite-da-entrega" title="Permanent link">&para;</a></h2>
+<p>Impedir que alguém com acesso apenas ao arquivo de estado consiga reconstruir a chave, adulterar permissões e produzir uma assinatura válida usando hostname, UID e salt público. Falhas de chave, leitura, autenticação ou persistência não podem conceder acesso nem ser ocultadas.</p>
+<p>A entrega protege o estado de bloqueio do cockpit. Não recriptografa as credenciais existentes, não implementa um novo gerenciador de senhas e não transforma o cockpit numa barreira contra processos que executam como o próprio usuário e conseguem acessar seu keyring. Documentar também a ausência de proteção contra rollback de um ciphertext válido antigo; isso exige mecanismo adicional de estado confiável.</p>
+<p>Não implementar UH-01, demais tasks do roadmap, mudanças de providers, adapter Codex ou reformulação completa do vault. Correções adjacentes de erro/autorização necessárias a esta entrega entram no escopo, conforme seção 7.</p>
+<h2 id="2-preparacao-e-convivencia-com-outras-sessoes">2. Preparação e convivência com outras sessões<a class="headerlink" href="#2-preparacao-e-convivencia-com-outras-sessoes" title="Permanent link">&para;</a></h2>
+<ol>
+<li>Ler <code>AGENTS.md</code> e instruções aplicáveis aos arquivos tocados, inclusive <code>cmd/AGENTS.md</code> se existir. Usar Go 1.26+ e RTK; nesta máquina ele está em <code>/home/lleite/.local/bin/rtk</code> quando ausente do PATH.</li>
+<li>Consultar KB com <code>cockpit kb search "vault lock state encryption migration"</code>. Se falhar por logging/permissões, registrar a limitação e continuar pela leitura do código; não alterar dados pessoais para destravar o planejamento.</li>
+<li>Examinar <code>git status</code> e diffs. Existem mudanças locais de outra sessão, incluindo adapter Codex. Não usar checkout/reset/stash sobre elas, não trocar a branch compartilhada e não executar formatação global.</li>
+<li>Preferir checkout/worktree isolado. Se partir de HEAD, conferir se o código de vault corresponde ao baseline deste plano. Nunca incluir alterações alheias no diff ou commit.</li>
+<li>Não executar comandos reais de lock/unlock/reset, não migrar o vault pessoal, não instalar/deployar globalmente. Todo experimento usa fixtures e backend falso.</li>
+</ol>
+<h2 id="3-evidencias-a-reconfirmar-no-codigo">3. Evidências a reconfirmar no código<a class="headerlink" href="#3-evidencias-a-reconfirmar-no-codigo" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Arquivo</th>
+<th>Problema observado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>internal/vault/state_encryptor.go</code></td>
+<td><code>getEncryptionKey</code> sempre usa <code>deriveFixedKey</code>; HMAC também usa dados públicos; versão não é validada; caminho pessoal hardcoded</td>
+</tr>
+<tr>
+<td><code>internal/vault/lock_manager.go</code></td>
+<td>Construtor ignora erro de load; load mascara corrupção; mutações ocorrem antes de save; <code>GetStatus</code> expõe mapa interno e usa RLock aninhado</td>
+</tr>
+<tr>
+<td><code>internal/vault/master_password.go</code></td>
+<td>Caminho hardcoded; load pode converter corrupção em senha desabilitada; verificador é SHA-256 simples protegido por chave pública derivável</td>
+</tr>
+<tr>
+<td><code>cmd/vault_lock.go</code></td>
+<td>Uso de modo dev como bypass; comandos de senha/reset precisam ser examinados; alguns erros de persistência são ignorados</td>
+</tr>
+<tr>
+<td><code>internal/vault/vault.go</code></td>
+<td>Já usa <code>github.com/zalando/go-keyring</code>; índice de credenciais do usuário não deve armazenar nem remover a chave interna de estado</td>
+</tr>
+</tbody>
+</table>
+<p>Consultar call sites com <code>rg 'NewLockManager|NewStateEncryptor|NewMasterPassword|CanPackageAccess|UnlockPackage|IsVaultLocked'</code>. Atualizar testes de contrato, não apenas testes das funções criptográficas.</p>
+<h2 id="4-decisao-tecnica-para-esta-implementacao">4. Decisão técnica para esta implementação<a class="headerlink" href="#4-decisao-tecnica-para-esta-implementacao" title="Permanent link">&para;</a></h2>
+<h3 id="41-chave-aleatoria-gerenciada-pelo-sistema">4.1 Chave aleatória gerenciada pelo sistema<a class="headerlink" href="#41-chave-aleatoria-gerenciada-pelo-sistema" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Gerar 32 bytes com <code>crypto/rand</code> para AES-256 e persistir no keyring usando a dependência já presente.</li>
+<li>Serviço interno dedicado, por exemplo <code>aicockpit-internal</code>; entrada de chave versionada e identificada pelo envelope. Não usar <code>NewOSVault</code>, não inserir a chave no índice público de secrets, não expô-la pela CLI de leitura de credenciais.</li>
+<li>Injetar uma interface pequena de key store; permitir fake em memória e falhas programáveis. Evitar globals mutáveis nos testes.</li>
+<li>Separar leitura de chave de criação. Abrir estado existente jamais cria ou substitui chave ausente.</li>
+<li>Criar chave somente na inicialização/migração explícita e controlada. <code>ErrNotFound</code> é diferente de keyring bloqueado ou indisponível. Não há fallback para arquivo plaintext, hostname, UID, variável de ambiente ou senha hardcoded.</li>
+<li>Validar comprimento/base64 de chave recuperada. Erros não podem incluir segredo, senha, ciphertext completo ou material derivado.</li>
+<li>Chave própria de infraestrutura e senha mestra têm papéis distintos: a primeira autentica o estado; a segunda autoriza operações pela interface do cockpit. Não afirmar que esta mudança deriva a criptografia da senha.</li>
+</ul>
+<h3 id="42-envelope-v2">4.2 Envelope v2<a class="headerlink" href="#42-envelope-v2" title="Permanent link">&para;</a></h3>
+<p>Usar estrutura explícita com <code>version</code>, <code>key_id</code> e <code>data</code> codificada em base64. <code>data</code> contém nonce e ciphertext autenticado. Eliminar HMAC e nonce duplicado no formato novo.</p>
+<p>Usar AES-GCM da biblioteca padrão. Com Go 1.26, preferir <code>cipher.NewGCMWithRandomNonce</code> e seguir seu contrato de <code>Seal/Open</code>; não implementar nonce manual ou cifra própria. Associar versão e key_id como AAD usando serialização determinística e sem ambiguidades. Rejeitar versões desconhecidas e combinações de campos inválidas. AAD não fornece proteção contra replay.</p>
+<p>Limitar tamanho de arquivo antes de desserializar e tratar base64/JSON truncados sem panic. Validar semântica do plaintext: mapa não nulo, booleanos coerentes e expiração. Nunca interpretar ausência de dados como autorização global.</p>
+<h3 id="43-persistencia-e-concorrencia">4.3 Persistência e concorrência<a class="headerlink" href="#43-persistencia-e-concorrencia" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Diretório privado (0700 em POSIX), arquivo temporário exclusivo com 0600 na mesma pasta, escrita completa/close/sync conforme suporte, depois rename atômico.</li>
+<li>Não usar destino fixo <code>.tmp</code>; limpar somente temporários criados pela operação. Preservar o arquivo anterior em falhas.</li>
+<li>Serializar read-modify-write entre processos, não apenas entre goroutines, para evitar unlock obsoleto sobrescrever lock. Escolher mecanismo pequeno compatível com plataformas suportadas; se exigir dependência, justificar no ADR e testar a implementação adotada. Não improvisar lockfile com remoção de lock supostamente antigo.</li>
+<li>Inicialização/migração e criação de chave também precisam dessa exclusão. Recarregar estado dentro da seção crítica antes de aplicar transição.</li>
+<li>Em mutações que ampliam acesso, publicar estado em memória só após persistência bem-sucedida. Em falha de lock/revogação, negar acesso localmente e retornar erro; não declarar revogação persistida para outros processos.</li>
+</ul>
+<h2 id="5-estados-e-erros-contrato-esperado">5. Estados e erros: contrato esperado<a class="headerlink" href="#5-estados-e-erros-contrato-esperado" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Situação</th>
+<th>Resultado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Instalação nova, arquivo ausente</td>
+<td>Estado lógico bloqueado; leitura não cria chave; inicialização explícita persiste v2</td>
+</tr>
+<tr>
+<td>v2 válido e chave disponível</td>
+<td>Carregar estado validado, respeitando expiração</td>
+</tr>
+<tr>
+<td>v2 com chave ausente/inacessível</td>
+<td>Negar acesso e retornar erro específico; não gerar outra chave</td>
+</tr>
+<tr>
+<td>JSON/base64/versão/tag inválida</td>
+<td>Negar acesso e retornar erro; não sobrescrever o arquivo</td>
+</tr>
+<tr>
+<td>v1 legado</td>
+<td>Negar acesso e indicar migração necessária; não honrar desbloqueios antigos</td>
+</tr>
+<tr>
+<td>Falha de save em unlock</td>
+<td>Erro e nenhum novo acesso concedido</td>
+</tr>
+<tr>
+<td>Prazo expirado</td>
+<td>Nenhum grant abrangido pelo prazo concede acesso, inclusive grant por pacote</td>
+</tr>
+<tr>
+<td>Erro de migração</td>
+<td>Credenciais e arquivos legados preservados; acesso bloqueado</td>
+</tr>
+</tbody>
+</table>
+<p>Preferir construtores que retornem erro, com dependências injetáveis; atualizar todos os call sites. Se preservar wrapper por compatibilidade, ele deve reter erro de inicialização, negar acesso e impedir mutações até recuperação explícita. Não permitir que wrapper silencioso abra um segundo caminho inseguro.</p>
+<p>Centralizar avaliação de acesso/expiração. <code>IsVaultLocked</code>, <code>IsPackageUnlocked</code>, <code>CanPackageAccess</code> e status precisam concordar. Retornar cópias de mapas, remover RLock recursivo e testar concorrência. Não ampliar escopo para daemon de sessões; cada operação deve usar estado atual sob o contrato estabelecido.</p>
+<h2 id="6-migracao-conservadora-v1-v2">6. Migração conservadora v1 → v2<a class="headerlink" href="#6-migracao-conservadora-v1-v2" title="Permanent link">&para;</a></h2>
+<p>Implementar operação explícita, proposta <code>cockpit vault migrate-state</code>; preservar UX dos comandos existentes, que devem apontar para ela quando necessário.</p>
+<ol>
+<li>Detectar v1 sem confiar no seu conteúdo: a chave antiga permite falsificação.</li>
+<li>Explicar que grants anteriores serão descartados e o estado ficará bloqueado. Exigir confirmação explícita por flag para automação ou confirmação interativa; sem entrada interativa disponível, retornar orientação e código não zero.</li>
+<li>Reutilizar exclusão entre processos. Criar backup exclusivo dos bytes originais com 0600; nunca sobrescrever backup anterior.</li>
+<li>Criar chave interna nova e gravar envelope v2 contendo apenas estado seguro bloqueado, sem grants ou desbloqueio global herdado.</li>
+<li>Confirmar leitura/autenticação do novo arquivo. Não apagar o backup nem alterar credenciais, índice público, permissões de pacotes ou senha mestra.</li>
+<li>Executar novamente deve ser no-op verificável quando v2 já for válido. Corrupção/versão desconhecida não entra automaticamente no caminho legado.</li>
+</ol>
+<p>Se senha mestra existente estiver inválida, não interpretar como proteção desabilitada nem fazer recuperação automática. A operação de migração somente bloqueia e não deve configurar/desabilitar uma senha. Recuperação de senha é outra operação.</p>
+<p>Perder a chave de v2 também exige recuperação explícita que preserva credenciais e reinicializa apenas grants para bloqueado; nunca gerar nova chave silenciosamente durante leitura. Registrar claramente o tratamento adotado e testar interrupções entre criação da chave e escrita do envelope. Não apagar chaves que possam estar referenciadas por outro estado.</p>
+<h2 id="7-senha-mestra-correcoes-necessarias-e-limite">7. Senha mestra: correções necessárias e limite<a class="headerlink" href="#7-senha-mestra-correcoes-necessarias-e-limite" title="Permanent link">&para;</a></h2>
+<p>Esta tarefa não redesenha o verificador nem migra todos os registros de senha. Porém, não pode deixar estes caminhos abrirem acesso:</p>
+<ul>
+<li>Propagar erros de carregamento de senha mestra; corrupção não equivale a senha desabilitada.</li>
+<li>Remover caminhos pessoais hardcoded nos fluxos tocados e injetar paths para testes.</li>
+<li>Se já existe senha, configurar/substituir/desabilitar proteção exige autenticação atual no fluxo normal. Não permitir que <code>set-master-password</code> sobrescreva a existente sem validar a anterior.</li>
+<li><code>COCKPIT_DEV_MODE</code> não desativa verificação do estado v2 nem autenticação de produção. Testes usam dependências falsas, não bypass ativável por ambiente.</li>
+<li><code>ForceSet</code>/factory reset não viram fallback de migração. Não executar reset real; preservar confirmação destrutiva e tratar erros. Definir se a chave interna deve ser mantida ou removida em reset explícito e cobrir por fake, sem excluir credenciais durante migração.</li>
+</ul>
+<p>Documentar como limitações separadas o armazenamento legado da senha mestra,
+o acesso direto ao keyring e replay de estado. O verificador da senha mestra foi
+modernizado após a revisão de segurança para PBKDF2-HMAC-SHA256 com salt
+aleatório; não anunciar “vault seguro contra agentes locais” ao concluir.</p>
+<h2 id="8-etapas-pequenas-para-luna">8. Etapas pequenas para Luna<a class="headerlink" href="#8-etapas-pequenas-para-luna" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Baseline e testes de regressão:</strong> mapear callers; fixtures temporárias; testes de adulteração e save com falha. Registrar falhas preexistentes separadamente.</li>
+<li><strong>Key store e envelope v2:</strong> criar interface, fake e implementação keyring; round-trip e falhas de autenticação. Sem tocar na CLI ainda.</li>
+<li><strong>Manager e armazenamento:</strong> propagar erros, transições seguras, expiração, snapshots e concorrência entre processos. Atualizar callers.</li>
+<li><strong>Migração explícita:</strong> comando, confirmação, backups, idempotência e falhas injetadas; preservar secrets.</li>
+<li><strong>Integração de senha/CLI:</strong> fechar bypasses citados na seção 7, manter limites do escopo.</li>
+<li><strong>Verificação e documentação:</strong> testes completos isolados, ADR curto, guia de migração e limitações; relatório de resultado. Não rodar migração no ambiente pessoal para demonstrar.</li>
+</ol>
+<p>Concluir cada etapa com os testes pertinentes antes de avançar. Não criar subagentes; este plano foi delimitado para uma única sessão.</p>
+<h2 id="9-matriz-minima-de-testes">9. Matriz mínima de testes<a class="headerlink" href="#9-matriz-minima-de-testes" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Mesma chave permite round-trip em duas instâncias; estados iguais produzem ciphertexts distintos.</li>
+<li>Chave errada, key_id/AAD adulterado, tag alterada, base64 inválido, truncamento, arquivo grande e versão desconhecida falham sem panic.</li>
+<li>Hostname/UID/salt antigos não abrem nem autenticam v2.</li>
+<li>Keyring ausente, bloqueado, erro ao criar e chave de tamanho inválido não concedem acesso; nenhuma leitura cria chave.</li>
+<li>Falhas em cada etapa de write/rename não publicam unlock em memória e preservam arquivo anterior.</li>
+<li>v1 originalmente desbloqueado migra para bloqueado; backup preservado; interrupções e repetição da migração são seguras; chamadas ao backend de credenciais permanecem zeradas.</li>
+<li>Erro/corrupção de senha não desabilita autenticação; dev mode não contorna v2; troca/desativação exigem autenticação quando habilitada.</li>
+<li>Autolock global e por pacote, status coerente, snapshot sem alias, goroutines e processos concorrentes sem perda de revogação por estado obsoleto.</li>
+<li>CLI retorna não zero em falha, não imprime sucesso prematuro, não inclui segredos em logs e não solicita senha inesperadamente em leitura de status.</li>
+<li>Nenhum teste usa HOME real, keyring real, D-Bus pessoal, índice de secrets real ou factory reset real. Fake obrigatório inclusive em testes antigos executados pela suíte.</li>
+</ul>
+<h2 id="10-comandos-de-validacao">10. Comandos de validação<a class="headerlink" href="#10-comandos-de-validacao" title="Permanent link">&para;</a></h2>
+<p>Executar no checkout isolado após corrigir isolamento dos testes tocados. Ajustar caminho de <code>rtk</code>/Go conforme ambiente.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>rtk<span class="w"> </span>go<span class="w"> </span><span class="nb">test</span><span class="w"> </span>-race<span class="w"> </span>./internal/vault
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>rtk<span class="w"> </span>go<span class="w"> </span><span class="nb">test</span><span class="w"> </span>-race<span class="w"> </span>./cmd<span class="w"> </span>-run<span class="w"> </span><span class="s1">'Vault|Lock|MasterPassword'</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>rtk<span class="w"> </span>go<span class="w"> </span><span class="nb">test</span><span class="w"> </span>-race<span class="w"> </span>-coverprofile<span class="o">=</span>/tmp/uh02-vault-coverage.out<span class="w"> </span>./internal/vault
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>rtk<span class="w"> </span>proxy<span class="w"> </span>go<span class="w"> </span>tool<span class="w"> </span>cover<span class="w"> </span>-func<span class="o">=</span>/tmp/uh02-vault-coverage.out
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>rtk<span class="w"> </span>go<span class="w"> </span>vet<span class="w"> </span>./...
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>rtk<span class="w"> </span>go<span class="w"> </span><span class="nb">test</span><span class="w"> </span>-race<span class="w"> </span>./...
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>rtk<span class="w"> </span>git<span class="w"> </span>diff<span class="w"> </span>--check
+</code></pre></div>
+<p>Usar timeouts finitos para testes de processos/locks. Só executar suíte completa depois de assegurar que ela não toca dados pessoais. Se houver falha alheia ou restrição de ambiente, reportar exatamente; não declarar tudo aprovado. Meta do projeto: pelo menos 90% em vault após a mudança, além dos cenários críticos acima. Não alterar testes para simplesmente aceitar falhas nem aumentar cobertura com testes que espelham implementação.</p>
+<h2 id="11-criterio-de-conclusao-e-entrega">11. Critério de conclusão e entrega<a class="headerlink" href="#11-criterio-de-conclusao-e-entrega" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Estado v2 usa chave aleatória no keyring e autenticação AEAD padrão.</li>
+<li>Falhas não concedem acesso e têm erro observável.</li>
+<li>Migração preserva credenciais, guarda legado e descarta grants não confiáveis.</li>
+<li>Concorrência/persistência e expiração seguem o contrato e possuem testes.</li>
+<li>Caminhos tocados não dependem do nome do usuário; testes não usam recursos pessoais.</li>
+<li>Documentação distingue proteção de estado, autenticação da CLI e limites do keyring.</li>
+<li>Entregar arquivos alterados, resumo da decisão, testes/cobertura, instrução de migração e riscos restantes. Sugerir registro das lições na KB, sem inserir segredos e sem afirmar que <code>kb add</code> já funciona.</li>
+<li>Não fazer deploy, release, push ou migração real automaticamente. Não misturar a feature Codex ou outras mudanças do worktree.</li>
+</ul>
+<h2 id="12-referencias-tecnicas">12. Referências técnicas<a class="headerlink" href="#12-referencias-tecnicas" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="https://pkg.go.dev/crypto/cipher">Go crypto/cipher</a>: contrato de AEAD e GCM com nonce aleatório.</li>
+<li><a href="https://github.com/zalando/go-keyring">go-keyring</a>: backend já adotado pelo projeto; tratar erros da API explicitamente.</li>
+<li>Código local listado na seção 3 é a referência do comportamento atual; reconfirmar antes de editar pois há outras sessões ativas.</li>
+</ul>
+<h2 id="13-prompt-para-iniciar-a-outra-sessao">13. Prompt para iniciar a outra sessão<a class="headerlink" href="#13-prompt-para-iniciar-a-outra-sessao" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p>Implemente o P0-02/UH-02 do AICockpit seguindo <code>docs/plans/p0-02-vault-state-implementation-plan.md</code>. Leia primeiro as instruções aplicáveis e reconfirme o código atual. Trabalhe em etapas pequenas, com testes isolados e backend de keyring falso; preserve mudanças de outras sessões, especialmente o adapter Codex. A entrega é proteção do estado v2, erros que negam acesso, migração explícita sem perda de credenciais e documentação dos limites. Não execute migração/reset no meu vault real, não faça deploy ou push e não amplie o escopo para outros itens do roadmap. Reporte validações, cobertura e pendências com precisão.</p>
+</blockquote>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "toc.integrate", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

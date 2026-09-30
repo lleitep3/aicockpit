@@ -1,0 +1,8 @@
+{
+  "version": "1",
+  "global_denied_commands": [
+    "curl * | bash",
+    "wget * | bash",
+    "chmod 777"
+  ]
+}

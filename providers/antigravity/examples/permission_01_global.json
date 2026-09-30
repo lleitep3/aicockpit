@@ -1,0 +1,16 @@
+{
+  "grantedPermissions": [
+    {
+      "Action": "command",
+      "Target": "git"
+    },
+    {
+      "Action": "command",
+      "Target": "go test"
+    },
+    {
+      "Action": "command",
+      "Target": "go build"
+    }
+  ]
+}
