@@ -52,6 +52,7 @@ func NewRootCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translator
 	rootCmd.AddCommand(NewUpdateCommand(log, cfg, t))
 	rootCmd.AddCommand(NewProjectCommand(log, cfg, t))
 	rootCmd.AddCommand(NewCodexCommand())
+	rootCmd.AddCommand(NewSkillsCommand())
 
 	// Load commands from installed packages
 	if err := LoadPackageCommands(rootCmd); err != nil {
