@@ -10,7 +10,7 @@ version: "1.0"
 
 ## Overview
 
-This guide explains how to set up AICockpit for multiple AI providers simultaneously. AICockpit supports Devin, Goose, Claude Code, and GitHub Copilot, allowing you to use different AI agents with the same knowledge base and components.
+This guide explains how to set up AICockpit for multiple AI providers simultaneously. Cockpit compiles shared canonical assets for each enabled provider; GitHub Copilot CLI receives its supported instructions, skills, workflows-as-skills, and custom agents under `~/.copilot`.
 
 ## Quick Start
 
@@ -28,6 +28,8 @@ This script will:
 4. Copy knowledge base documents
 5. Copy example components
 6. Verify installations
+
+For GitHub Copilot CLI, Cockpit uses the CLI's user-level paths under `~/.copilot`; it does not create a separate workspace, `config.yaml`, manifest, or knowledge base there.
 
 ### Manual Setup
 
@@ -49,10 +51,10 @@ mkdir -p ~/.claude-code/{agents,skills,hooks,kb,logs,cache,backups}
 cp config.yaml ~/.claude-code/
 cp manifest.yaml ~/.claude-code/
 
-# Setup GitHub Copilot
-mkdir -p ~/.github-copilot/{agents,skills,hooks,kb,logs,cache,backups}
-cp config.yaml ~/.github-copilot/
-cp manifest.yaml ~/.github-copilot/
+# Setup GitHub Copilot CLI
+# Install and authenticate the Copilot CLI, enable `github-copilot` in
+# ~/.cockpit/providers.yaml, then deploy Cockpit assets:
+cockpit deploy
 ```
 
 ## Verification
@@ -87,9 +89,9 @@ cat ~/.goose/config.yaml
 ls -la ~/.claude-code/
 cat ~/.claude-code/config.yaml
 
-# Check GitHub Copilot installation
-ls -la ~/.github-copilot/
-cat ~/.github-copilot/config.yaml
+# Check instructions and skills discovered by Copilot CLI
+copilot instruction list
+copilot skill list
 ```
 
 ## Directory Structure
@@ -140,16 +142,10 @@ Home Directory
 │   ├── config.yaml
 │   └── manifest.yaml
 │
-└── .github-copilot/             # GitHub Copilot
-    ├── agents/
-    ├── skills/
-    ├── hooks/
-    ├── kb/
-    ├── logs/
-    ├── cache/
-    ├── backups/
-    ├── config.yaml
-    └── manifest.yaml
+└── .copilot/                    # GitHub Copilot CLI user configuration
+    ├── agents/*.agent.md
+    ├── copilot-instructions.md
+    └── skills/<name>/SKILL.md
 ```
 
 ## Configuration Files
@@ -223,32 +219,13 @@ hooks:
   enabled: true
 ```
 
-### GitHub Copilot Configuration
+### GitHub Copilot CLI Configuration
 
-```yaml
-# ~/.github-copilot/config.yaml
-version: "0.2.0"
-language: "en-us"
-log_level: "info"
-ai_provider: "github-copilot"
-
-kb:
-  roots:
-    - ~/.github-copilot/kb
-
-agents:
-  enabled: true
-  
-skills:
-  enabled: true
-  
-hooks:
-  enabled: true
-```
+O provider é configurado em `~/.cockpit/providers.yaml` e publica os arquivos reconhecidos pelo Copilot CLI em `~/.copilot`. Ele não cria um `config.yaml`, manifest, KB, hooks ou política de permissões próprios. Consulte o guia `github-copilot-cli.md` na KB para a configuração e os limites.
 
 ## Installation Manifest
 
-Each provider has its own manifest file:
+Providers that use a Cockpit installation manifest keep it in their own workspace. GitHub Copilot CLI does not use a Cockpit manifest; its provider configuration stays in `~/.cockpit/providers.yaml`.
 
 ```yaml
 # ~/.cockpit/manifest.yaml
@@ -346,8 +323,8 @@ export COCKPIT_PROVIDER=goose
 # Set Claude Code as active
 export COCKPIT_PROVIDER=claude-code
 
-# Set GitHub Copilot as active
-export COCKPIT_PROVIDER=github-copilot
+# Deploy assets to enabled providers, including GitHub Copilot CLI
+cockpit deploy
 ```
 
 ### Run Commands with Specific Provider
@@ -362,8 +339,9 @@ COCKPIT_PROVIDER=goose cockpit kb search "logging"
 # List documents in Claude Code
 COCKPIT_PROVIDER=claude-code cockpit kb list
 
-# List documents in GitHub Copilot
-COCKPIT_PROVIDER=github-copilot cockpit kb list
+# Inspect Copilot CLI instructions and skills
+copilot instruction list
+copilot skill list
 ```
 
 ## Synchronizing Across Providers
@@ -401,7 +379,7 @@ mkdir -p ~/.shared-kb
 cp -r ~/.cockpit/kb/* ~/.shared-kb/
 
 # Update all configs to use shared KB
-for provider in cockpit goose claude-code github-copilot; do
+for provider in cockpit goose claude-code; do
     sed -i 's|~/.'"$provider"'/kb|~/.shared-kb|' ~/."$provider"/config.yaml
 done
 ```
@@ -415,7 +393,7 @@ done
 ls -la ~/.cockpit
 ls -la ~/.goose
 ls -la ~/.claude-code
-ls -la ~/.github-copilot
+ls -la ~/.copilot
 
 # Run setup script again
 bash scripts/setup-multi-provider.sh
@@ -489,7 +467,7 @@ cp -r ~/.goose ~/.goose.backup
 
 ```bash
 # Check disk usage
-du -sh ~/.cockpit ~/.goose ~/.claude-code ~/.github-copilot
+du -sh ~/.cockpit ~/.goose ~/.claude-code ~/.copilot
 
 # Total usage
 du -sh ~/ | grep -E "cockpit|goose|claude|copilot"
@@ -507,7 +485,7 @@ mkdir -p ~/.shared-kb
 cp -r ~/.cockpit/kb/* ~/.shared-kb/
 
 # Update configs
-for dir in ~/.cockpit ~/.goose ~/.claude-code ~/.github-copilot; do
+for dir in ~/.cockpit ~/.goose ~/.claude-code; do
     sed -i 's|'"$dir"'/kb|~/.shared-kb|' "$dir/config.yaml"
 done
 ```
@@ -590,7 +568,7 @@ mkdir -p ~/.shared-kb
 cp -r ~/.cockpit/kb/* ~/.shared-kb/
 
 # Update all configs
-for provider in cockpit goose claude-code github-copilot; do
+for provider in cockpit goose claude-code; do
     sed -i 's|~/.'"$provider"'/kb|~/.shared-kb|' ~/."$provider"/config.yaml
 done
 

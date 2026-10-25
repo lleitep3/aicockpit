@@ -627,7 +627,7 @@ func TestProviderManagerDeployCodex(t *testing.T) {
 		"<!-- /cockpit:global -->",
 	})
 	assertCodexFileContains(t, filepath.Join(projectDir, ".agents", "skills", "release", "SKILL.md"), []string{
-		"name: \"release\"",
+		"name: release",
 		"Run the release checklist.",
 	})
 	assertCodexFileContains(t, filepath.Join(projectDir, ".agents", "skills", "deploy", "SKILL.md"), []string{

@@ -113,21 +113,26 @@ func (c *CodexCompiler) CompileSkills(skills []CanonicalSkill, provider *Provide
 		if err := validateCodexArtifactName(skill.Name, "skill"); err != nil {
 			return nil, err
 		}
+		directory := canonicalSkillDirectory(skill)
+		if err := validateCodexArtifactName(directory, "skill directory"); err != nil {
+			return nil, err
+		}
 
-		skillPath := filepath.Join(feature.Path, skill.Name)
-		content := renderCodexSkill(skill.Name, skill.Description, skill.Content)
+		skillPath := filepath.Join(feature.Path, directory)
+		content := renderCanonicalSkill(skill)
 		files[filepath.Join(skillPath, "SKILL.md")] = AddGeneratedHeader(content, codexProviderName)
 
-		scriptNames := make([]string, 0, len(skill.ScriptFiles))
-		for scriptName := range skill.ScriptFiles {
-			scriptNames = append(scriptNames, scriptName)
+		resources := canonicalSkillResources(skill)
+		resourceNames := make([]string, 0, len(resources))
+		for resourceName := range resources {
+			resourceNames = append(resourceNames, resourceName)
 		}
-		sort.Strings(scriptNames)
-		for _, scriptName := range scriptNames {
-			if err := validateCodexRelativePath(scriptName, "skill script"); err != nil {
+		sort.Strings(resourceNames)
+		for _, resourceName := range resourceNames {
+			if err := validateCodexRelativePath(resourceName, "skill resource"); err != nil {
 				return nil, err
 			}
-			files[filepath.Join(skillPath, scriptName)] = skill.ScriptFiles[scriptName]
+			files[filepath.Join(skillPath, filepath.FromSlash(resourceName))] = resources[resourceName]
 		}
 	}
 

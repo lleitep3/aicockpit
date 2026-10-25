@@ -62,21 +62,11 @@ AICockpit supports multiple AI providers, allowing you to use different AI agent
 - Context awareness
 - Integration with IDEs
 
-### 4. GitHub Copilot
+### 4. GitHub Copilot CLI
 
-**Description**: GitHub's AI pair programmer
+O provider `github-copilot` integra o Cockpit com o CLI oficial. Ele grava instruções em `~/.copilot/copilot-instructions.md`, skills em `~/.copilot/skills/` e agentes em `~/.copilot/agents/`. Workflows canônicos viram skills com prefixo `cockpit-workflow-`.
 
-**Workspace**: `~/.github-copilot/`
-
-**Installation Path**: `~/.github-copilot/agents/`, `~/.github-copilot/skills/`, `~/.github-copilot/hooks/`
-
-**Configuration**: `~/.github-copilot/config.yaml`
-
-**Features**:
-- Code completion
-- Suggestion generation
-- Documentation generation
-- Test generation
+O provider não gera hooks, MCP, nem política de permissões. As permissões são configuradas pelo próprio Copilot CLI. Veja o [guia do provider GitHub Copilot CLI](github-copilot-cli.md) para caminhos e limites.
 
 ## Installation Paths by Provider
 
@@ -108,14 +98,12 @@ Home Directory
 │   ├── logs/
 │   ├── config.yaml
 │   └── manifest.yaml
-└── .github-copilot/             # GitHub Copilot
-    ├── agents/
+└── .copilot/                    # GitHub Copilot CLI
+    ├── copilot-instructions.md
     ├── skills/
-    ├── hooks/
-    ├── kb/
-    ├── logs/
-    ├── config.yaml
-    └── manifest.yaml
+    ├── agents/
+    ├── settings.json            # Gerenciado pelo Copilot CLI
+    └── mcp-config.json          # Gerenciado pelo Copilot CLI
 ```
 
 ## Installation Matrix
@@ -124,12 +112,12 @@ Home Directory
 
 | Component | Devin | Goose | Claude Code | GitHub Copilot |
 |-----------|-------|-------|-------------|----------------|
-| cockpit-builder agent | ~/.cockpit/agents/ | ~/.goose/agents/ | ~/.claude-code/agents/ | ~/.github-copilot/agents/ |
-| go-development skill | ~/.cockpit/skills/ | ~/.goose/skills/ | ~/.claude-code/skills/ | ~/.github-copilot/skills/ |
-| cockpit-first hook | ~/.cockpit/hooks/ | ~/.goose/hooks/ | ~/.claude-code/hooks/ | ~/.github-copilot/hooks/ |
-| KB documents | ~/.cockpit/kb/ | ~/.goose/kb/ | ~/.claude-code/kb/ | ~/.github-copilot/kb/ |
-| Configuration | ~/.cockpit/config.yaml | ~/.goose/config.yaml | ~/.claude-code/config.yaml | ~/.github-copilot/config.yaml |
-| Manifest | ~/.cockpit/manifest.yaml | ~/.goose/manifest.yaml | ~/.claude-code/manifest.yaml | ~/.github-copilot/manifest.yaml |
+| cockpit-builder agent | ~/.cockpit/agents/ | ~/.goose/agents/ | ~/.claude-code/agents/ | ~/.copilot/agents/cockpit-builder.agent.md |
+| go-development skill | ~/.cockpit/skills/ | ~/.goose/skills/ | ~/.claude-code/skills/ | ~/.copilot/skills/go-development/SKILL.md |
+| cockpit-first hook | ~/.cockpit/hooks/ | ~/.goose/hooks/ | ~/.claude-code/hooks/ | Not compiled by this provider |
+| KB documents | ~/.cockpit/kb/ | ~/.goose/kb/ | ~/.claude-code/kb/ | Not copied to the Copilot CLI directory |
+| Configuration | ~/.cockpit/config.yaml | ~/.goose/config.yaml | ~/.claude-code/config.yaml | ~/.copilot/settings.json (managed by Copilot CLI) |
+| Manifest | ~/.cockpit/manifest.yaml | ~/.goose/manifest.yaml | ~/.claude-code/manifest.yaml | Not used by Copilot CLI |
 
 ## Configuration
 
@@ -202,28 +190,9 @@ hooks:
   enabled: true
 ```
 
-### GitHub Copilot Configuration
+### GitHub Copilot CLI Configuration
 
-```yaml
-# ~/.github-copilot/config.yaml
-version: "0.2.0"
-language: "en-us"
-log_level: "info"
-ai_provider: "github-copilot"
-
-kb:
-  roots:
-    - ~/.github-copilot/kb
-
-agents:
-  enabled: true
-  
-skills:
-  enabled: true
-  
-hooks:
-  enabled: true
-```
+O Copilot CLI mantém as próprias configurações em `~/.copilot/settings.json`. O provider do Cockpit não cria `config.yaml`, manifest, diretório de KB ou política local de permissões.
 
 ## Multi-Provider Setup
 
@@ -239,8 +208,8 @@ cockpit setup --provider goose
 # 3. Install for Claude Code
 cockpit setup --provider claude-code
 
-# 4. Install for GitHub Copilot
-cockpit setup --provider github-copilot
+# 4. Publish AICockpit files to active providers, including GitHub Copilot CLI
+cockpit deploy
 
 # Or install for all at once
 cockpit setup --all-providers
@@ -288,8 +257,9 @@ cockpit setup --verify --provider goose
 # Check Claude Code installation
 cockpit setup --verify --provider claude-code
 
-# Check GitHub Copilot installation
-cockpit setup --verify --provider github-copilot
+# Check instructions and skills discovered by Copilot CLI
+copilot instruction list
+copilot skill list
 
 # Check all installations
 cockpit setup --verify --all-providers
@@ -514,7 +484,7 @@ Each provider is isolated:
 ~/.cockpit/       # Devin's workspace
 ~/.goose/         # Goose's workspace
 ~/.claude-code/   # Claude Code's workspace
-~/.github-copilot/ # GitHub Copilot's workspace
+~/.copilot/ # GitHub Copilot CLI's user configuration
 ```
 
 ### Access Control
@@ -524,7 +494,7 @@ Each provider is isolated:
 chmod 700 ~/.cockpit
 chmod 700 ~/.goose
 chmod 700 ~/.claude-code
-chmod 700 ~/.github-copilot
+chmod 700 ~/.copilot
 ```
 
 ### Credential Management

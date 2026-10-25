@@ -97,25 +97,75 @@ func parseSkills(homeDir string) ([]CanonicalSkill, error) {
 			continue // skip if SKILL.md doesn't exist
 		}
 
-		fm, body := StripFrontmatter(string(data))
+		rawFrontmatter, body, hasFrontmatter := SplitFrontmatter(string(data))
+		fm, _ := StripFrontmatter(string(data))
 		name := fm["name"]
+		description := fm["description"]
+		if hasFrontmatter {
+			var metadata struct {
+				Name        string `yaml:"name"`
+				Description string `yaml:"description"`
+			}
+			if err := yaml.Unmarshal([]byte(rawFrontmatter), &metadata); err != nil {
+				return nil, fmt.Errorf("parse skill frontmatter for %s: %w", skillName, err)
+			}
+			name = metadata.Name
+			description = metadata.Description
+			body = stripGeneratedSkillHeader(body)
+		}
 		if name == "" {
 			name = skillName
 		}
 
 		skill := CanonicalSkill{
-			Name:        name,
-			Description: fm["description"],
-			Content:     body,
-			ScriptFiles: make(map[string]string),
+			Name:          name,
+			Directory:     skillName,
+			Description:   description,
+			Content:       body,
+			Frontmatter:   rawFrontmatter,
+			ResourceFiles: make(map[string]string),
+			ResourceModes: make(map[string]uint32),
+			ScriptFiles:   make(map[string]string),
 		}
 
-		// Keep the complete resource tree: SKILL.md may link references or UI metadata.
-		resources, err := loadSkillResources(filepath.Join(skillsDir, skillName))
-		if err != nil {
-			return nil, fmt.Errorf("load resources for skill %s: %w", skillName, err)
+		if err := filepath.WalkDir(filepath.Join(skillsDir, skillName), func(path string, entry fs.DirEntry, walkErr error) error {
+			if walkErr != nil {
+				return walkErr
+			}
+			if path == filepath.Join(skillsDir, skillName) || entry.IsDir() {
+				return nil
+			}
+			if entry.Type()&os.ModeSymlink != 0 {
+				return fmt.Errorf("symlink paths are not supported in canonical skills: %s", path)
+			}
+			info, err := entry.Info()
+			if err != nil {
+				return fmt.Errorf("inspect skill resource %s: %w", path, err)
+			}
+			if !info.Mode().IsRegular() {
+				return fmt.Errorf("unsupported file type in canonical skill: %s", path)
+			}
+			relPath, err := filepath.Rel(filepath.Join(skillsDir, skillName), path)
+			if err != nil {
+				return fmt.Errorf("resolve skill resource path %s: %w", path, err)
+			}
+			if filepath.ToSlash(relPath) == "SKILL.md" {
+				return nil
+			}
+			resource, err := os.ReadFile(path)
+			if err != nil {
+				return fmt.Errorf("read skill resource %s: %w", path, err)
+			}
+			rel := filepath.ToSlash(relPath)
+			skill.ResourceFiles[rel] = string(resource)
+			skill.ResourceModes[rel] = uint32(info.Mode().Perm())
+			if strings.HasPrefix(rel, "scripts/") {
+				skill.ScriptFiles[rel] = string(resource)
+			}
+			return nil
+		}); err != nil {
+			return nil, fmt.Errorf("load skill resources for %s: %w", skillName, err)
 		}
-		skill.ScriptFiles = resources
 
 		skills = append(skills, skill)
 	}
