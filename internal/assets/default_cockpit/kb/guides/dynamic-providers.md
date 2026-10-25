@@ -143,19 +143,19 @@ AICockpit comes with 4 default providers pre-configured:
 
 **Description**: Claude AI integrated with code editing
 
-### 4. GitHub Copilot
+### 4. GitHub Copilot CLI
 
-**Workspace**: `~/.github-copilot`
+**Workspace**: User-level configuration and assets under `~/.copilot`
 
 **Supported Features**:
-- ❌ Agents (not supported)
+- ✅ Custom agents (`.agent.md` files; canonical permissions and nesting limits are unsupported)
 - ✅ Skills
-- ❌ Hooks (not supported)
-- ❌ Workflows (not supported)
-- ✅ Memories
-- ✅ Knowledge Base
+- ❌ Hooks (not compiled by the provider)
+- ✅ Workflows as skills (not Copilot dynamic workflows)
+- ❌ Memories (no Cockpit memory adapter)
+- ❌ Knowledge Base (KB files are not copied to Copilot)
 
-**Description**: GitHub's AI pair programmer
+**Description**: Official GitHub Copilot CLI. See the `github-copilot-cli.md` KB guide for mappings and limits.
 
 ## Adding a New Provider
 
@@ -244,18 +244,20 @@ cockpit providers list --enabled
 
 ## Feature Support Matrix
 
-| Feature | Devin | Goose | Claude Code | GitHub Copilot |
-|---------|-------|-------|-------------|----------------|
-| Agents | ✅ | ✅ | ❌ | ❌ |
+| Feature | Devin | Goose | Claude Code | GitHub Copilot CLI |
+|---------|-------|-------|-------------|--------------------|
+| Agents | ✅ | ✅ | ❌ | ✅ (custom agent format) |
 | Skills | ✅ | ✅ | ✅ | ✅ |
 | Hooks | ✅ | ✅ | ✅ | ❌ |
-| Workflows | ✅ | ✅ | ❌ | ❌ |
-| Memories | ✅ | ❌ | ✅ | ✅ |
-| Knowledge Base | ✅ | ✅ | ✅ | ✅ |
+| Workflows | ✅ | ✅ | ❌ | ✅ (published as skills) |
+| Memories | ✅ | ❌ | ✅ | ❌ |
+| Knowledge Base | ✅ | ✅ | ✅ | ❌ |
 
 ## Setup Process
 
 When running `cockpit setup`, the system:
+
+For GitHub Copilot CLI, Cockpit publishes into the CLI's user-level `~/.copilot` paths; it does not create a separate Cockpit workspace, provider manifest, or knowledge base there.
 
 1. **Reads providers.yaml** to get all available providers
 2. **Prompts for selection** of which providers to enable
@@ -276,7 +278,7 @@ Available Providers:
 1. devin (Autonomous AI agent for software engineering)
 2. goose (AI agent for code generation and automation)
 3. claude-code (Claude AI integrated with code editing)
-4. github-copilot (GitHub's AI pair programmer)
+4. github-copilot (GitHub Copilot CLI)
 
 Select providers to enable (comma-separated, or 'all'): all
 
@@ -299,10 +301,8 @@ Setting up claude-code...
 ✓ Configuration created
 
 Setting up github-copilot...
-✓ Workspace created at ~/.github-copilot
-✓ Directories created
-✓ Components copied
-✓ Configuration created
+✓ Copilot CLI provider configured under ~/.copilot
+✓ Cockpit instructions, skills, and agents deployed
 
 ✓ All providers configured successfully!
 ```

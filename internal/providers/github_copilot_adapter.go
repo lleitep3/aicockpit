@@ -1,7 +1,6 @@
 package providers
 
 import (
-	"encoding/json"
 	"fmt"
 	"path/filepath"
 	"sort"
@@ -11,8 +10,8 @@ import (
 
 const githubCopilotProviderName = "github-copilot"
 
-// GitHubCopilotCompiler compiles canonical AICockpit assets into the global
-// GitHub Copilot CLI layout rooted in ~/.copilot.
+// GitHubCopilotCompiler compiles canonical AICockpit assets into the user-level
+// GitHub Copilot CLI locations rooted in ~/.copilot.
 type GitHubCopilotCompiler struct{}
 
 // NewGitHubCopilotCompiler creates a GitHub Copilot compiler.
@@ -25,7 +24,8 @@ func (c *GitHubCopilotCompiler) Name() string {
 	return githubCopilotProviderName
 }
 
-// CompileEntrypoint renders project context and golden rules into ~/.copilot/AGENTS.md.
+// CompileEntrypoint renders project context and golden rules into the user's
+// Copilot CLI instructions file.
 func (c *GitHubCopilotCompiler) CompileEntrypoint(entrypoint *CanonicalEntrypoint, provider *Provider) (map[string]string, error) {
 	feature, enabled, err := githubCopilotFeature(provider, "rules")
 	if err != nil {
@@ -60,7 +60,7 @@ func (c *GitHubCopilotCompiler) CompileEntrypoint(entrypoint *CanonicalEntrypoin
 	}, nil
 }
 
-// CompileRules appends canonical rules to ~/.copilot/AGENTS.md.
+// CompileRules appends canonical rules to the user's Copilot CLI instructions file.
 func (c *GitHubCopilotCompiler) CompileRules(rules []CanonicalRule, provider *Provider) (map[string]string, error) {
 	feature, enabled, err := githubCopilotFeature(provider, "rules")
 	if err != nil {
@@ -112,26 +112,31 @@ func (c *GitHubCopilotCompiler) CompileSkills(skills []CanonicalSkill, provider 
 		if err := validateCodexArtifactName(skill.Name, "skill"); err != nil {
 			return nil, err
 		}
-		skillDir := filepath.Join(feature.Path, skill.Name)
-		content := renderCodexSkill(skill.Name, skill.Description, skill.Content)
+		directory := canonicalSkillDirectory(skill)
+		if err := validateCodexArtifactName(directory, "skill directory"); err != nil {
+			return nil, err
+		}
+		skillDir := filepath.Join(feature.Path, directory)
+		content := renderCanonicalSkill(skill)
 		files[filepath.Join(skillDir, "SKILL.md")] = AddGeneratedHeader(content, githubCopilotProviderName)
 
-		scriptNames := make([]string, 0, len(skill.ScriptFiles))
-		for scriptName := range skill.ScriptFiles {
-			scriptNames = append(scriptNames, scriptName)
+		resources := canonicalSkillResources(skill)
+		resourceNames := make([]string, 0, len(resources))
+		for resourceName := range resources {
+			resourceNames = append(resourceNames, resourceName)
 		}
-		sort.Strings(scriptNames)
-		for _, scriptName := range scriptNames {
-			if err := validateCodexRelativePath(scriptName, "skill script"); err != nil {
+		sort.Strings(resourceNames)
+		for _, resourceName := range resourceNames {
+			if err := validateCodexRelativePath(resourceName, "skill resource"); err != nil {
 				return nil, err
 			}
-			files[filepath.Join(skillDir, scriptName)] = skill.ScriptFiles[scriptName]
+			files[filepath.Join(skillDir, filepath.FromSlash(resourceName))] = resources[resourceName]
 		}
 	}
 	return files, nil
 }
 
-// CompileWorkflows renders workflow markdown files under ~/.copilot/workflows.
+// CompileWorkflows publishes each canonical workflow as an invocable skill.
 func (c *GitHubCopilotCompiler) CompileWorkflows(workflows []CanonicalWorkflow, provider *Provider) (map[string]string, error) {
 	feature, enabled, err := githubCopilotFeature(provider, "workflows")
 	if err != nil {
@@ -151,14 +156,14 @@ func (c *GitHubCopilotCompiler) CompileWorkflows(workflows []CanonicalWorkflow, 
 		if err := validateCodexArtifactName(workflow.Name, "workflow"); err != nil {
 			return nil, err
 		}
-		files[filepath.Join(feature.Path, workflow.Name+".md")] = AddGeneratedHeader(renderGitHubCopilotWorkflow(workflow), githubCopilotProviderName)
+		files[filepath.Join(feature.Path, "cockpit-workflow-"+workflow.Name, "SKILL.md")] = AddGeneratedHeader(renderGitHubCopilotWorkflow(workflow), githubCopilotProviderName)
 	}
 	return files, nil
 }
 
 // CompilePermissions renders the canonical permission model to a JSON policy.
 func (c *GitHubCopilotCompiler) CompilePermissions(perms *CanonicalPermissions, provider *Provider) (map[string]string, error) {
-	feature, enabled, err := githubCopilotFeature(provider, "permissions")
+	_, enabled, err := githubCopilotFeature(provider, "permissions")
 	if err != nil {
 		return nil, err
 	}
@@ -166,24 +171,14 @@ func (c *GitHubCopilotCompiler) CompilePermissions(perms *CanonicalPermissions, 
 		return map[string]string{}, nil
 	}
 
-	payload := map[string]interface{}{
-		"version": 1,
-		"allow":   dedupeStrings(perms.AllowedCommands, perms.Allow),
-		"deny":    dedupeStrings(perms.DeniedCommands, perms.Deny),
-		"ask":     dedupeStrings(perms.Ask),
-	}
-	if len(payload["allow"].([]string)) == 0 && len(payload["deny"].([]string)) == 0 && len(payload["ask"].([]string)) == 0 {
+	if len(dedupeStrings(perms.AllowedCommands, perms.DeniedCommands, perms.AllowedDirs, perms.Allow, perms.Deny, perms.Ask)) == 0 {
 		return map[string]string{}, nil
 	}
 
-	data, err := json.MarshalIndent(payload, "", "  ")
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal github-copilot permissions: %w", err)
-	}
-	return map[string]string{feature.Path: string(data) + "\n"}, nil
+	return nil, fmt.Errorf("github-copilot cannot compile canonical permissions: Copilot CLI approvals are repository-scoped and do not represent the canonical allow/deny/ask policy")
 }
 
-// CompileAgents renders canonical agents as AGENT.md files inside ~/.copilot/agents/<name>/.
+// CompileAgents renders canonical agents as user-level Copilot CLI agent files.
 func (c *GitHubCopilotCompiler) CompileAgents(agents []CanonicalAgent, provider *Provider) (map[string]string, error) {
 	feature, enabled, err := githubCopilotFeature(provider, "agents")
 	if err != nil {
@@ -203,7 +198,13 @@ func (c *GitHubCopilotCompiler) CompileAgents(agents []CanonicalAgent, provider 
 		if err := validateCodexArtifactName(agent.Name, "agent"); err != nil {
 			return nil, err
 		}
-		files[filepath.Join(feature.Path, agent.Name, "AGENT.md")] = AddGeneratedHeader(renderGitHubCopilotAgent(agent), githubCopilotProviderName)
+		if len(agent.Permissions) > 0 {
+			return nil, fmt.Errorf("github-copilot agent %q has canonical permissions that cannot be represented by a Copilot CLI agent", agent.Name)
+		}
+		if agent.MaxNesting != 0 {
+			return nil, fmt.Errorf("github-copilot agent %q has a max_nesting value that cannot be represented by a Copilot CLI agent", agent.Name)
+		}
+		files[filepath.Join(feature.Path, agent.Name+".agent.md")] = AddGeneratedHeader(renderGitHubCopilotAgent(agent), githubCopilotProviderName)
 	}
 	return files, nil
 }
@@ -225,19 +226,19 @@ func githubCopilotFeature(provider *Provider, name string) (*FeatureConfig, bool
 }
 
 func renderGitHubCopilotWorkflow(workflow CanonicalWorkflow) string {
-	var content strings.Builder
-	content.WriteString("# Workflow: ")
-	content.WriteString(workflow.Name)
-	content.WriteString("\n\n")
-	if description := strings.TrimSpace(workflow.Description); description != "" {
-		content.WriteString(description)
-		content.WriteString("\n\n")
-	}
-	content.WriteString("## Steps\n\n")
+	var body strings.Builder
+	body.WriteString("# Workflow: ")
+	body.WriteString(workflow.Name)
+	body.WriteString("\n\n## Steps\n\n")
 	for i, step := range workflow.Steps {
-		fmt.Fprintf(&content, "%d. %s\n", i+1, strings.TrimSpace(step))
+		fmt.Fprintf(&body, "%d. %s\n", i+1, strings.TrimSpace(step))
 	}
-	return content.String()
+
+	description := strings.TrimSpace(workflow.Description)
+	if description == "" {
+		description = "Run the " + workflow.Name + " workflow."
+	}
+	return renderCodexSkill("cockpit-workflow-"+workflow.Name, description, body.String())
 }
 
 func renderGitHubCopilotAgent(agent CanonicalAgent) string {
@@ -248,6 +249,13 @@ func renderGitHubCopilotAgent(agent CanonicalAgent) string {
 	if agent.Model != "" {
 		fmt.Fprintf(&content, "model: %s\n", strconv.Quote(agent.Model))
 	}
+	if allowedTools := dedupeStrings(agent.AllowedTools); len(allowedTools) > 0 {
+		content.WriteString("tools:\n")
+		for _, tool := range allowedTools {
+			fmt.Fprintf(&content, "  - %s\n", strconv.Quote(tool))
+		}
+	}
+	content.WriteString("include-custom-instructions: true\n")
 	content.WriteString("---\n")
 	if body := strings.TrimSpace(agent.Content); body != "" {
 		content.WriteString(body)

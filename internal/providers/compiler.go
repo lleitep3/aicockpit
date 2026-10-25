@@ -2,10 +2,14 @@ package providers
 
 // CanonicalSkill represents a modular capability.
 type CanonicalSkill struct {
-	Name        string
-	Description string
-	Content     string
-	ScriptFiles map[string]string // Relative resource paths under scripts, references, assets and agents; values preserve file bytes.
+	Name          string
+	Directory     string // directory name used in provider output; defaults to Name
+	Description   string
+	Content       string
+	Frontmatter   string            // raw YAML fields, excluding --- delimiters
+	ResourceFiles map[string]string // relative path -> file contents
+	ResourceModes map[string]uint32 // relative path -> permission bits
+	ScriptFiles   map[string]string // legacy alias for script resources
 }
 
 // CanonicalRule represents a behavioral guideline or constraint.

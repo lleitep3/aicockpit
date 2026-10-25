@@ -104,6 +104,15 @@ func (pm *ProviderManager) Deploy(providerName string, cockpitHomeDir string, pr
 
 	// 3. Determine target base directory
 	baseDir := projectDir
+	resourceModes := make(map[string]os.FileMode)
+	if skillsFeature, ok := provider.Features["skills"]; ok && skillsFeature.Enabled {
+		for _, skill := range skills {
+			for relPath, mode := range skill.ResourceModes {
+				compiledPath := filepath.Clean(filepath.Join(skillsFeature.Path, canonicalSkillDirectory(skill), filepath.FromSlash(relPath)))
+				resourceModes[compiledPath] = os.FileMode(mode).Perm()
+			}
+		}
+	}
 	if provider.Workspace == "~" {
 		home, err := os.UserHomeDir()
 		if err != nil {
@@ -143,7 +152,7 @@ func (pm *ProviderManager) Deploy(providerName string, cockpitHomeDir string, pr
 		baseName := filepath.Base(destPath)
 
 		// Only use markers for global entrypoint files to preserve user edits
-		if baseName == "AGENTS.md" || baseName == ".goosehints" {
+		if baseName == "AGENTS.md" || baseName == ".goosehints" || baseName == "copilot-instructions.md" {
 			startMarker := "<!-- cockpit:global -->"
 			endMarker := "<!-- /cockpit:global -->"
 
@@ -164,7 +173,11 @@ func (pm *ProviderManager) Deploy(providerName string, cockpitHomeDir string, pr
 			}
 		}
 
-		if err := atomicWriteFile(destPath, []byte(finalContent), 0o644); err != nil {
+		mode := os.FileMode(0o644)
+		if resourceMode, ok := resourceModes[relPath]; ok {
+			mode = resourceMode
+		}
+		if err := atomicWriteFile(destPath, []byte(finalContent), mode); err != nil {
 			return fmt.Errorf("failed to write compiled file %s: %w", destPath, err)
 		}
 	}
@@ -180,6 +193,10 @@ func atomicWriteFile(path string, data []byte, perm os.FileMode) error {
 	tmpPath := path + ".tmp"
 	if err := os.WriteFile(tmpPath, data, perm); err != nil {
 		return fmt.Errorf("failed to write temp file: %w", err)
+	}
+	if err := os.Chmod(tmpPath, perm); err != nil {
+		os.Remove(tmpPath) //nolint:errcheck // best-effort cleanup
+		return fmt.Errorf("failed to set temp file permissions: %w", err)
 	}
 	if err := os.Rename(tmpPath, path); err != nil {
 		os.Remove(tmpPath) //nolint:errcheck // best-effort cleanup

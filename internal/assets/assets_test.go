@@ -53,3 +53,36 @@ func TestRestoreAssets_CodexProviderConfiguration(t *testing.T) {
 		}
 	}
 }
+
+func TestRestoreAssets_GitHubCopilotProviderConfiguration(t *testing.T) {
+	tmpDir := t.TempDir()
+	if err := RestoreAssets(tmpDir); err != nil {
+		t.Fatalf("RestoreAssets failed: %v", err)
+	}
+
+	config, err := providers.LoadProvidersConfig(filepath.Join(tmpDir, "providers.yaml"))
+	if err != nil {
+		t.Fatalf("LoadProvidersConfig failed: %v", err)
+	}
+	copilot := config.GetProvider("github-copilot")
+	if copilot == nil {
+		t.Fatal("GitHub Copilot provider is missing from embedded providers.yaml")
+	}
+	if !copilot.Enabled || copilot.Binary != "copilot" || copilot.Workspace != "~/.copilot" {
+		t.Errorf("GitHub Copilot provider identity = enabled %t, binary %q, workspace %q", copilot.Enabled, copilot.Binary, copilot.Workspace)
+	}
+	for _, feature := range []string{"rules", "skills", "workflows", "agents"} {
+		if !copilot.SupportsFeature(feature) {
+			t.Errorf("GitHub Copilot should support enabled feature %q", feature)
+		}
+	}
+	if copilot.SupportsFeature("permissions") {
+		t.Error("GitHub Copilot should not enable canonical permissions")
+	}
+	if got := copilot.Features["rules"].Path; got != "~/.copilot/copilot-instructions.md" {
+		t.Errorf("GitHub Copilot rules path = %q", got)
+	}
+	if got := copilot.Features["workflows"].Path; got != "~/.copilot/skills" {
+		t.Errorf("GitHub Copilot workflows path = %q", got)
+	}
+}

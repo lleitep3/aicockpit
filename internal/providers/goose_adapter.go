@@ -80,10 +80,27 @@ func (g *GooseCompiler) CompileSkills(skills []CanonicalSkill, provider *Provide
 
 	if hasSkills && skillsConfig.Enabled {
 		for _, skill := range skills {
-			files[filepath.Join(skillsConfig.Path, skill.Name, "SKILL.md")] = fmt.Sprintf("---\nname: %s\ndescription: %s\n---\n%s", skill.Name, skill.Description, skill.Content)
+			if err := validateCodexArtifactName(skill.Name, "skill"); err != nil {
+				return nil, err
+			}
+			directory := canonicalSkillDirectory(skill)
+			if err := validateCodexArtifactName(directory, "skill directory"); err != nil {
+				return nil, err
+			}
+			base := filepath.Join(skillsConfig.Path, directory)
+			files[filepath.Join(base, "SKILL.md")] = renderCanonicalSkill(skill)
 
-			for relPath, content := range skill.ScriptFiles {
-				files[filepath.Join(skillsConfig.Path, skill.Name, relPath)] = content
+			resources := canonicalSkillResources(skill)
+			resourceNames := make([]string, 0, len(resources))
+			for relPath := range resources {
+				resourceNames = append(resourceNames, relPath)
+			}
+			sort.Strings(resourceNames)
+			for _, relPath := range resourceNames {
+				if err := validateCodexRelativePath(relPath, "skill resource"); err != nil {
+					return nil, err
+				}
+				files[filepath.Join(base, filepath.FromSlash(relPath))] = resources[relPath]
 			}
 		}
 	}
