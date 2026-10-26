@@ -57,7 +57,7 @@ O backend `memory.KB` usa este módulo:
 * **Retain** grava um Markdown com o cabeçalho de metadados padrão em `memory/<bank>/<id>.md` na primeira raiz e reconstrói o índice. A descrição guarda o contexto, as tags incluem `memory` e `bank:<bank>`, e `related` guarda `doc:` e `meta:`.
 * **Reflect** junta os trechos encontrados. Não chama um modelo. Um backend futuro pode devolver `ErrReflectNotSupported`.
 
-`memory.InMemory` e o dublê `memory.Fake` cobrem testes sem disco. O cliente Hindsight não entra neste módulo; um backend futuro implementa a mesma interface fora daqui.
+`memory.InMemory` e o dublê `memory.Fake` cobrem testes sem disco. O cliente Hindsight não entra neste módulo; um backend futuro implementa a mesma interface fora daqui. `cockpit memory up|down|status` (`internal/hindsight`) só administra o processo Docker opcional e não grava nem busca documentos.
 
 ---
 > **Fim da Trilha Principal:** Com isto, fechamos o ciclo que vai desde a detecção da IA, formatação de arquivos com o Compilador Canônico, registro e instalação de Pacotes, Proteção no Cofre e Gerenciamento Inteligente de Conhecimento.

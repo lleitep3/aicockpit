@@ -49,12 +49,17 @@ graph LR
   frontmatter, índice, busca e grafo, em uma ou mais raízes. É a memória de
   longo prazo disponível hoje: documentos que o operador e os agentes
   consultam, não um serviço de memória com retenção própria.
-* **Memória** (`internal/memory`). Contrato `Retain`, `Recall` e `Reflect`
-  sobre o KB local. Não há comando `cockpit memory` nem cliente Hindsight.
+* **Memória** (`internal/memory`, `internal/hindsight`). Contrato `Retain`,
+  `Recall` e `Reflect` sobre o KB local. `cockpit memory up`, `down` e
+  `status` administram um Hindsight local opcional (imagem Docker oficial,
+  pg0, portas 8888 e 9999). Segredos saem do vault só como ambiente do
+  container. Não há cliente Hindsight no core nem integração com o KB ou
+  com os compiladores.
 
 `cockpit doctor` verifica a existência de diretórios e arquivos locais
-(configuração, vault, logs, pacotes, cache). Não há processo de memória, fila
-de ferramentas nem orquestração de CLIs de modelo.
+(configuração, vault, logs, pacotes, cache) e reporta o Hindsight. Sem
+`memory.hindsight.enabled`, esse check é informativo e não reprova o doctor.
+Não há fila de ferramentas nem orquestração de CLIs de modelo.
 
 Assets como `cockpit-builder` são instruções compiladas para os provedores.
 Não existe serviço executável `cockpit agent`. Comandos dessa forma citados
@@ -118,12 +123,13 @@ opcional de memória. Características usadas nesta decisão:
 | Acesso | MCP, um servidor por *bank* |
 | Cliente | biblioteca Go |
 
-O Hindsight permanece um processo que o operador (ou, mais adiante, `cockpit
-memory up`) administra fora da árvore de módulos Go. O código Python e o
-Postgres dele não são copiados para este repositório, não entram em `vendor/`
-e não viram um pacote embutido no binário. O cockpit fala com ele pela
-interface `internal/memory`, pelo pacote `memory-hindsight` e pelo MCP de cada
-bank. Sem o serviço, o backend de KB local continua válido.
+O Hindsight permanece um processo que `cockpit memory up` administra fora da
+árvore de módulos Go, com a imagem oficial e o Postgres embutido (pg0). O
+código Python e o Postgres dele não são copiados para este repositório, não
+entram em `vendor/` e não viram um pacote embutido no binário. O cockpit ainda
+não fala com ele pela interface `internal/memory`: o pacote
+`memory-hindsight`, as extensões de KB e o MCP de cada bank continuam nas
+fases seguintes. Sem o serviço, o backend de KB local continua válido.
 
 ## Roteiro por fases
 
@@ -134,7 +140,7 @@ CLI atual.
 | Fase | Entrega | Resultado |
 |---|---|---|
 | 1 | Interface `internal/memory` | Contrato de memória com backend no KB local. Sem rede e sem Hindsight. |
-| 2 | `cockpit memory up`, `cockpit memory status` e check no `cockpit doctor` | A CLI mostra se a memória configurada está pronta. O backend de KB responde em processo. O doctor ganha um check próprio, além dos diretórios que já verifica. |
+| 2 | `cockpit memory up`, `down`, `status` e check no `cockpit doctor` | A CLI sobe e derruba o container oficial do Hindsight (portas 8888 e 9999, pg0, segredo do vault só no ambiente do container). O doctor reporta a saúde e não falha quando o serviço não está configurado. Sem extensão de KB e sem MCP. |
 | 3 | Pacote `memory-hindsight` | Estende `kb search` e `kb index` pelas chaves `extensions.kb.search` e `extensions.kb.index`. `memory up` passa a poder subir o serviço externo. O código do Hindsight continua fora do repositório. |
 | 4 | Compiladores injetam o MCP do Hindsight | Cada bank configurado vira um servidor MCP declarado aos provedores que já recebem skills e MCP. Sem bank, os compiladores não inventam um endpoint. |
 | 5 | `internal/agents` com `Backend` e `CLIBackend` | Interface única de worker. `CLIBackend` executa `claude -p`, `codex exec`, `gemini -p` e `copilot`, com timeout, cancelamento e captura de saída. |
@@ -157,19 +163,25 @@ Hindsight futuro implementa a mesma interface fora deste pacote.
 
 ### Fase 2 — Ciclo de vida e doctor
 
-`cockpit memory status` informa o backend ativo e se ele responde.
-`cockpit memory up` prepara esse backend: para o KB local, confirma raízes e
-índice; não abre porta de rede. `cockpit doctor` inclui o resultado desse
-check na saída texto e JSON. Configuração ausente falha de forma explícita,
-sem marcar o check como sucesso.
+Implementada em `internal/hindsight` e nos comandos `cockpit memory`.
+`memory status` informa se o Hindsight está configurado, se o container está
+em execução e se `GET /health` na porta 8888 responde. `memory up` cria o
+container da imagem `ghcr.io/vectorize-io/hindsight:latest` (portas de host
+8888 e 9999, volume nomeado em `/home/hindsight/.pg0`, sem
+`HINDSIGHT_API_DATABASE_URL`, portanto pg0 embutido). `memory down` para e
+remove o container e mantém o volume. A chave de LLM e os demais segredos
+saem do vault no momento da criação e entram só como variáveis de ambiente;
+não são gravados na configuração nem em logs. Docker é uma interface com
+dublê de teste. `cockpit doctor` inclui o mesmo status em texto e JSON. Sem
+`memory.hindsight.enabled`, o check fica `skipped` e não reprova o doctor.
+O backend de KB da fase 1 não muda.
 
 ### Fase 3 — Pacote memory-hindsight
 
 O pacote vive no registry, como os demais, e implementa as extensões de busca
 e indexação que `internal/kb` já percorre. A configuração guarda URL, bank e
-referência ao segredo no vault. Subir o serviço significa lançar o processo
-externo documentado pelo projeto Hindsight, com Postgres sob responsabilidade
-de quem opera a máquina. Desinstalar o pacote devolve a busca ao BM25 do KB.
+referência ao segredo no vault. `memory up` já lança o container; esta fase
+liga o serviço às extensões. Desinstalar o pacote devolve a busca ao BM25 do KB.
 
 ### Fase 4 — MCP nos compiladores
 
