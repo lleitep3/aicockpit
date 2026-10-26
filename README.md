@@ -198,7 +198,7 @@ For more details, see [Quick Start Guide](docs/QUICK_START.md).
 
 ### Planned Commands
 
-- **`cockpit agents`** - Manage AI agents
+- **`cockpit agents`** - Manage AI agents (planned; see [product vision](docs/PRODUCT_VISION.md#roteiro-por-fases))
 - **`cockpit skills`** - Manage skills explicitly
 - **`cockpit rules`** - Manage rules explicitly
 

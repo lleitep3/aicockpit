@@ -366,5 +366,5 @@ echo "API Key: ${API_KEY:0:10}..."
 > Os snippets de autorização desta página são propostas de migração e não
 > devem ser tratados como implementação pronta. Em particular, não use
 > `COCKPIT_DEV_MODE` para liberar acesso em produção. O estado de lock atual
-> está documentado em [Vault lock state v2](vault-state-v2.md); autorização
+> está documentado em [Vault lock state v2](vault/vault-state-v2.md); autorização
 > forte por identidade de processo continua sendo trabalho separado.

@@ -8,6 +8,13 @@ version: "1.0"
 
 # Installation Paths for AI Agents
 
+> [!WARNING]
+> `cockpit agent` is not a current CLI command. Examples in this guide that
+> would run it are commented with `# planned:` so they are not copied as
+> working commands. The agreed direction is the [product vision](../../../../../docs/PRODUCT_VISION.md#roteiro-por-fases).
+> Publish canonical assets with `cockpit deploy` and the provider compilers.
+> See also the [command index](../../../../../docs/commands/README.md) and the [package profiles plan](../../../../../docs/plans/package-profiles.md).
+
 ## Overview
 
 This guide explains where to install agents, skills, and hooks for different AI agent platforms (Devin and Antigravity).
@@ -255,7 +262,7 @@ hooks:
 
 3. **Verify Installation**
    ```bash
-   cockpit agent list
+   # planned: cockpit agent list
    cockpit skill list
    cockpit hook list
    ```

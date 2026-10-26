@@ -177,3 +177,4 @@ Validação de manifesto não substitui testes de comportamento. Teste falhas de
 dependências ausentes, bloqueio do vault e exposição de segredos. Relate separadamente
 testes locais, simulação de navegador, integração real e checks da CI. Siga o workflow
 `cockpit-evolution.md`; nenhum comando `cockpit agent` deve ser presumido existente.
+O roteiro planejado está na [visão de produto](../../../docs/PRODUCT_VISION.md#roteiro-por-fases).

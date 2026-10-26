@@ -193,7 +193,7 @@ apiKey, _ := vault.Get("api-key")
 - ✅ Sem necessidade de master password
 - ✅ Cross-namespace bloqueado automaticamente
 
-**Documentação completa:** Veja `docs/vault-package-usage.md` para exemplos detalhados de uso seguro do vault por pacotes.
+**Documentação completa:** Veja `docs/vault/vault-package-usage.md` para exemplos detalhados de uso seguro do vault por pacotes.
 
 ## 🛠️ Pré-requisitos
 
@@ -306,13 +306,13 @@ output, err := handler.ExecuteWithSecret(
 - Alertas de uso suspeito
 - Integração com SIEM
 
-Para mais detalhes, consulte [docs/vault-security-evolution.md](../docs/vault-security-evolution.md)
+Para mais detalhes, consulte [docs/vault/vault-security-evolution.md](../docs/vault/vault-security-evolution.md)
 
 ## 📚 Documentação Adicional
 
-- **[Guia Completo do Vault](../docs/vault-guide.md)** - Documentação completa do sistema
+- **[Guia Completo do Vault](../docs/vault/vault-guide.md)** - Documentação completa do sistema
 - **[Arquitetura do Vault](../docs/architecture/05-vault-system.md)** - Detalhes técnicos da arquitetura
-- **[Exemplos de Uso em Aplicações](../docs/vault-usage-examples.md)** - Mais exemplos e padrões avançados
+- **[Exemplos de Uso em Aplicações](../docs/vault/vault-usage-examples.md)** - Mais exemplos e padrões avançados
 
 ## ⚠️ Notas de Segurança
 

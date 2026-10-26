@@ -135,7 +135,9 @@
 - [x] **scripts/README.md** - Installation script docs
 - [x] **docs/architecture/05-vault-system.md** - Vault architecture documentation
 - [x] **docs/commands/update.md** - Update command documentation
-- [x] **docs/vault-guide.md** - Complete vault usage guide
+- [x] **docs/PRODUCT_VISION.md** - Product direction and phased roadmap
+- [x] **docs/vault/README.md** - Vault documentation index
+- [x] **docs/vault/vault-guide.md** - Complete vault usage guide
 - [x] **Code comments** - Exported functions documented
 
 ### 🏗️ Architecture
@@ -180,7 +182,7 @@
 - [x] `cockpit pkg` - Package management
 - [x] `cockpit project` - Kanban / Tasks
 - [x] `cockpit kb` - Knowledge base management
-- [ ] `cockpit agents` - Agent management
+- [ ] `cockpit agents` - Agent management (planned; [product vision](PRODUCT_VISION.md#roteiro-por-fases))
 - [ ] `cockpit skills` - Explicit skills management
 - [ ] `cockpit rules` - Explicit rules management
 - [ ] `cockpit hooks` - Explicit hooks management

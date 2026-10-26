@@ -8,6 +8,13 @@ version: "1.0"
 
 # AI Providers Configuration
 
+> [!WARNING]
+> `cockpit agent` is not a current CLI command. Examples in this guide that
+> would run it are commented with `# planned:` so they are not copied as
+> working commands. The agreed direction is the [product vision](../../PRODUCT_VISION.md#roteiro-por-fases).
+> Publish canonical assets with `cockpit deploy` and the provider compilers.
+> See also the [command index](../../commands/README.md) and the [package profiles plan](../../plans/package-profiles.md).
+
 ## Overview
 
 AICockpit supports multiple AI providers, allowing you to use different AI agents simultaneously. Each provider has its own workspace and configuration, but they all share the same AICockpit core functionality.
@@ -221,7 +228,7 @@ Some components can be shared across providers:
 
 ```bash
 # Install agent in all providers
-cockpit agent install cockpit-builder --all-providers
+# planned: cockpit agent install cockpit-builder --all-providers
 
 # Install skill in all providers
 cockpit skill install go-development --all-providers
@@ -234,13 +241,13 @@ cockpit hook install cockpit-first --all-providers
 
 ```bash
 # Install only for Devin
-cockpit agent install cockpit-builder --provider devin
+# planned: cockpit agent install cockpit-builder --provider devin
 
 # Install only for Goose
-cockpit agent install cockpit-builder --provider goose
+# planned: cockpit agent install cockpit-builder --provider goose
 
 # Install for multiple specific providers
-cockpit agent install cockpit-builder --providers devin,goose,claude-code
+# planned: cockpit agent install cockpit-builder --providers devin,goose,claude-code
 ```
 
 ## Verification
@@ -269,7 +276,7 @@ cockpit setup --verify --all-providers
 
 ```bash
 # List agents in all providers
-cockpit agent list --all-providers
+# planned: cockpit agent list --all-providers
 
 # List skills in all providers
 cockpit skill list --all-providers
@@ -335,17 +342,17 @@ cockpit manifest list --all-providers
 
 ```bash
 # Remove from Devin only
-cockpit agent uninstall cockpit-builder --provider devin
+# planned: cockpit agent uninstall cockpit-builder --provider devin
 
 # Remove from Goose only
-cockpit agent uninstall cockpit-builder --provider goose
+# planned: cockpit agent uninstall cockpit-builder --provider goose
 ```
 
 ### Remove from All Providers
 
 ```bash
 # Remove from all providers
-cockpit agent uninstall cockpit-builder --all-providers
+# planned: cockpit agent uninstall cockpit-builder --all-providers
 ```
 
 ### Complete Provider Cleanup
@@ -366,7 +373,7 @@ Keep the same components installed across all providers:
 
 ```bash
 # Install same agent in all providers
-cockpit agent install cockpit-builder --all-providers
+# planned: cockpit agent install cockpit-builder --all-providers
 
 # Install same skill in all providers
 cockpit skill install go-development --all-providers
@@ -438,11 +445,11 @@ cockpit setup --verify --provider devin
 
 ```bash
 # Check component installation
-cockpit agent list --all-providers
+# planned: cockpit agent list --all-providers
 cockpit skill list --all-providers
 
 # Reinstall component
-cockpit agent install cockpit-builder --all-providers
+# planned: cockpit agent install cockpit-builder --all-providers
 ```
 
 ### Manifest Corruption
@@ -543,7 +550,7 @@ cockpit setup --all-providers
 cockpit setup --verify --all-providers
 
 # List installed components
-cockpit agent list --all-providers
+# planned: cockpit agent list --all-providers
 cockpit skill list --all-providers
 cockpit hook list --all-providers
 ```
@@ -552,10 +559,10 @@ cockpit hook list --all-providers
 
 ```bash
 # Install cockpit-builder agent in all providers
-cockpit agent install cockpit-builder --all-providers
+# planned: cockpit agent install cockpit-builder --all-providers
 
 # Verify installation
-cockpit agent list --all-providers
+# planned: cockpit agent list --all-providers
 ```
 
 ### Example 3: Provider-Specific Setup
@@ -576,8 +583,8 @@ cockpit setup --verify --provider goose
 
 ```bash
 # Install in Devin
-cockpit agent install cockpit-builder --provider devin
+# planned: cockpit agent install cockpit-builder --provider devin
 
 # Sync to other providers
-cockpit agent sync cockpit-builder --from devin --to goose,claude-code,github-copilot
+# planned: cockpit agent sync cockpit-builder --from devin --to goose,claude-code,github-copilot
 ```

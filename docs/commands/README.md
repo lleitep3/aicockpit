@@ -21,7 +21,7 @@ Complete reference for all AICockpit CLI commands.
 | Command | Description | Status |
 |---------|-------------|--------|
 | `cockpit pkg` | Package management | PLANNED |
-| `cockpit agent` | Agent management | PLANNED |
+| `cockpit agent` | Agent management. Not implemented. See the [product vision](../PRODUCT_VISION.md#roteiro-por-fases). | PLANNED |
 | `cockpit skill` | Skill management | PLANNED |
 | `cockpit rule` | Rule management | PLANNED |
 | `cockpit hook` | Hook management | PLANNED |
