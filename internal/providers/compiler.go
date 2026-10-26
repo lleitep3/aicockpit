@@ -64,3 +64,11 @@ type Compiler interface {
 	CompilePermissions(perms *CanonicalPermissions, provider *Provider) (map[string]string, error)
 	CompileAgents(agents []CanonicalAgent, provider *Provider) (map[string]string, error)
 }
+
+// MCPCompiler is implemented by adapters that can declare MCP servers in the
+// agent's native config. Adapters that cannot represent an HTTP MCP server
+// omit the interface. Deploy then skips them instead of writing a file the
+// agent would ignore.
+type MCPCompiler interface {
+	CompileMCP(servers []MCPServer, provider *Provider) (map[string]string, error)
+}

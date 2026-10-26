@@ -10,4 +10,8 @@
 // set in memory.hindsight.banks or derived as project-<name> and user-<name>.
 // kb search recalls both banks and appends the hits to the local results.
 // kb index retains documents into the project bank.
+//
+// internal/providers declares the same two banks as streamable HTTP MCP
+// servers when memory.hindsight.enabled is set. The endpoint is
+// <api>/mcp/<bank>/ on the API server.
 package memoryhindsight

@@ -182,6 +182,11 @@ func fit(prefix, part string) string {
 	return prefix + strings.Trim(part, "-_")
 }
 
+// ValidBankID reports whether bank is an id ResolveBanks accepts.
+func ValidBankID(bank string) bool {
+	return checkBank(bank) == nil
+}
+
 func checkBank(bank string) error {
 	if !bankPattern.MatchString(bank) {
 		return fmt.Errorf("%w", memory.ErrInvalidBank)

@@ -64,4 +64,8 @@ Quando um pacote é instalado, o `ProviderManager` entra em cena:
 2. Para cada um, ele invoca a rotina de compilação.
 3. O resultado é um comportamento unificado em todas as IAs (se a sua regra diz para sempre usar testes na linguagem Go, o Devin, o Goose e o Antigravity vão obedecer uniformemente).
 
+## MCP do Hindsight
+
+Com `memory.hindsight.enabled`, os compiladores que implementam `MCPCompiler` acrescentam um servidor HTTP por bank (`/mcp/<bank>/`). Claude Code, Codex, Gemini CLI e GitHub Copilot CLI estão cobertos. Devin, Goose e Antigravity não implementam a interface, então o deploy não grava um arquivo de MCP para eles. Sem o flag, a saída dos compiladores não muda.
+
 > **Próximo Passo:** Entendeu como os provedores digerem o código canônico? Avance para [03. O Sistema de Pacotes](03-package-system.md) para descobrir de onde vêm esses dados canônicos.

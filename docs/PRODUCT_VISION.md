@@ -1,10 +1,10 @@
 # Visão de produto do AICockpit
 
-Estado: direção acordada com o dono do projeto. As fases 1 a 3 estão
-implementadas em `internal/memory`, `internal/hindsight` e
-`internal/memoryhindsight`. As fases 4 em diante deste roteiro ainda não
-estão implementadas. A seção [Papel atual](#papel-atual) descreve o que o
-código faz hoje.
+Estado: direção acordada com o dono do projeto. As fases 1 a 4 estão
+implementadas em `internal/memory`, `internal/hindsight`,
+`internal/memoryhindsight` e `internal/providers`. As fases 5 em diante
+deste roteiro ainda não estão implementadas. A seção [Papel atual](#papel-atual)
+descreve o que o código faz hoje.
 
 Planos como o [P0-02](plans/p0-02-vault-state-implementation-plan.md) apontam
 para este documento. O arquivo `docs/plans/user-harness-roadmap.md` não está
@@ -58,8 +58,9 @@ graph LR
   container. Com `memory.hindsight.enabled`, o cliente Go oficial entra
   pelos pontos de extensão do KB: `kb search` acrescenta o recall e
   `kb index` retém documentos. Há um bank por projeto e um por usuário.
-  Serviço desligado ou inacessível deixa a busca no KB local. Os
-  compiladores ainda não declaram o MCP do Hindsight.
+  Serviço desligado ou inacessível deixa a busca no KB local. Com o mesmo
+  flag, `cockpit deploy` declara o MCP HTTP de cada bank para Claude Code,
+  Codex, Gemini CLI e GitHub Copilot CLI.
 
 `cockpit doctor` verifica a existência de diretórios e arquivos locais
 (configuração, vault, logs, pacotes, cache) e reporta o Hindsight. Sem
@@ -134,12 +135,12 @@ código Python e o Postgres dele não são copiados para este repositório, não
 entram em `vendor/` e não viram um pacote embutido no binário. `internal/memoryhindsight` fala com a API por HTTP usando o cliente Go
 oficial, atrás de uma interface coberta por dublês. Sem o serviço, ou
 quando ele não responde, o backend de KB local continua válido. O MCP de
-cada bank continua na fase 4.
+cada bank é declarado pelos compiladores quando o serviço está habilitado.
 
 ## Roteiro por fases
 
 Cada fase entrega um contrato testável e deixa as seguintes intactas. As
-fases 1 a 3 estão no código. Os nomes das fases seguintes são o alvo do
+fases 1 a 4 estão no código. Os nomes das fases seguintes são o alvo do
 desenho e ainda não existem na CLI.
 
 | Fase | Entrega | Resultado |
@@ -204,11 +205,33 @@ Hindsight continua fora deste repositório.
 
 ### Fase 4 — MCP nos compiladores
 
-Os compiladores passam a emitir a entrada MCP do bank Hindsight junto dos
-assets canônicos, no formato que cada provedor já aceita para MCP. O endpoint
-vem da configuração do pacote. Um provedor sem suporte a MCP registra a
-limitação no lugar de gravar um arquivo inválido. O caso do GitHub Copilot,
-que já recusa uma tradução fiel de `permissions.yaml`, continua explícito.
+Implementada em `internal/providers`. Com `memory.hindsight.enabled`,
+`cockpit deploy` grava um servidor MCP por bank nos provedores que
+implementam `MCPCompiler`. O transporte é HTTP (streamable HTTP, não SSE)
+em `{api}/mcp/{bank}/`, com barra no final. A base vem de
+`memory.hindsight.api_url` ou, vazia, de `http://127.0.0.1:<api_port>`.
+Os ids saem de `memoryhindsight.ResolveBanks`: o bank do projeto, onde
+`kb index` retém documentos, e o bank do usuário, que o recall também lê.
+Serviço desligado não cria endpoint. Bank inválido falha o deploy em vez
+de inventar uma URL. O token do vault não é gravado no arquivo.
+
+| Provedor | Arquivo | Forma |
+|---|---|---|
+| Claude Code (`claude`) | `.mcp.json` | `type: http` e `url` |
+| Codex (`codex`) | `.codex/config.toml` | tabela `mcp_servers` com `url` |
+| Gemini CLI (`gemini`) | `.gemini/settings.json` | `httpUrl` |
+| GitHub Copilot CLI | `~/.copilot/mcp-config.json` | `type: http`, `url` e `tools` |
+
+O provedor precisa estar em `enabled_providers`. A feature `mcp` pode ser
+desligada nele. Desligar o Hindsight depois não apaga uma entrada já
+gravada; os outros arquivos compilados seguem iguais ao deploy sem o
+serviço.
+
+Devin, Goose e Antigravity não recebem essa entrada. Nenhum dos três tem
+um documento HTTP de MCP que o compilador possa preencher sem gravar um
+arquivo que o agente ignora. O formato desses produtos fica para um
+follow-up. O Gemini CLI não é o provider Antigravity. O GitHub Copilot
+continua sem traduzir `permissions.yaml`.
 
 ### Fase 5 — Backend de CLI
 

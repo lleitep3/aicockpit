@@ -61,6 +61,19 @@ Empty `api_url` uses `http://127.0.0.1:<api_port>`. Empty bank names become `pro
 
 If Hindsight is disabled, misconfigured, or unreachable, search and index finish with the local knowledge base and print a warning. The Hindsight source is not part of this repository. The CLI calls its HTTP API through the official Go client.
 
+## MCP nos agentes
+
+`cockpit deploy` declara os mesmos banks como servidores MCP quando `memory.hindsight.enabled` é true e o provedor está em `enabled_providers`. O transporte é HTTP em `http://127.0.0.1:8888/mcp/<bank>/` (ou a `api_url` configurada, com `/mcp/<bank>/`).
+
+| Provedor | Arquivo |
+| --- | --- |
+| `claude` | `.mcp.json` |
+| `codex` | `.codex/config.toml` |
+| `gemini` | `.gemini/settings.json` |
+| `github-copilot` | `~/.copilot/mcp-config.json` |
+
+Há uma entrada `hindsight-project` e outra `hindsight-user`. O token do vault não vai para esses arquivos. Desligar o serviço não reescreve os arquivos que o deploy já gerou. Devin, Goose e Antigravity ficam de fora nesta fase.
+
 ## Doctor
 
 `cockpit doctor` includes this status. A configured server that is stopped or whose `/health` check fails marks the doctor run unhealthy. An unconfigured server does not.

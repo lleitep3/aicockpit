@@ -8,6 +8,7 @@ import (
 	"github.com/lleitep3/aicockpit/internal/config"
 	"github.com/lleitep3/aicockpit/internal/i18n"
 	"github.com/lleitep3/aicockpit/internal/logging"
+	"github.com/lleitep3/aicockpit/internal/memoryhindsight"
 	"github.com/lleitep3/aicockpit/internal/providers"
 	"github.com/spf13/cobra"
 )
@@ -34,6 +35,11 @@ func NewDeployCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translat
 			}
 
 			pm := providers.NewProviderManager(providersConfig)
+			servers, err := providers.HindsightServers(cfg.Memory.Hindsight, memoryhindsight.CurrentIdentity())
+			if err != nil {
+				return fmt.Errorf("failed to resolve hindsight mcp: %w", err)
+			}
+			pm.SetHindsightMCP(servers)
 			cwd, err := os.Getwd()
 			if err != nil {
 				return fmt.Errorf("failed to get current working directory: %w", err)
