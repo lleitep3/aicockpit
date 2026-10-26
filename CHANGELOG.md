@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Features
+No features
+
+### Bug Fixes
+No bug fixes
+
+### Performance
+No performance improvements
+
+### Breaking Changes
+No breaking changes
+
+### Documentation
+- add product vision and consolidate vault guides (#260)
+
+### Testing
+No test changes
+
+### Other Changes
+No other changes
+
+
 ## [0.4.49] - 2026-10-25
 
 ### Changed since v0.4.48
