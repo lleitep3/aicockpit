@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.54] - 2026-10-26
+
+### Changed since v0.4.53
+
+
 ### Features
 - inject Hindsight MCP into Claude, Codex, Gemini, and Copilot (#272)
 
@@ -27,6 +32,7 @@ No test changes
 
 ### Other Changes
 No other changes
+
 
 
 ## [0.4.53] - 2026-10-26
