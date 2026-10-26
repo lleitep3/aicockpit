@@ -1,8 +1,9 @@
 # Visão de produto do AICockpit
 
-Estado: direção acordada com o dono do projeto. A fase 1 está implementada
-em `internal/memory`. As demais fases deste roteiro ainda não estão
-implementadas. A seção [Papel atual](#papel-atual) descreve o que o
+Estado: direção acordada com o dono do projeto. As fases 1 a 3 estão
+implementadas em `internal/memory`, `internal/hindsight` e
+`internal/memoryhindsight`. As fases 4 em diante deste roteiro ainda não
+estão implementadas. A seção [Papel atual](#papel-atual) descreve o que o
 código faz hoje.
 
 Planos como o [P0-02](plans/p0-02-vault-state-implementation-plan.md) apontam
@@ -49,12 +50,16 @@ graph LR
   frontmatter, índice, busca e grafo, em uma ou mais raízes. É a memória de
   longo prazo disponível hoje: documentos que o operador e os agentes
   consultam, não um serviço de memória com retenção própria.
-* **Memória** (`internal/memory`, `internal/hindsight`). Contrato `Retain`,
-  `Recall` e `Reflect` sobre o KB local. `cockpit memory up`, `down` e
+* **Memória** (`internal/memory`, `internal/hindsight`,
+  `internal/memoryhindsight`). Contrato `Retain`, `Recall` e `Reflect`.
+  O backend padrão continua no KB local. `cockpit memory up`, `down` e
   `status` administram um Hindsight local opcional (imagem Docker oficial,
   pg0, portas 8888 e 9999). Segredos saem do vault só como ambiente do
-  container. Não há cliente Hindsight no core nem integração com o KB ou
-  com os compiladores.
+  container. Com `memory.hindsight.enabled`, o cliente Go oficial entra
+  pelos pontos de extensão do KB: `kb search` acrescenta o recall e
+  `kb index` retém documentos. Há um bank por projeto e um por usuário.
+  Serviço desligado ou inacessível deixa a busca no KB local. Os
+  compiladores ainda não declaram o MCP do Hindsight.
 
 `cockpit doctor` verifica a existência de diretórios e arquivos locais
 (configuração, vault, logs, pacotes, cache) e reporta o Hindsight. Sem
@@ -126,22 +131,22 @@ opcional de memória. Características usadas nesta decisão:
 O Hindsight permanece um processo que `cockpit memory up` administra fora da
 árvore de módulos Go, com a imagem oficial e o Postgres embutido (pg0). O
 código Python e o Postgres dele não são copiados para este repositório, não
-entram em `vendor/` e não viram um pacote embutido no binário. O cockpit ainda
-não fala com ele pela interface `internal/memory`: o pacote
-`memory-hindsight`, as extensões de KB e o MCP de cada bank continuam nas
-fases seguintes. Sem o serviço, o backend de KB local continua válido.
+entram em `vendor/` e não viram um pacote embutido no binário. `internal/memoryhindsight` fala com a API por HTTP usando o cliente Go
+oficial, atrás de uma interface coberta por dublês. Sem o serviço, ou
+quando ele não responde, o backend de KB local continua válido. O MCP de
+cada bank continua na fase 4.
 
 ## Roteiro por fases
 
-Cada fase entrega um contrato testável e deixa as seguintes intactas. Nomes
-de pacotes e de comandos abaixo são o alvo do desenho; nenhum deles existe na
-CLI atual.
+Cada fase entrega um contrato testável e deixa as seguintes intactas. As
+fases 1 a 3 estão no código. Os nomes das fases seguintes são o alvo do
+desenho e ainda não existem na CLI.
 
 | Fase | Entrega | Resultado |
 |---|---|---|
 | 1 | Interface `internal/memory` | Contrato de memória com backend no KB local. Sem rede e sem Hindsight. |
 | 2 | `cockpit memory up`, `down`, `status` e check no `cockpit doctor` | A CLI sobe e derruba o container oficial do Hindsight (portas 8888 e 9999, pg0, segredo do vault só no ambiente do container). O doctor reporta a saúde e não falha quando o serviço não está configurado. Sem extensão de KB e sem MCP. |
-| 3 | Pacote `memory-hindsight` | Estende `kb search` e `kb index` pelas chaves `extensions.kb.search` e `extensions.kb.index`. `memory up` passa a poder subir o serviço externo. O código do Hindsight continua fora do repositório. |
+| 3 | Integração `memory-hindsight` | Backend `memory.Memory` com o cliente Go oficial, atrás de uma interface de teste. `kb search` acrescenta o recall e `kb index` retém documentos em `RunSearchExtensions` e `RunIndexExtensions`. Um bank por projeto e um por usuário. Serviço desligado ou inacessível deixa só o KB local. O código do Hindsight continua fora do repositório. |
 | 4 | Compiladores injetam o MCP do Hindsight | Cada bank configurado vira um servidor MCP declarado aos provedores que já recebem skills e MCP. Sem bank, os compiladores não inventam um endpoint. |
 | 5 | `internal/agents` com `Backend` e `CLIBackend` | Interface única de worker. `CLIBackend` executa `claude -p`, `codex exec`, `gemini -p` e `copilot`, com timeout, cancelamento e captura de saída. |
 | 6 | `APIBackend` | O mesmo `Backend` chama a API do provedor com o token do vault. Falha de vault fechado ou token ausente nega a chamada. |
@@ -158,8 +163,8 @@ Implementada em `internal/memory`. A interface `Memory` expõe `Retain`,
 do KB e `Retain` grava um markdown em `memory/<bank>/<id>.md` na primeira
 raiz. `Reflect` agrega os trechos encontrados; um backend sem síntese pode
 devolver `ErrReflectNotSupported`. `InMemory` e o dublê `Fake` cobrem testes
-sem disco. Nenhum import de cliente Hindsight entra no core. Um backend
-Hindsight futuro implementa a mesma interface fora deste pacote.
+sem disco. Nenhum import de cliente Hindsight entra no core. O backend
+Hindsight vive em `internal/memoryhindsight` e implementa a mesma interface.
 
 ### Fase 2 — Ciclo de vida e doctor
 
@@ -176,12 +181,26 @@ dublê de teste. `cockpit doctor` inclui o mesmo status em texto e JSON. Sem
 `memory.hindsight.enabled`, o check fica `skipped` e não reprova o doctor.
 O backend de KB da fase 1 não muda.
 
-### Fase 3 — Pacote memory-hindsight
+### Fase 3 — Integração memory-hindsight
 
-O pacote vive no registry, como os demais, e implementa as extensões de busca
-e indexação que `internal/kb` já percorre. A configuração guarda URL, bank e
-referência ao segredo no vault. `memory up` já lança o container; esta fase
-liga o serviço às extensões. Desinstalar o pacote devolve a busca ao BM25 do KB.
+Implementada em `internal/memoryhindsight`. O backend implementa
+`memory.Memory` com o cliente Go oficial
+(`github.com/vectorize-io/hindsight/hindsight-clients/go`). Os testes usam
+um dublê e não abrem rede.
+
+A integração é opcional e entra em `RunSearchExtensions` e
+`RunIndexExtensions`, os mesmos pontos que executam
+`extensions.kb.search` e `extensions.kb.index`. Com
+`memory.hindsight.enabled`, `kb search` mantém o resultado local e
+acrescenta o recall. `kb index` retém os documentos no bank do projeto.
+A configuração guarda a URL (`memory.hindsight.api_url`, por omissão a
+porta publicada por `memory up`), os banks e a referência
+`api_token_name` no vault. Os nomes vazios viram `project-<nome>` e
+`user-<nome>`.
+
+Serviço desligado, mal configurado ou inacessível não falha a busca nem
+a indexação: o comando avisa e fica só com o KB local. O código do
+Hindsight continua fora deste repositório.
 
 ### Fase 4 — MCP nos compiladores
 

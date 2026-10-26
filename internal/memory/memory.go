@@ -148,7 +148,10 @@ func checkCtx(ctx context.Context, op string) error {
 	return nil
 }
 
-func normalizeItem(item Item) (Item, error) {
+// NormalizeItem validates item and fills id, bank, title, tags, and timestamp.
+// An empty bank becomes "default". The returned item does not share slices or
+// maps with the input.
+func NormalizeItem(item Item) (Item, error) {
 	if strings.TrimSpace(item.Content) == "" {
 		return Item{}, fmt.Errorf("memory retain: %w", ErrEmptyContent)
 	}
@@ -253,7 +256,10 @@ func normalizeMeta(meta map[string]string) (map[string]string, error) {
 	return out, nil
 }
 
-func normalizeQuery(op string, query Query) (Query, string, error) {
+// NormalizeQuery validates query for op and returns the search text.
+// The search text is Text, Context, or both joined by a space. An empty bank
+// stays empty so callers can search every bank.
+func NormalizeQuery(op string, query Query) (Query, string, error) {
 	query.Text = strings.TrimSpace(query.Text)
 	query.Context = strings.TrimSpace(query.Context)
 	if query.Text == "" && query.Context == "" {

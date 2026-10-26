@@ -42,6 +42,25 @@ Additional `HINDSIGHT_*` variables can map to vault keys under `memory.hindsight
 
 Changing a secret requires `cockpit memory down` and then `cockpit memory up`.
 
+## Knowledge base
+
+While `memory.hindsight.enabled` is true, `cockpit kb search` keeps the local results and appends a Hindsight recall. `cockpit kb index` (and `kb rebuild-cache`) retains each markdown document in the project bank. Recall reads that bank and a second bank for the user.
+
+```yaml
+memory:
+  hindsight:
+    enabled: true
+    api_url: http://127.0.0.1:8888
+    api_token_name: api_token
+    banks:
+      project: my-app
+      user: ada
+```
+
+Empty `api_url` uses `http://127.0.0.1:<api_port>`. Empty bank names become `project-<name>` and `user-<name>`. `api_token_name` is an optional vault key in the `hindsight` namespace, sent as a bearer token. It is not the LLM key.
+
+If Hindsight is disabled, misconfigured, or unreachable, search and index finish with the local knowledge base and print a warning. The Hindsight source is not part of this repository. The CLI calls its HTTP API through the official Go client.
+
 ## Doctor
 
 `cockpit doctor` includes this status. A configured server that is stopped or whose `/health` check fails marks the doctor run unhealthy. An unconfigured server does not.

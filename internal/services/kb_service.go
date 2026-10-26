@@ -15,12 +15,19 @@ type KBService interface {
 	// Search performs a BM25 keyword search.
 	Search(query string) (*kb.SearchResults, error)
 
-	// RunSearchExtensions attempts semantic search via installed extensions.
-	// Returns (result, nil) on success, or ("", err) if no extension is available.
-	RunSearchExtensions(ctx context.Context, query string) (string, error)
+	// RunSearchExtensions runs package search scripts and in-process contributors.
+	// Supplement is set even when no package script succeeded.
+	RunSearchExtensions(ctx context.Context, query string, limit int) (kb.SearchExtensionResult, error)
+
+	// SearchSupplement runs in-process contributors such as memory-hindsight.
+	// Package scripts are not started. The result is empty when nothing is enabled.
+	SearchSupplement(ctx context.Context, query string, limit int) string
 
 	// RunIndexExtensions triggers index extensions after a rebuild.
 	RunIndexExtensions(ctx context.Context, roots []string, fast bool) error
+
+	// AddContributors registers in-process extensions used by search and index.
+	AddContributors(contributors ...kb.Contributor)
 
 	// ListDocuments returns all documents in the knowledge base.
 	ListDocuments() ([]*kb.Document, error)
@@ -46,8 +53,9 @@ type KBService interface {
 
 // DefaultKBService is the production implementation of KBService.
 type DefaultKBService struct {
-	manager *kb.Manager
-	pm      *packages.PackageManager
+	manager      *kb.Manager
+	pm           *packages.PackageManager
+	contributors []kb.Contributor
 }
 
 // NewKBService creates a DefaultKBService.
@@ -66,12 +74,24 @@ func (s *DefaultKBService) Search(query string) (*kb.SearchResults, error) {
 	return s.manager.Search(query)
 }
 
-func (s *DefaultKBService) RunSearchExtensions(ctx context.Context, query string) (string, error) {
-	return kb.RunSearchExtensions(ctx, s.pm, query)
+func (s *DefaultKBService) RunSearchExtensions(ctx context.Context, query string, limit int) (kb.SearchExtensionResult, error) {
+	return kb.RunSearchExtensions(ctx, s.pm, query, limit, s.contributors...)
+}
+
+func (s *DefaultKBService) SearchSupplement(ctx context.Context, query string, limit int) string {
+	return kb.SearchSupplement(ctx, query, limit, s.contributors...)
 }
 
 func (s *DefaultKBService) RunIndexExtensions(ctx context.Context, roots []string, fast bool) error {
-	return kb.RunIndexExtensions(ctx, s.pm, roots, fast)
+	return kb.RunIndexExtensions(ctx, s.pm, roots, fast, s.contributors...)
+}
+
+func (s *DefaultKBService) AddContributors(contributors ...kb.Contributor) {
+	for _, contributor := range contributors {
+		if contributor != nil {
+			s.contributors = append(s.contributors, contributor)
+		}
+	}
 }
 
 func (s *DefaultKBService) ListDocuments() ([]*kb.Document, error) {

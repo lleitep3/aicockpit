@@ -100,7 +100,7 @@ func (k *KB) Retain(ctx context.Context, item Item) (Item, error) {
 	if err := checkCtx(ctx, "retain"); err != nil {
 		return Item{}, err
 	}
-	stored, err := normalizeItem(item)
+	stored, err := NormalizeItem(item)
 	if err != nil {
 		return Item{}, err
 	}
@@ -131,7 +131,7 @@ func (k *KB) recall(ctx context.Context, op string, query Query) (*RecallResult,
 	if err := checkCtx(ctx, op); err != nil {
 		return nil, err
 	}
-	normalized, search, err := normalizeQuery(op, query)
+	normalized, search, err := NormalizeQuery(op, query)
 	if err != nil {
 		return nil, err
 	}

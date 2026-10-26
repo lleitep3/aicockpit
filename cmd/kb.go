@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/lleitep3/aicockpit/internal/config"
 	"github.com/lleitep3/aicockpit/internal/i18n"
@@ -48,29 +49,36 @@ func NewKBSearchCommand(log *logging.Manager, cfg *config.Config, t *i18n.Transl
 	searchCmd := &cobra.Command{
 		Use:   "search <query>",
 		Short: "Search knowledge base documents",
-		Long:  "Search knowledge base documents by keywords across all configured roots",
+		Long:  "Search knowledge base documents by keywords across all configured roots. When memory.hindsight.enabled is set, Hindsight recall is appended and failures fall back to the local knowledge base.",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			query := args[0]
 
 			svc := newKBServiceFunc(cfg.KB.Roots, config.GetCockpitDir(), log)
+			attachMemoryContributor(svc, cfg)
 
+			ctx := cmd.Context()
+			if ctx == nil {
+				ctx = context.Background()
+			}
+
+			var ext kb.SearchExtensionResult
 			if !forceBM25 {
-				ctx := cmd.Context()
-				if ctx == nil {
-					ctx = context.Background()
-				}
-				res, err := svc.RunSearchExtensions(ctx, query)
-				if err == nil {
-					fmt.Println(res)
+				ext, _ = svc.RunSearchExtensions(ctx, query, limit)
+				if ext.ScriptOK {
+					fmt.Println(ext.Script)
+					printSupplement(ext.Supplement)
 					return nil
 				}
+			} else {
+				ext.Supplement = svc.SearchSupplement(ctx, query, limit)
 			}
 
 			// Get KB roots from config
 			roots := cfg.KB.Roots
 			if len(roots) == 0 {
 				fmt.Println("No knowledge base roots configured")
+				printSupplement(ext.Supplement)
 				return nil
 			}
 
@@ -82,6 +90,7 @@ func NewKBSearchCommand(log *logging.Manager, cfg *config.Config, t *i18n.Transl
 
 			if len(results.Results) == 0 {
 				fmt.Println("No documents found matching your query")
+				printSupplement(ext.Supplement)
 				return nil
 			}
 
@@ -91,15 +100,7 @@ func NewKBSearchCommand(log *logging.Manager, cfg *config.Config, t *i18n.Transl
 				results.Total = limit
 			}
 
-			// Output results
-			switch format {
-			case "json":
-				return outputJSON(results)
-			case "table":
-				return outputTable(results)
-			default:
-				return outputDefault(results)
-			}
+			return writeSearchResults(format, results, ext.Supplement)
 		},
 	}
 
@@ -236,6 +237,7 @@ func NewKBRootAddCommand(log *logging.Manager, cfg *config.Config, t *i18n.Trans
 			rootPath := args[0]
 
 			svc := newKBServiceFunc(cfg.KB.Roots, config.GetCockpitDir(), log)
+			attachMemoryContributor(svc, cfg)
 
 			// Add root
 			if err := svc.AddRoot(rootPath); err != nil {
@@ -342,6 +344,7 @@ func NewKBRebuildCacheCommand(log *logging.Manager, cfg *config.Config, t *i18n.
 			}
 
 			svc := newKBServiceFunc(roots, config.GetCockpitDir(), log)
+			attachMemoryContributor(svc, cfg)
 
 			// Rebuild index
 			fmt.Println("Rebuilding knowledge base index...")
@@ -376,9 +379,47 @@ func NewKBRebuildCacheCommand(log *logging.Manager, cfg *config.Config, t *i18n.
 	return rebuildCmd
 }
 
+func writeSearchResults(format string, results *kb.SearchResults, supplement string) error {
+	switch format {
+	case "json":
+		return outputJSON(results, supplement)
+	case "table":
+		if err := outputTable(results); err != nil {
+			return err
+		}
+	default:
+		if err := outputDefault(results); err != nil {
+			return err
+		}
+	}
+	printSupplement(supplement)
+	return nil
+}
+
+func printSupplement(text string) {
+	text = strings.TrimSpace(text)
+	if text == "" {
+		return
+	}
+	fmt.Printf("\n%s\n", text)
+}
+
 // outputJSON outputs search results as JSON.
-func outputJSON(results *kb.SearchResults) error {
-	data, err := json.MarshalIndent(results, "", "  ")
+func outputJSON(results *kb.SearchResults, supplement string) error {
+	payload := struct {
+		Query     string            `json:"query"`
+		Results   []kb.SearchResult `json:"results"`
+		Total     int               `json:"total"`
+		Hindsight string            `json:"hindsight,omitempty"`
+	}{
+		Hindsight: strings.TrimSpace(supplement),
+	}
+	if results != nil {
+		payload.Query = results.Query
+		payload.Results = results.Results
+		payload.Total = results.Total
+	}
+	data, err := json.MarshalIndent(payload, "", "  ")
 	if err != nil {
 		return fmt.Errorf("failed to marshal JSON: %w", err)
 	}
