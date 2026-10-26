@@ -1,7 +1,8 @@
 # Visão de produto do AICockpit
 
-Estado: direção acordada com o dono do projeto. As fases deste roteiro ainda
-não estão implementadas. A seção [Papel atual](#papel-atual) descreve o que o
+Estado: direção acordada com o dono do projeto. A fase 1 está implementada
+em `internal/memory`. As demais fases deste roteiro ainda não estão
+implementadas. A seção [Papel atual](#papel-atual) descreve o que o
 código faz hoje.
 
 Planos como o [P0-02](plans/p0-02-vault-state-implementation-plan.md) apontam
@@ -48,6 +49,8 @@ graph LR
   frontmatter, índice, busca e grafo, em uma ou mais raízes. É a memória de
   longo prazo disponível hoje: documentos que o operador e os agentes
   consultam, não um serviço de memória com retenção própria.
+* **Memória** (`internal/memory`). Contrato `Retain`, `Recall` e `Reflect`
+  sobre o KB local. Não há comando `cockpit memory` nem cliente Hindsight.
 
 `cockpit doctor` verifica a existência de diretórios e arquivos locais
 (configuração, vault, logs, pacotes, cache). Não há processo de memória, fila
@@ -143,10 +146,14 @@ CLI atual.
 
 ### Fase 1 — Interface de memória
 
-`internal/memory` expõe operações pequenas de retenção e busca, com contexto
-cancelável e erros embrulhados. O backend padrão lê e escreve no KB local por
-meio de `internal/kb`. Testes usam um backend em memória. Nenhum import de
-cliente Hindsight entra no core.
+Implementada em `internal/memory`. A interface `Memory` expõe `Retain`,
+`Recall` e `Reflect`, com contexto cancelável e erros embrulhados. O backend
+`KB` lê e escreve no KB local por meio de `internal/kb`: `Recall` usa a busca
+do KB e `Retain` grava um markdown em `memory/<bank>/<id>.md` na primeira
+raiz. `Reflect` agrega os trechos encontrados; um backend sem síntese pode
+devolver `ErrReflectNotSupported`. `InMemory` e o dublê `Fake` cobrem testes
+sem disco. Nenhum import de cliente Hindsight entra no core. Um backend
+Hindsight futuro implementa a mesma interface fora deste pacote.
 
 ### Fase 2 — Ciclo de vida e doctor
 
