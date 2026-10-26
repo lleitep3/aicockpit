@@ -32,6 +32,7 @@ nav:
   - Home: index.md
   - Quick Start: QUICK_START.md
   - Features: FEATURES.md
+  - Visão de produto: PRODUCT_VISION.md
   - Architecture:
     - Overview: architecture/01-overview.md
     - Project Management: architecture/07-project-management.md
@@ -39,8 +40,23 @@ nav:
     - Registries: architecture/04-package-registries.md
     - Vault System: architecture/05-vault-system.md
     - Knowledge Base: architecture/06-knowledge-base.md
+  - Vault:
+    - Índice: vault/README.md
+    - Estado de lock v2: vault/vault-state-v2.md
+    - Guia: vault/vault-guide.md
+    - Lock e unlock: vault/vault-lock-unlock-implementation.md
+    - Uso por pacotes: vault/vault-package-usage.md
+    - Exemplos: vault/vault-usage-examples.md
+    - Histórico:
+      - Comparação: vault/vault-comparison.md
+      - Master pass: vault/vault-master-pass-solution.md
+      - Produção: vault/vault-production-solution.md
+      - Segurança real: vault/vault-real-security.md
+      - Análise: vault/vault-security-analysis.md
+      - Resposta: vault/vault-security-answer.md
+      - Evolução: vault/vault-security-evolution.md
+      - Três pontos: vault/vault-three-points-answer.md
   - Guides:
-    - Vault Guide: vault-guide.md
     - Logging & Metrics: LOGGING_AND_METRICS.md
     - Tracking de Pacotes: tracking.md
     - Command Guide: COMMAND_DOCUMENTATION_GUIDE.md

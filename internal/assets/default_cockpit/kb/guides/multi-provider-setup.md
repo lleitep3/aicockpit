@@ -8,6 +8,13 @@ version: "1.0"
 
 # Multi-Provider Setup Guide
 
+> [!WARNING]
+> `cockpit agent` is not a current CLI command. Examples in this guide that
+> would run it are commented with `# planned:` so they are not copied as
+> working commands. The agreed direction is the [product vision](../../../../../docs/PRODUCT_VISION.md#roteiro-por-fases).
+> Publish canonical assets with `cockpit deploy` and the provider compilers.
+> See also the [command index](../../../../../docs/commands/README.md) and the [package profiles plan](../../../../../docs/plans/package-profiles.md).
+
 ## Overview
 
 This guide explains how to set up AICockpit for multiple AI providers simultaneously. Cockpit compiles shared canonical assets for each enabled provider; GitHub Copilot CLI receives its supported instructions, skills, workflows-as-skills, and custom agents under `~/.copilot`.
@@ -274,7 +281,7 @@ config:
 
 ```bash
 # Install agent in all providers
-cockpit agent install cockpit-builder --all-providers
+# planned: cockpit agent install cockpit-builder --all-providers
 
 # Install skill in all providers
 cockpit skill install go-development --all-providers
@@ -287,20 +294,20 @@ cockpit hook install cockpit-first --all-providers
 
 ```bash
 # Install only in Devin
-cockpit agent install cockpit-builder --provider devin
+# planned: cockpit agent install cockpit-builder --provider devin
 
 # Install only in Goose
-cockpit agent install cockpit-builder --provider goose
+# planned: cockpit agent install cockpit-builder --provider goose
 
 # Install in multiple specific providers
-cockpit agent install cockpit-builder --providers devin,goose,claude-code
+# planned: cockpit agent install cockpit-builder --providers devin,goose,claude-code
 ```
 
 ### Verify Component Installation
 
 ```bash
 # List agents in all providers
-cockpit agent list --all-providers
+# planned: cockpit agent list --all-providers
 
 # List skills in all providers
 cockpit skill list --all-providers
@@ -414,12 +421,12 @@ grep -n "error\|Error" ~/.cockpit/logs/*.log
 
 ```bash
 # List installed components
-cockpit agent list --all-providers
+# planned: cockpit agent list --all-providers
 cockpit skill list --all-providers
 cockpit hook list --all-providers
 
 # Reinstall components
-cockpit agent install cockpit-builder --all-providers
+# planned: cockpit agent install cockpit-builder --all-providers
 ```
 
 ### Manifest Corruption
@@ -441,7 +448,7 @@ Keep the same components installed across all providers:
 
 ```bash
 # Install same components everywhere
-cockpit agent install cockpit-builder --all-providers
+# planned: cockpit agent install cockpit-builder --all-providers
 cockpit skill install go-development --all-providers
 cockpit hook install cockpit-first --all-providers
 ```
@@ -534,12 +541,12 @@ bash scripts/setup-multi-provider.sh
 bash scripts/validate-multi-provider.sh
 
 # 3. Install components in all providers
-cockpit agent install cockpit-builder --all-providers
+# planned: cockpit agent install cockpit-builder --all-providers
 cockpit skill install go-development --all-providers
 cockpit hook install cockpit-first --all-providers
 
 # 4. Verify components
-cockpit agent list --all-providers
+# planned: cockpit agent list --all-providers
 ```
 
 ### Example 2: Provider-Specific Setup
@@ -580,5 +587,5 @@ cockpit kb list --all-providers
 
 1. Run the setup script: `bash scripts/setup-multi-provider.sh`
 2. Verify installation: `bash scripts/validate-multi-provider.sh`
-3. Install components: `cockpit agent install cockpit-builder --all-providers`
+3. Install components: `cockpit agent install cockpit-builder --all-providers` (planned; see the product vision above)
 4. Start using AICockpit with your preferred provider

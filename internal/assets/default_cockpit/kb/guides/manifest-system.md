@@ -8,6 +8,13 @@ version: "1.0"
 
 # AICockpit Manifest System
 
+> [!WARNING]
+> `cockpit agent` is not a current CLI command. Examples in this guide that
+> would run it are commented with `# planned:` so they are not copied as
+> working commands. The agreed direction is the [product vision](../../../../../docs/PRODUCT_VISION.md#roteiro-por-fases).
+> Publish canonical assets with `cockpit deploy` and the provider compilers.
+> See also the [command index](../../../../../docs/commands/README.md) and the [package profiles plan](../../../../../docs/plans/package-profiles.md).
+
 ## Overview
 
 The AICockpit Manifest System is a tracking mechanism that records all installed components (agents, skills, hooks, modules) and their locations. This system is essential for proper uninstallation, updates, and system maintenance.
@@ -389,7 +396,7 @@ cockpit manifest add agent cockpit-builder
 cockpit manifest verify
 
 # 4. Test component
-cockpit agent run cockpit-builder --help
+# planned: cockpit agent run cockpit-builder --help
 ```
 
 ### Uninstallation

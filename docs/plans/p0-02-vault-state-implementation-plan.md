@@ -3,7 +3,7 @@
 Status: pronto para implementação em outra sessão, preferencialmente Luna.
 Data da análise: 2026-09-04. Nenhuma mudança de código foi feita nesta tarefa de planejamento.
 
-Contexto: [visão de produto](../PRODUCT_VISION.md) e [backlog](user-harness-roadmap.md).
+Contexto: [visão de produto](../PRODUCT_VISION.md) e [roteiro por fases](../PRODUCT_VISION.md#roteiro-por-fases).
 
 ## 1. Objetivo e limite da entrega
 

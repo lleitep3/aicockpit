@@ -5,7 +5,7 @@
 > [!WARNING]
 > Este documento é uma comparação histórica do vault anterior ao P0-02. A
 > fonte de verdade atual para lock state é [Vault lock state v2](vault-state-v2.md)
-> e a arquitetura atualizada está em [05. Sistema de Cofre](architecture/05-vault-system.md).
+> e a arquitetura atualizada está em [05. Sistema de Cofre](../architecture/05-vault-system.md).
 
 As conclusões abaixo continuam úteis apenas para os comandos de credenciais;
 afirmações sobre persistência, criptografia ou comportamento de falhas devem ser
@@ -134,14 +134,14 @@ O sistema de vault está:
 
 ### Complementos Criados:
 
-1. **docs/vault-guide.md** - Guia completo com:
+1. **docs/vault/vault-guide.md** - Guia completo com:
    - Exemplos práticos de uso
    - Troubleshooting detalhado
    - Scripts de uso avançado
    - Boas práticas de segurança
    - Detalhes operacionais
 
-2. **docs/vault-comparison.md** (este documento) - Análise comparativa
+2. **docs/vault/vault-comparison.md** (este documento) - Análise comparativa
 
 ## 🔍 Verificação Final
 
@@ -163,4 +163,4 @@ O sistema de vault está:
 
 ## 📝 Recomendação
 
-**MANTER documentação atual** como está (nível arquitetural) e **ADICIONAR** o guia prático (`docs/vault-guide.md`) como complemento operacional. A documentação existente está excelente para seu propósito (arquitetura) e o novo guia complementa para uso prático.
+**MANTER documentação atual** como está (nível arquitetural) e **ADICIONAR** o guia prático (`docs/vault/vault-guide.md`) como complemento operacional. A documentação existente está excelente para seu propósito (arquitetura) e o novo guia complementa para uso prático.

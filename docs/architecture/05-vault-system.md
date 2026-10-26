@@ -4,7 +4,7 @@
 > **Fase de Desenvolvimento:** A arquitetura do Sistema de Cofre faz parte da **Fase 5** do *roadmap*. Esta estrutura lida com a segurança nativa de segredos na máquina host.
 
 > [!IMPORTANT]
-> **Contrato atual do estado de lock:** consulte [Vault lock state v2](../vault-state-v2.md) para o comportamento implementado. O estado usa AES-GCM com uma chave aleatória no keyring do sistema, falha fechada quando não pode ser lido e exige `cockpit vault migrate-state --confirm` para converter um estado legado. As credenciais armazenadas no keyring não são migradas nem apagadas por esse comando.
+> **Contrato atual do estado de lock:** consulte [Vault lock state v2](../vault/vault-state-v2.md) para o comportamento implementado. O [índice do vault](../vault/README.md) reúne o guia, os exemplos e o histórico. O estado usa AES-GCM com uma chave aleatória no keyring do sistema, falha fechada quando não pode ser lido e exige `cockpit vault migrate-state --confirm` para converter um estado legado. As credenciais armazenadas no keyring não são migradas nem apagadas por esse comando.
 
 O `Vault System` (`internal/vault`) é responsável pelo armazenamento seguro de chaves de API, tokens e segredos em geral que o AICockpit e seus Agentes precisam usar (como tokens da OpenAI, GitHub PAT, etc.).
 

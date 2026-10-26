@@ -127,7 +127,7 @@ Error: vault is locked
 2. **Integrar com Service** - Combinar lock/unlock com Service
 3. **Adicionar permissões** - Sistema de permissões por secret
 4. **Atualizar kb-graphify** - Usar novo sistema de lock/unlock
-5. **Documentação** - Atualizada em `docs/vault-state-v2.md` e na arquitetura do vault
+5. **Documentação** - Atualizada em `docs/vault/vault-state-v2.md` e na arquitetura do vault
 
 ## ✅ RESUMO
 
