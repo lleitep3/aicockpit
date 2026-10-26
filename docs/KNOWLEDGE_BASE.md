@@ -76,6 +76,8 @@ cockpit kb search "logging" --format table
 cockpit kb search "logging" --limit 5
 ```
 
+When `memory.hindsight.enabled` is true, search appends Hindsight recall from the project bank and the user bank. `cockpit kb index` retains documents in the project bank. A disabled or unreachable server leaves the local results unchanged. See [cockpit memory](commands/memory.md).
+
 ### List All Documents
 
 ```bash

@@ -12,5 +12,7 @@
 // through Runtime so tests can substitute FakeRuntime and never start a daemon.
 //
 // This package does not implement memory.Memory and does not talk to the
-// knowledge base. Retain, Recall, and Reflect stay in internal/memory.
+// knowledge base. Retain, Recall, and Reflect against the Hindsight API live
+// in internal/memoryhindsight. The lifecycle here only starts and stops the
+// server.
 package hindsight

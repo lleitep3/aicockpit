@@ -89,6 +89,26 @@ type Settings struct {
 	// Secrets maps additional HINDSIGHT_* environment variables to vault keys.
 	// HINDSIGHT_API_DATABASE_URL is rejected so the server stays on embedded pg0.
 	Secrets map[string]string `yaml:"secrets,omitempty"`
+	// APIURL is the base URL of the Hindsight HTTP API used by the
+	// memory-hindsight integration. Empty uses http://127.0.0.1:<api port>.
+	// This value is not a secret and must not include userinfo.
+	APIURL string `yaml:"api_url,omitempty"`
+	// Banks names the project and user memory banks. Empty names are derived.
+	Banks BanksConfig `yaml:"banks,omitempty"`
+	// APITokenName is an optional vault key, in VaultNamespace, sent as a
+	// Bearer token to the Hindsight API. Empty sends no token. This is the
+	// API token reference, not the token and not the LLM API key.
+	APITokenName string `yaml:"api_token_name,omitempty"`
+}
+
+// BanksConfig holds optional bank ids for the memory-hindsight integration.
+// Names are not secrets. Empty values are derived at runtime: one bank per
+// project and one bank per user.
+type BanksConfig struct {
+	// Project is the project bank id. Empty derives project-<name>.
+	Project string `yaml:"project,omitempty"`
+	// User is the user bank id. Empty derives user-<name>.
+	User string `yaml:"user,omitempty"`
 }
 
 // Resolved is Settings with defaults filled in and checks applied.

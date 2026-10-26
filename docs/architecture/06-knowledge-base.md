@@ -57,7 +57,13 @@ O backend `memory.KB` usa este módulo:
 * **Retain** grava um Markdown com o cabeçalho de metadados padrão em `memory/<bank>/<id>.md` na primeira raiz e reconstrói o índice. A descrição guarda o contexto, as tags incluem `memory` e `bank:<bank>`, e `related` guarda `doc:` e `meta:`.
 * **Reflect** junta os trechos encontrados. Não chama um modelo. Um backend futuro pode devolver `ErrReflectNotSupported`.
 
-`memory.InMemory` e o dublê `memory.Fake` cobrem testes sem disco. O cliente Hindsight não entra neste módulo; um backend futuro implementa a mesma interface fora daqui. `cockpit memory up|down|status` (`internal/hindsight`) só administra o processo Docker opcional e não grava nem busca documentos.
+`memory.InMemory` e o dublê `memory.Fake` cobrem testes sem disco. O cliente Hindsight não entra neste módulo. `internal/memoryhindsight` implementa a mesma interface com o cliente Go oficial, atrás de um dublê nos testes.
+
+## 6. Hindsight opcional
+
+Com `memory.hindsight.enabled`, `kb search` continua devolvendo o BM25 local e acrescenta o recall do Hindsight. `kb index` retém cada documento Markdown no bank do projeto. Há também um bank por usuário. Os nomes ficam em `memory.hindsight.banks` ou são derivados (`project-<nome>`, `user-<nome>`).
+
+Serviço desligado, mal configurado ou inacessível não interrompe o comando: a saída local permanece e um aviso registra a falha. `cockpit memory up|down|status` (`internal/hindsight`) continua só administrando o processo Docker.
 
 ---
 > **Fim da Trilha Principal:** Com isto, fechamos o ciclo que vai desde a detecção da IA, formatação de arquivos com o Compilador Canônico, registro e instalação de Pacotes, Proteção no Cofre e Gerenciamento Inteligente de Conhecimento.

@@ -300,6 +300,39 @@ func TestLoadPreservesHindsightSettings(t *testing.T) {
 	}
 }
 
+func TestLoadPreservesHindsightBanks(t *testing.T) {
+	tmpDir := t.TempDir()
+	oldHome := os.Getenv("HOME")
+	os.Setenv("HOME", tmpDir)
+	defer os.Setenv("HOME", oldHome)
+	if err := os.MkdirAll(GetCockpitDir(), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	raw := []byte("version: \"0.4.52\"\nlanguage: en-us\nmemory:\n  hindsight:\n    enabled: true\n    api_url: http://127.0.0.1:8888\n    api_token_name: api_token\n    banks:\n      project: crew\n      user: ada\n")
+	if err := os.WriteFile(GetConfigPath(), raw, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	cfg, err := Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := cfg.Memory.Hindsight
+	if got.APIURL != "http://127.0.0.1:8888" || got.APITokenName != "api_token" || got.Banks.Project != "crew" || got.Banks.User != "ada" {
+		t.Fatalf("hindsight = %+v", got)
+	}
+	if err := Save(cfg); err != nil {
+		t.Fatal(err)
+	}
+	saved, err := os.ReadFile(GetConfigPath())
+	if err != nil {
+		t.Fatal(err)
+	}
+	text := string(saved)
+	if !strings.Contains(text, "project: crew") || !strings.Contains(text, "api_token_name: api_token") || strings.Contains(text, "super-secret") {
+		t.Fatalf("saved = %s", text)
+	}
+}
+
 func TestShouldCheckUpdate(t *testing.T) {
 	tests := []struct {
 		name            string

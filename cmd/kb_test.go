@@ -158,7 +158,7 @@ func TestOutputJSON(t *testing.T) {
 	r, w, _ := os.Pipe()
 	os.Stdout = w
 
-	err := outputJSON(results)
+	err := outputJSON(results, "")
 
 	w.Close()
 	os.Stdout = old

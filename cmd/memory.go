@@ -80,6 +80,11 @@ Enable it in ~/.cockpit/config.yaml:
       enabled: true
       llm_provider: openai
 
+When it is enabled, kb search also recalls one project bank and one user bank,
+and kb index retains documents in the project bank. Names default to
+project-<name> and user-<name>, or set memory.hindsight.banks. If the server
+is unreachable, search and index keep the local knowledge base.
+
 Store the key without putting it in the shell history:
 
   cockpit vault set llm_api_key --namespace hindsight --stdin`,

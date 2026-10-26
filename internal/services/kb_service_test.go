@@ -75,8 +75,27 @@ func TestDefaultKBService_Operations(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	if _, err := svc.RunSearchExtensions(ctx, "q"); err == nil {
+	if _, err := svc.RunSearchExtensions(ctx, "q", 10); err == nil {
 		t.Error("RunSearchExtensions() should return an error when no packages are installed")
+	}
+	if extra := svc.SearchSupplement(ctx, "q", 10); extra != "" {
+		t.Errorf("SearchSupplement() = %q, want empty", extra)
+	}
+	svc.AddContributors(nil)
+	extra := &recordingContributor{text: "from-hindsight"}
+	svc.AddContributors(extra)
+	result, err := svc.RunSearchExtensions(ctx, "aqueduct", 4)
+	if err == nil {
+		t.Fatal("package scripts are still absent")
+	}
+	if result.Supplement != "from-hindsight" || extra.limit != 4 {
+		t.Fatalf("supplement = %q limit = %d", result.Supplement, extra.limit)
+	}
+	if err := svc.RunIndexExtensions(ctx, []string{tmpDir}, true); err != nil {
+		t.Fatal(err)
+	}
+	if !extra.fast {
+		t.Fatal("index contributor was not called")
 	}
 
 	if err := svc.RunIndexExtensions(ctx, []string{}, false); err != nil {
@@ -110,6 +129,22 @@ This is content about testing.`
 	if results.Total == 0 {
 		t.Error("Search(test) should return at least one result")
 	}
+}
+
+type recordingContributor struct {
+	text  string
+	limit int
+	fast  bool
+}
+
+func (r *recordingContributor) Search(_ context.Context, _ string, limit int) (string, error) {
+	r.limit = limit
+	return r.text, nil
+}
+
+func (r *recordingContributor) Index(_ context.Context, _ []string, fast bool) error {
+	r.fast = fast
+	return nil
 }
 
 func TestDefaultKBService_NewGraphSearcher(t *testing.T) {

@@ -125,7 +125,7 @@ func TestNormalizeItem(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := normalizeItem(tt.item)
+			got, err := NormalizeItem(tt.item)
 			if tt.wantErr != nil || tt.wantText != "" {
 				if err == nil {
 					t.Fatal("expected error")
@@ -162,7 +162,7 @@ func TestNormalizeQuery(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, search, err := normalizeQuery("recall", tt.query)
+			got, search, err := NormalizeQuery("recall", tt.query)
 			if tt.wantErr != nil {
 				if !errors.Is(err, tt.wantErr) {
 					t.Fatalf("error = %v, want %v", err, tt.wantErr)
