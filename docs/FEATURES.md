@@ -183,6 +183,7 @@
 - [x] `cockpit project` - Kanban / Tasks
 - [x] `cockpit kb` - Knowledge base management
 - [x] `cockpit memory` - Optional local Hindsight server, plus recall on `kb search` and retain on `kb index` when enabled
+- [x] Hindsight MCP on `cockpit deploy` for Claude Code, Codex, Gemini CLI, and GitHub Copilot CLI
 - [ ] `cockpit agents` - Agent management (planned; [product vision](PRODUCT_VISION.md#roteiro-por-fases))
 - [ ] `cockpit skills` - Explicit skills management
 - [ ] `cockpit rules` - Explicit rules management

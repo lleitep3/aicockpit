@@ -18,7 +18,7 @@ O provider está habilitado por padrão e detecta a instalação pelo executáve
 - O provider não gera política de permissões. Aprovações do Copilot CLI são associadas ao repositório e não representam por completo as regras canônicas `allow`, `deny` e `ask` do Cockpit. A feature `permissions` fica desabilitada; se ativada com uma política não vazia, o deploy retorna erro em vez de gravar um arquivo que o CLI ignora.
 - `CanonicalAgent.Permissions` e `MaxNesting` também não podem ser traduzidos para um agente do Copilot CLI. O deploy falha para esse agente. Use `AllowedTools` para definir uma lista positiva de ferramentas.
 - Workflows canônicos são checklists acionáveis por skill. Dynamic workflows do Copilot são extensões executáveis e não são produzidos pelo adapter.
-- Hooks, MCP e configurações do próprio CLI não são escritos pelo provider.
+- Hooks e as demais configurações do CLI não são escritos pelo provider. Com `memory.hindsight.enabled`, o deploy grava só os servidores MCP do Hindsight em `~/.copilot/mcp-config.json` (`type: http`).
 
 ## Deploy e validação
 

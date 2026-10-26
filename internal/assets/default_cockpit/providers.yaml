@@ -66,6 +66,24 @@ providers:
         enabled: true
         path: ".codex/agents"
         description: "Project-local Codex custom agents"
+      mcp:
+        enabled: true
+        path: ".codex/config.toml"
+        description: "Project Codex MCP servers. Hindsight banks are injected when memory.hindsight.enabled is true"
+
+  # Claude Code - project MCP config. Canonical rules and skills are not compiled yet.
+  claude:
+    enabled: true
+    name: "Claude Code"
+    description: "Claude Code CLI"
+    workspace: "~/.claude"
+    binary: "claude"
+    version: "1.0.0"
+    features:
+      mcp:
+        enabled: true
+        path: ".mcp.json"
+        description: "Project MCP servers. Hindsight banks are injected when memory.hindsight.enabled is true"
 
   # GitHub Copilot CLI - global user-level instructions and assets rooted at ~/.copilot
   github-copilot:
@@ -95,6 +113,24 @@ providers:
         enabled: true
         path: "~/.copilot/agents"
         description: "User-level GitHub Copilot CLI custom agents"
+      mcp:
+        enabled: true
+        path: "~/.copilot/mcp-config.json"
+        description: "User-level Copilot CLI MCP servers. Hindsight banks are injected when memory.hindsight.enabled is true"
+
+  # Gemini CLI - project settings.json. Distinct from the Antigravity provider.
+  gemini:
+    enabled: true
+    name: "Gemini CLI"
+    description: "Gemini CLI"
+    workspace: "~/.gemini"
+    binary: "gemini"
+    version: "1.0.0"
+    features:
+      mcp:
+        enabled: true
+        path: ".gemini/settings.json"
+        description: "Project Gemini CLI MCP servers. Hindsight banks are injected when memory.hindsight.enabled is true"
 
   # Devin - Autonomous AI agent by Cognition
   devin:

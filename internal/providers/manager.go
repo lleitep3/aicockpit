@@ -9,8 +9,9 @@ import (
 
 // ProviderManager orchestrates compilation and deployment of adapter files.
 type ProviderManager struct {
-	compilers map[string]Compiler
-	config    *ProvidersConfig
+	compilers    map[string]Compiler
+	config       *ProvidersConfig
+	hindsightMCP []MCPServer
 }
 
 // NewProviderManager creates a new ProviderManager and registers default compilers.
@@ -22,6 +23,8 @@ func NewProviderManager(config *ProvidersConfig) *ProviderManager {
 
 	pm.Register(NewAntigravityCompiler())
 	pm.Register(NewCodexCompiler())
+	pm.Register(NewClaudeCompiler())
+	pm.Register(NewGeminiCompiler())
 	pm.Register(NewGitHubCopilotCompiler())
 	pm.Register(NewDevinCompiler())
 	pm.Register(NewGooseCompiler())
@@ -43,6 +46,18 @@ func NewProviderManagerWithPlugins(config *ProvidersConfig, cockpitDir string) *
 // Register registers a new compiler strategy.
 func (pm *ProviderManager) Register(compiler Compiler) {
 	pm.compilers[compiler.Name()] = compiler
+}
+
+// SetHindsightMCP stores the per-bank Hindsight MCP servers to inject.
+// A nil or empty list leaves every compiled file byte-identical to a deploy
+// that does not know about Hindsight. The manager does not delete servers
+// written by an earlier deploy.
+func (pm *ProviderManager) SetHindsightMCP(servers []MCPServer) {
+	if len(servers) == 0 {
+		pm.hindsightMCP = nil
+		return
+	}
+	pm.hindsightMCP = append([]MCPServer(nil), servers...)
 }
 
 // Deploy compiles rules/skills for a provider and deploys them to target locations.
@@ -104,6 +119,10 @@ func (pm *ProviderManager) Deploy(providerName string, cockpitHomeDir string, pr
 
 	// 3. Determine target base directory
 	baseDir := projectDir
+	mcpFiles, err := pm.compileHindsightMCP(compiler, provider)
+	if err != nil {
+		return err
+	}
 	resourceModes := make(map[string]os.FileMode)
 	if skillsFeature, ok := provider.Features["skills"]; ok && skillsFeature.Enabled {
 		for _, skill := range skills {
@@ -124,18 +143,9 @@ func (pm *ProviderManager) Deploy(providerName string, cockpitHomeDir string, pr
 	// 4. Write compiled files to their relative target paths
 	for relPath, content := range allFiles {
 		relPath = filepath.Clean(relPath)
-
-		var destPath string
-		if strings.HasPrefix(relPath, "~") {
-			home, err := os.UserHomeDir()
-			if err != nil {
-				return fmt.Errorf("failed to get user home directory: %w", err)
-			}
-			destPath = filepath.Join(home, relPath[1:])
-		} else if filepath.IsAbs(relPath) {
-			destPath = relPath
-		} else {
-			destPath = filepath.Join(baseDir, relPath)
+		destPath, err := resolveCompiledPath(relPath, baseDir)
+		if err != nil {
+			return err
 		}
 
 		if err := os.MkdirAll(filepath.Dir(destPath), 0o755); err != nil {
@@ -182,6 +192,75 @@ func (pm *ProviderManager) Deploy(providerName string, cockpitHomeDir string, pr
 		}
 	}
 
+	for relPath, content := range mcpFiles {
+		if err := writeMergedMCP(relPath, content, baseDir); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (pm *ProviderManager) compileHindsightMCP(compiler Compiler, provider *Provider) (map[string]string, error) {
+	if len(pm.hindsightMCP) == 0 {
+		return nil, nil
+	}
+	mcpCompiler, ok := compiler.(MCPCompiler)
+	if !ok {
+		return nil, nil
+	}
+	files, err := mcpCompiler.CompileMCP(pm.hindsightMCP, provider)
+	if err != nil {
+		return nil, fmt.Errorf("failed to compile hindsight mcp: %w", err)
+	}
+	return files, nil
+}
+
+func resolveCompiledPath(relPath, baseDir string) (string, error) {
+	relPath = filepath.Clean(relPath)
+	if strings.HasPrefix(relPath, "~") {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return "", fmt.Errorf("failed to get user home directory: %w", err)
+		}
+		return filepath.Join(home, relPath[1:]), nil
+	}
+	if filepath.IsAbs(relPath) {
+		return relPath, nil
+	}
+	return filepath.Join(baseDir, relPath), nil
+}
+
+func writeMergedMCP(relPath, content, baseDir string) error {
+	if strings.TrimSpace(content) == "" {
+		return nil
+	}
+	destPath, err := resolveCompiledPath(relPath, baseDir)
+	if err != nil {
+		return err
+	}
+	existing := ""
+	data, readErr := os.ReadFile(destPath)
+	switch {
+	case readErr == nil:
+		existing = string(data)
+	case os.IsNotExist(readErr):
+	default:
+		return fmt.Errorf("failed to read mcp config %s: %w", destPath, readErr)
+	}
+	merged, err := mergeMCPDocument(relPath, existing, content)
+	if err != nil {
+		return err
+	}
+	if existing == merged {
+		return nil
+	}
+	if err := os.MkdirAll(filepath.Dir(destPath), 0o755); err != nil {
+		return fmt.Errorf("failed to create directory for %s: %w", destPath, err)
+	}
+	if err := atomicWriteFile(destPath, []byte(merged), 0o644); err != nil {
+		return fmt.Errorf("failed to write mcp config %s: %w", destPath, err)
+	}
 	return nil
 }
 

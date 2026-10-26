@@ -109,6 +109,26 @@ func TestCurrentIdentity(t *testing.T) {
 	}
 }
 
+func TestValidBankID(t *testing.T) {
+	tests := []struct {
+		bank string
+		ok   bool
+	}{
+		{bank: "demo-app", ok: true},
+		{bank: "project-demo_app", ok: true},
+		{bank: "project", ok: false},
+		{bank: "user", ok: false},
+		{bank: "default", ok: false},
+		{bank: "", ok: false},
+		{bank: "../secret", ok: false},
+	}
+	for _, tt := range tests {
+		if got := ValidBankID(tt.bank); got != tt.ok {
+			t.Errorf("ValidBankID(%q) = %t, want %t", tt.bank, got, tt.ok)
+		}
+	}
+}
+
 func TestValidateAPIURL(t *testing.T) {
 	tests := []struct {
 		in      string

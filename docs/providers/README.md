@@ -29,9 +29,13 @@ Abaixo mapeamos os seis pilares de *Context Engineering* do AICockpit e como ele
 
 ### Escopo atual do Codex
 
-O primeiro adapter do Codex gera apenas artefatos locais do projeto: `AGENTS.md`,
-skills, `.codex/rules/aicockpit.rules` e `.codex/agents/`. O suporte a escrita
-global via `CODEX_HOME`, hooks, MCP e App Server permanece no plano de evolução.
+O primeiro adapter do Codex gera artefatos locais do projeto: `AGENTS.md`,
+skills, `.codex/rules/aicockpit.rules` e `.codex/agents/`. Com
+`memory.hindsight.enabled`, o deploy também grava os banks do Hindsight em
+`.codex/config.toml` como MCP HTTP. Escrita global via `CODEX_HOME`, hooks e
+App Server permanecem no plano de evolução. Claude Code (`.mcp.json`) e o
+Gemini CLI (`.gemini/settings.json`) recebem o mesmo MCP. Devin, Goose e
+Antigravity ainda não.
 
 ---
 

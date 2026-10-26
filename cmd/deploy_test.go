@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/lleitep3/aicockpit/internal/config"
+	"github.com/lleitep3/aicockpit/internal/hindsight"
 	"github.com/lleitep3/aicockpit/internal/i18n"
 	"github.com/lleitep3/aicockpit/internal/logging"
 )
@@ -187,5 +189,90 @@ providers:
 	err := cmd.Execute()
 	if err == nil {
 		t.Error("deploy with bad workspace should return error")
+	}
+}
+
+func TestNewDeployCommand_HindsightMCP(t *testing.T) {
+	tests := []struct {
+		name    string
+		enabled bool
+		badPort bool
+	}{
+		{name: "disabled", enabled: false},
+		{name: "enabled", enabled: true},
+		{name: "invalid settings", enabled: true, badPort: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			project := t.TempDir()
+			home := t.TempDir()
+			t.Setenv("HOME", home)
+			t.Chdir(project)
+
+			cockpitHome := filepath.Join(home, ".cockpit")
+			if err := os.MkdirAll(cockpitHome, 0o755); err != nil {
+				t.Fatal(err)
+			}
+			providersYAML := []byte("version: \"1.0\"\nproviders:\n  claude:\n    enabled: true\n    name: Claude Code\n    workspace: \"~/.claude\"\n    binary: claude\n    features:\n      mcp:\n        enabled: true\n        path: \".mcp.json\"\n")
+			if err := os.WriteFile(filepath.Join(cockpitHome, "providers.yaml"), providersYAML, 0o644); err != nil {
+				t.Fatal(err)
+			}
+			logMgr, err := logging.NewManager(filepath.Join(home, "logs"))
+			if err != nil {
+				t.Fatal(err)
+			}
+			settings := hindsight.Settings{
+				Enabled: tt.enabled,
+				Banks:   hindsight.BanksConfig{Project: "demo-app", User: "ada"},
+			}
+			if tt.badPort {
+				settings.APIPort = 1
+				settings.UIPort = 1
+			}
+			cfg := &config.Config{
+				Version:          "1.0.0",
+				Language:         "en-us",
+				EnabledProviders: []string{"claude"},
+				Memory:           config.MemoryConfig{Hindsight: settings},
+			}
+			cmd := NewDeployCommand(logMgr, cfg, i18n.New("en-us"))
+			var buf bytes.Buffer
+			cmd.SetOut(&buf)
+			cmd.SetErr(&buf)
+			err = cmd.Execute()
+			mcpPath := filepath.Join(project, ".mcp.json")
+			if tt.badPort {
+				if err == nil || !strings.Contains(err.Error(), "hindsight") {
+					t.Fatalf("error = %v", err)
+				}
+				if _, statErr := os.Stat(mcpPath); !os.IsNotExist(statErr) {
+					t.Fatal("invalid settings wrote an mcp file")
+				}
+				return
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			data, readErr := os.ReadFile(mcpPath)
+			if tt.enabled {
+				if readErr != nil {
+					t.Fatal(readErr)
+				}
+				body := string(data)
+				for _, needle := range []string{
+					"http://127.0.0.1:8888/mcp/demo-app/",
+					"http://127.0.0.1:8888/mcp/ada/",
+					`"type": "http"`,
+				} {
+					if !strings.Contains(body, needle) {
+						t.Fatalf("mcp file missing %q\n%s", needle, body)
+					}
+				}
+				return
+			}
+			if !os.IsNotExist(readErr) {
+				t.Fatalf("disabled deploy wrote %s (%v)", mcpPath, readErr)
+			}
+		})
 	}
 }
