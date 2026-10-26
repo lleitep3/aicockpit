@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/lleitep3/aicockpit/internal/hindsight"
 	"github.com/lleitep3/aicockpit/internal/packages"
 	"github.com/lleitep3/aicockpit/internal/version"
 	"gopkg.in/yaml.v3"
@@ -18,6 +19,7 @@ type Config struct {
 	LogLevel          string                    `yaml:"log_level"`
 	EnabledProviders  []string                  `yaml:"enabled_providers"`
 	KB                KBConfig                  `yaml:"kb"`
+	Memory            MemoryConfig              `yaml:"memory,omitempty"`
 	PackageRegistries []packages.RegistryConfig `yaml:"package_registries"`
 	LastUpdateCheck   string                    `yaml:"last_update_check"`
 	AutoUpdateCheck   bool                      `yaml:"auto_update_check"`
@@ -26,6 +28,12 @@ type Config struct {
 // KBConfig represents the Knowledge Base configuration.
 type KBConfig struct {
 	Roots []string `yaml:"roots"`
+}
+
+// MemoryConfig holds optional memory-service settings.
+// Secret values are not stored in this struct.
+type MemoryConfig struct {
+	Hindsight hindsight.Settings `yaml:"hindsight,omitempty"`
 }
 
 var defaultConfig = Config{
@@ -108,6 +116,7 @@ type legacyConfig struct {
 	LogLevel          string                    `yaml:"log_level"`
 	EnabledProviders  []string                  `yaml:"enabled_providers"`
 	KB                KBConfig                  `yaml:"kb"`
+	Memory            MemoryConfig              `yaml:"memory,omitempty"`
 	PackageRegistries []packages.RegistryConfig `yaml:"package_registries"`
 	LastUpdateCheck   string                    `yaml:"last_update_check"`
 	AutoUpdateCheck   bool                      `yaml:"auto_update_check"`
@@ -125,6 +134,7 @@ func (l *legacyConfig) toConfig() Config {
 		LogLevel:          l.LogLevel,
 		EnabledProviders:  l.EnabledProviders,
 		KB:                l.KB,
+		Memory:            l.Memory,
 		PackageRegistries: l.PackageRegistries,
 		LastUpdateCheck:   l.LastUpdateCheck,
 		AutoUpdateCheck:   l.AutoUpdateCheck,

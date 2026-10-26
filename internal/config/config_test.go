@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -261,6 +262,41 @@ enabled_providers:
 	}
 	if cfg.Language != "pt-br" {
 		t.Errorf("Expected pt-br, got %s", cfg.Language)
+	}
+}
+
+func TestLoadPreservesHindsightSettings(t *testing.T) {
+	tmpDir := t.TempDir()
+	oldHome := os.Getenv("HOME")
+	os.Setenv("HOME", tmpDir)
+	defer os.Setenv("HOME", oldHome)
+
+	if err := os.MkdirAll(GetCockpitDir(), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	raw := []byte("version: \"0.4.51\"\nlanguage: en-us\nmemory:\n  hindsight:\n    enabled: true\n    llm_provider: groq\n    api_port: 8888\n    ui_port: 9999\n")
+	if err := os.WriteFile(GetConfigPath(), raw, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	cfg, err := Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !cfg.Memory.Hindsight.Enabled || cfg.Memory.Hindsight.LLMProvider != "groq" || cfg.Memory.Hindsight.APIPort != 8888 {
+		t.Fatalf("memory = %+v", cfg.Memory.Hindsight)
+	}
+	if strings.Contains(string(raw), "sk-") {
+		t.Fatal("fixture contained a secret")
+	}
+	if err := Save(cfg); err != nil {
+		t.Fatal(err)
+	}
+	saved, err := os.ReadFile(GetConfigPath())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(saved), "enabled: true") || strings.Contains(string(saved), "api_key") {
+		t.Fatalf("saved = %s", saved)
 	}
 }
 

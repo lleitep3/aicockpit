@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -65,6 +66,13 @@ func runDoctor(cmd *cobra.Command, log *logging.Manager, cfg *config.Config, t *
 		})
 	}
 
+	hindsightCheck, hindsightFatal := hindsightDoctorCheck(cmd.Context(), cfg)
+	results = append(results, hindsightCheck)
+	if hindsightFatal {
+		allOk = false
+	}
+
+	out := cmd.OutOrStdout()
 	if jsonOutput {
 		output, err := json.Marshal(map[string]interface{}{
 			"passed": allOk,
@@ -73,24 +81,27 @@ func runDoctor(cmd *cobra.Command, log *logging.Manager, cfg *config.Config, t *
 		if err != nil {
 			return fmt.Errorf("failed to marshal doctor output: %w", err)
 		}
-		fmt.Println(string(output))
+		fmt.Fprintln(out, string(output))
 	} else {
-		fmt.Println(t.T("doctor.title"))
-		fmt.Println("=" + strings.Repeat("=", 49))
-		fmt.Println()
+		fmt.Fprintln(out, t.T("doctor.title"))
+		fmt.Fprintln(out, "="+strings.Repeat("=", 49))
+		fmt.Fprintln(out)
 		for _, result := range results {
-			fmt.Printf(t.T("doctor.checking")+"\n", result["check_name"])
-			if result["status"] == "ok" {
-				fmt.Printf(t.T("doctor.ok")+"\n", result["message"])
-			} else {
-				fmt.Printf(t.T("doctor.failed")+"\n", result["message"])
+			fmt.Fprintf(out, t.T("doctor.checking")+"\n", result["check_name"])
+			switch result["status"] {
+			case "ok":
+				fmt.Fprintf(out, t.T("doctor.ok")+"\n", result["message"])
+			case "skipped":
+				fmt.Fprintf(out, t.T("doctor.skipped")+"\n", result["message"])
+			default:
+				fmt.Fprintf(out, t.T("doctor.failed")+"\n", result["message"])
 			}
 		}
-		fmt.Println()
+		fmt.Fprintln(out)
 		if allOk {
-			fmt.Println(t.T("doctor.passed"))
+			fmt.Fprintln(out, t.T("doctor.passed"))
 		} else {
-			fmt.Println(t.T("doctor.failed_msg"))
+			fmt.Fprintln(out, t.T("doctor.failed_msg"))
 		}
 	}
 
@@ -103,4 +114,35 @@ func runDoctor(cmd *cobra.Command, log *logging.Manager, cfg *config.Config, t *
 	}
 
 	return nil
+}
+
+// hindsightDoctorCheck reports the optional local Hindsight server.
+// The check is not fatal when the server is not configured.
+func hindsightDoctorCheck(ctx context.Context, cfg *config.Config) (map[string]interface{}, bool) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	report, err := newMemoryManager(cfg).Status(ctx)
+	if err != nil {
+		fatal := cfg != nil && cfg.Memory.Hindsight.Enabled
+		status := "error"
+		if !fatal {
+			status = "skipped"
+		}
+		return map[string]interface{}{
+			"check_name":  "Hindsight",
+			"status":      status,
+			"message":     err.Error(),
+			"fixable":     false,
+			"fix_command": "",
+		}, fatal
+	}
+	view := report.Doctor()
+	return map[string]interface{}{
+		"check_name":  "Hindsight",
+		"status":      view.Status,
+		"message":     view.Message,
+		"fixable":     view.Fix != "",
+		"fix_command": view.Fix,
+	}, view.Fatal
 }

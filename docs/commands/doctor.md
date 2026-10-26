@@ -15,7 +15,12 @@ cockpit doctor [flags]
 
 ## Description
 
-The doctor command checks:
+The doctor command checks local directories and the optional Hindsight server.
+When `memory.hindsight.enabled` is false, the Hindsight row is skipped and does
+not fail the command. When it is true, the row reports whether the container
+is running and whether `GET /health` on the API port succeeds.
+
+The doctor command also checks:
 
 1. Configuration file existence and validity
 2. Logs directory and permissions

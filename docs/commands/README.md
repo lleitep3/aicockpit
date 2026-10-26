@@ -15,6 +15,7 @@ Complete reference for all AICockpit CLI commands.
 | [`cockpit update`](update.md) | Update to latest version | STABLE |
 | [`cockpit uninstall`](uninstall.md) | Remove AICockpit | STABLE |
 | `cockpit vault` | Manage secrets, credentials and lock state | AVAILABLE |
+| [`cockpit memory`](memory.md) | Start, stop, and check the optional local Hindsight server | AVAILABLE |
 
 ### Planned Commands
 
@@ -60,6 +61,7 @@ All commands support these global flags:
 - [`cockpit setup`](setup.md) - Initialize AICockpit
 - [`cockpit info`](info.md) - View configuration
 - [`cockpit doctor`](doctor.md) - Verify installation
+- [`cockpit memory`](memory.md) - Optional local Hindsight server
 
 ### Monitoring & Analytics
 
