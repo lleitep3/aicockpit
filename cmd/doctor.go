@@ -8,11 +8,18 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/lleitep3/aicockpit/internal/agents"
 	"github.com/lleitep3/aicockpit/internal/config"
 	"github.com/lleitep3/aicockpit/internal/i18n"
 	"github.com/lleitep3/aicockpit/internal/logging"
 	"github.com/spf13/cobra"
 )
+
+// detectAgentCLIs reports local agent CLIs. Tests replace it so doctor never
+// starts a real claude or codex process.
+var detectAgentCLIs = func(ctx context.Context) []agents.Status {
+	return agents.Detect(ctx, nil)
+}
 
 // NewDoctorCommand creates the doctor command.
 func NewDoctorCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translator) *cobra.Command {
@@ -71,6 +78,8 @@ func runDoctor(cmd *cobra.Command, log *logging.Manager, cfg *config.Config, t *
 	if hindsightFatal {
 		allOk = false
 	}
+	// Agent CLIs are optional. A missing binary does not fail doctor.
+	results = append(results, agentDoctorChecks(cmd.Context())...)
 
 	out := cmd.OutOrStdout()
 	if jsonOutput {
@@ -145,4 +154,28 @@ func hindsightDoctorCheck(ctx context.Context, cfg *config.Config) (map[string]i
 		"fixable":     view.Fix != "",
 		"fix_command": view.Fix,
 	}, view.Fatal
+}
+
+// agentDoctorChecks reports whether claude and codex are installed.
+// Every row is informational.
+func agentDoctorChecks(ctx context.Context) []map[string]interface{} {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	if detectAgentCLIs == nil {
+		return nil
+	}
+	statuses := detectAgentCLIs(ctx)
+	out := make([]map[string]interface{}, 0, len(statuses))
+	for _, status := range statuses {
+		view := status.Doctor()
+		out = append(out, map[string]interface{}{
+			"check_name":  view.Name,
+			"status":      view.Status,
+			"message":     view.Message,
+			"fixable":     false,
+			"fix_command": "",
+		})
+	}
+	return out
 }

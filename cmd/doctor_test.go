@@ -10,6 +10,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/lleitep3/aicockpit/internal/agents"
 	"github.com/lleitep3/aicockpit/internal/config"
 	"github.com/lleitep3/aicockpit/internal/hindsight"
 	"github.com/spf13/cobra"
@@ -216,6 +217,97 @@ func prepareDoctorHome(t *testing.T) {
 	}
 	if err := os.WriteFile(filepath.Join(cockpitDir, "config.yaml"), []byte("version: 0.1.0\n"), 0o644); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestRunDoctor_AgentCLIsOptional(t *testing.T) {
+	prepareDoctorHome(t)
+	log, cfg, tr := newTestDeps(t)
+	previous := detectAgentCLIs
+	t.Cleanup(func() { detectAgentCLIs = previous })
+
+	tests := []struct {
+		name    string
+		detect  func(context.Context) []agents.Status
+		want    string
+		missing string
+	}{
+		{
+			name:   "not installed",
+			detect: stubAgentCLIs,
+			want:   "Claude CLI is not installed",
+		},
+		{
+			name: "installed",
+			detect: func(context.Context) []agents.Status {
+				return []agents.Status{
+					{ID: "claude", Name: "Claude CLI", Binary: "claude", Installed: true, Version: "9.9.9-test"},
+					{ID: "codex", Name: "Codex CLI", Binary: "codex", Installed: true, Detail: "version command failed"},
+				}
+			},
+			want: "Claude CLI 9.9.9-test",
+		},
+		{
+			name:    "detector disabled",
+			detect:  nil,
+			missing: "Claude CLI",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			detectAgentCLIs = tt.detect
+			var out bytes.Buffer
+			cmd := &cobra.Command{}
+			cmd.SetOut(&out)
+			if err := runDoctor(cmd, log, cfg, tr, true); err != nil {
+				t.Fatal(err)
+			}
+			var payload struct {
+				Passed bool `json:"passed"`
+				Checks []struct {
+					Name    string `json:"check_name"`
+					Status  string `json:"status"`
+					Message string `json:"message"`
+				} `json:"checks"`
+			}
+			if err := json.Unmarshal(out.Bytes(), &payload); err != nil {
+				t.Fatalf("json: %v\n%s", err, out.String())
+			}
+			if !payload.Passed {
+				t.Fatal("agent CLI checks failed doctor")
+			}
+			if cmd.Annotations["telemetry_status"] == "error" {
+				t.Fatal("optional CLI check set telemetry error")
+			}
+			var sawClaude bool
+			for _, check := range payload.Checks {
+				if check.Name == "Claude CLI" {
+					sawClaude = true
+					if tt.want != "" && check.Message != tt.want && !strings.Contains(check.Message, tt.want) {
+						t.Fatalf("check = %+v", check)
+					}
+				}
+			}
+			if tt.missing != "" && sawClaude {
+				t.Fatal("detector disabled still reported a CLI")
+			}
+			if tt.missing == "" && !sawClaude {
+				t.Fatal("claude check missing")
+			}
+		})
+	}
+
+	detectAgentCLIs = func(context.Context) []agents.Status {
+		return []agents.Status{{ID: "claude", Name: "Claude CLI", Installed: true, Version: "1.2.3"}}
+	}
+	var text bytes.Buffer
+	cmd := &cobra.Command{}
+	cmd.SetOut(&text)
+	if err := runDoctor(cmd, log, cfg, tr, false); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(text.String(), "Claude CLI 1.2.3") || !strings.Contains(text.String(), "All checks passed!") {
+		t.Fatalf("output = %s", text.String())
 	}
 }
 
