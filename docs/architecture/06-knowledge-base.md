@@ -47,5 +47,17 @@ Hoje, o AICockpit mapeia um *Knowledge Graph* neural:
 2. **Busca BFS (Breadth-First Search):** Quando uma IA busca "quais os contextos relacionados ao `doc X`?", o algoritmo BFS é ativado na profundidade `N`.
 3. **Escopo Expandido:** Isso permite que o pacote de compilação da IA (`ProviderManager`) puxe automaticamente toda a topologia de um assunto, garantindo um supercontexto inteligente e sem perdas durante as gerações de prompts.
 
+## 5. Fachada de memória (`internal/memory`)
+
+O assistente não chama o KB direto. A fase 1 da [visão de produto](../PRODUCT_VISION.md) coloca na frente a interface `memory.Memory`, com `Retain`, `Recall` e `Reflect`.
+
+O backend `memory.KB` usa este módulo:
+
+* **Recall** chama a busca do `Manager` e devolve documentos já indexados, inclusive os que não foram gravados como memória.
+* **Retain** grava um Markdown com o cabeçalho de metadados padrão em `memory/<bank>/<id>.md` na primeira raiz e reconstrói o índice. A descrição guarda o contexto, as tags incluem `memory` e `bank:<bank>`, e `related` guarda `doc:` e `meta:`.
+* **Reflect** junta os trechos encontrados. Não chama um modelo. Um backend futuro pode devolver `ErrReflectNotSupported`.
+
+`memory.InMemory` e o dublê `memory.Fake` cobrem testes sem disco. O cliente Hindsight não entra neste módulo; um backend futuro implementa a mesma interface fora daqui.
+
 ---
 > **Fim da Trilha Principal:** Com isto, fechamos o ciclo que vai desde a detecção da IA, formatação de arquivos com o Compilador Canônico, registro e instalação de Pacotes, Proteção no Cofre e Gerenciamento Inteligente de Conhecimento.
