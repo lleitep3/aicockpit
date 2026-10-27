@@ -311,6 +311,69 @@ func TestRunDoctor_AgentCLIsOptional(t *testing.T) {
 	}
 }
 
+func TestRunDoctor_APITokensOptional(t *testing.T) {
+	prepareDoctorHome(t)
+	log, cfg, tr := newTestDeps(t)
+	cfg.Agents.API.Provider = "openai"
+	previous := probeAPITokens
+	t.Cleanup(func() { probeAPITokens = previous })
+	secret := "sk-doctor-secret-value"
+	probeAPITokens = func(context.Context, agents.APISettings) []agents.TokenStatus {
+		return []agents.TokenStatus{
+			{Provider: "anthropic", Name: "Anthropic API", Configured: true},
+			{Provider: "openai", Name: "OpenAI API"},
+			{Provider: "ollama", Name: "Ollama API", Locked: true},
+		}
+	}
+	var out bytes.Buffer
+	cmd := &cobra.Command{}
+	cmd.SetOut(&out)
+	if err := runDoctor(cmd, log, cfg, tr, true); err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(out.String(), secret) {
+		t.Fatal("doctor printed a secret")
+	}
+	var payload struct {
+		Passed bool `json:"passed"`
+		Checks []struct {
+			Name    string `json:"check_name"`
+			Status  string `json:"status"`
+			Message string `json:"message"`
+		} `json:"checks"`
+	}
+	if err := json.Unmarshal(out.Bytes(), &payload); err != nil {
+		t.Fatal(err)
+	}
+	if !payload.Passed {
+		t.Fatal("token rows failed doctor")
+	}
+	if cmd.Annotations["telemetry_status"] == "error" {
+		t.Fatal("token rows set telemetry error")
+	}
+	var sawConfigured, sawMissing bool
+	for _, check := range payload.Checks {
+		if check.Name == "Anthropic API" && check.Status == "ok" && strings.Contains(check.Message, "configured") {
+			sawConfigured = true
+		}
+		if check.Name == "OpenAI API" && check.Status == "skipped" {
+			sawMissing = true
+		}
+	}
+	if !sawConfigured || !sawMissing {
+		t.Fatalf("checks = %+v", payload.Checks)
+	}
+
+	probeAPITokens = nil
+	out.Reset()
+	if err := runDoctor(cmd, log, cfg, tr, false); err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(out.String(), "Anthropic API") {
+		t.Fatal("nil probe still reported a provider")
+	}
+}
+
 func TestNewDoctorCommand_Execute(t *testing.T) {
 	log, cfg, tr := newTestDeps(t)
 	tmpDir := t.TempDir()

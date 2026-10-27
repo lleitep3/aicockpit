@@ -24,6 +24,10 @@ is running and whether `GET /health` on the API port succeeds.
 The Claude CLI and Codex CLI rows report the version when the binary is on
 `PATH`. A missing binary is skipped. Neither row fails the command.
 
+API provider rows report whether a vault token is configured for Anthropic,
+OpenAI, Ollama, LM Studio, and OpenRouter. The row never prints the secret.
+A missing token or a locked vault is skipped and does not fail the command.
+
 The doctor command also checks:
 
 1. Configuration file existence and validity

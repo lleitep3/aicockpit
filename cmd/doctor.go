@@ -80,6 +80,8 @@ func runDoctor(cmd *cobra.Command, log *logging.Manager, cfg *config.Config, t *
 	}
 	// Agent CLIs are optional. A missing binary does not fail doctor.
 	results = append(results, agentDoctorChecks(cmd.Context())...)
+	// Provider tokens are optional. A missing token or a locked vault does not fail doctor.
+	results = append(results, apiDoctorChecks(cmd.Context(), cfg)...)
 
 	out := cmd.OutOrStdout()
 	if jsonOutput {
@@ -154,6 +156,39 @@ func hindsightDoctorCheck(ctx context.Context, cfg *config.Config) (map[string]i
 		"fixable":     view.Fix != "",
 		"fix_command": view.Fix,
 	}, view.Fatal
+}
+
+// probeAPITokens reports which provider tokens are configured.
+// Tests replace it so doctor does not need a real keyring.
+var probeAPITokens = func(ctx context.Context, settings agents.APISettings) []agents.TokenStatus {
+	return agents.ProbeTokens(ctx, settings, nil)
+}
+
+// apiDoctorChecks reports provider tokens. Rows are informational and never include secret values.
+func apiDoctorChecks(ctx context.Context, cfg *config.Config) []map[string]interface{} {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	if probeAPITokens == nil {
+		return nil
+	}
+	var settings agents.APISettings
+	if cfg != nil {
+		settings = cfg.Agents.API
+	}
+	statuses := probeAPITokens(ctx, settings)
+	out := make([]map[string]interface{}, 0, len(statuses))
+	for _, status := range statuses {
+		view := status.Doctor()
+		out = append(out, map[string]interface{}{
+			"check_name":  view.Name,
+			"status":      view.Status,
+			"message":     view.Message,
+			"fixable":     false,
+			"fix_command": "",
+		})
+	}
+	return out
 }
 
 // agentDoctorChecks reports whether claude and codex are installed.

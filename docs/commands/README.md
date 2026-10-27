@@ -10,7 +10,7 @@ Complete reference for all AICockpit CLI commands.
 |---------|-------------|--------|
 | [`cockpit setup`](setup.md) | Interactive setup wizard | STABLE |
 | [`cockpit info`](info.md) | Display configuration information | STABLE |
-| [`cockpit doctor`](doctor.md) | Health check, including optional Claude and Codex CLIs | STABLE |
+| [`cockpit doctor`](doctor.md) | Health check, including optional Claude and Codex CLIs and API token presence | STABLE |
 | [`cockpit metrics`](metrics.md) | View and analyze metrics | STABLE |
 | [`cockpit update`](update.md) | Update to latest version | STABLE |
 | [`cockpit uninstall`](uninstall.md) | Remove AICockpit | STABLE |

@@ -7,7 +7,11 @@
 //
 // CLIBackend is the local-process backend. It drives claude and codex
 // through Adapter implementations. A Runner starts the process, so tests
-// substitute fixture output and never invoke the real CLIs. This package
-// does not add environment variables and does not read the vault. API
-// backends and the cockpit ask command are later phases.
+// substitute fixture output and never invoke the real CLIs. CLIBackend does
+// not add environment variables and does not read the vault.
+//
+// APIBackend is the HTTP backend. It calls the Anthropic Messages API or an
+// OpenAI-compatible Chat Completions endpoint, reads the provider token from
+// the vault at call time, and streams events. It does not run a tool loop.
+// The cockpit ask command is a later phase.
 package agents

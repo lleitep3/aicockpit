@@ -185,6 +185,7 @@
 - [x] `cockpit memory` - Optional local Hindsight server, plus recall on `kb search` and retain on `kb index` when enabled
 - [x] Hindsight MCP on `cockpit deploy` for Claude Code, Codex, Gemini CLI, and GitHub Copilot CLI
 - [x] `internal/agents` - Task backend for local `claude -p` and `codex exec` (no `cockpit ask` yet; [product vision](PRODUCT_VISION.md#fase-5--backend-de-cli))
+- [x] `APIBackend` - Anthropic Messages and OpenAI-compatible chat completions with vault tokens and streaming (no tool loop yet; [product vision](PRODUCT_VISION.md#fase-6--backend-de-api))
 - [ ] `cockpit agents` - Agent management (planned; [product vision](PRODUCT_VISION.md#roteiro-por-fases))
 - [ ] `cockpit skills` - Explicit skills management
 - [ ] `cockpit rules` - Explicit rules management

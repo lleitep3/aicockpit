@@ -125,7 +125,12 @@ type Result struct {
 	Model string
 	// Events are the events in arrival order.
 	Events []Event
+	// ToolCalls are model-requested tools in arrival order.
+	// CLI runs leave this empty. API runs record the calls and do not execute them.
+	ToolCalls []ToolCall
 	// ExitCode is the process exit code, or -1 when the process did not exit normally.
+	// API runs use 0 on success, the HTTP status on an error response, and -1
+	// when the request did not complete.
 	ExitCode int
 	// Failed is true when the worker reported a failed terminal event.
 	Failed bool

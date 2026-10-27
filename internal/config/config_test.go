@@ -333,6 +333,43 @@ func TestLoadPreservesHindsightBanks(t *testing.T) {
 	}
 }
 
+func TestLoadPreservesAgentAPISettings(t *testing.T) {
+	tmpDir := t.TempDir()
+	oldHome := os.Getenv("HOME")
+	os.Setenv("HOME", tmpDir)
+	defer os.Setenv("HOME", oldHome)
+	if err := os.MkdirAll(GetCockpitDir(), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	const secret = "sk-live-secret-value"
+	raw := []byte("version: \"0.4.55\"\nlanguage: en-us\nagents:\n  api:\n    provider: openrouter\n    model: openai/gpt-test\n    base_url: https://openrouter.ai/api\n    vault_namespace: agents\n    vault_key: openrouter_api_key\n    max_tokens: 128\n")
+	if strings.Contains(string(raw), secret) {
+		t.Fatal("fixture contained a secret")
+	}
+	if err := os.WriteFile(GetConfigPath(), raw, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	cfg, err := Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := cfg.Agents.API
+	if got.Provider != "openrouter" || got.Model != "openai/gpt-test" || got.BaseURL != "https://openrouter.ai/api" || got.VaultNamespace != "agents" || got.VaultKey != "openrouter_api_key" || got.MaxTokens != 128 {
+		t.Fatalf("api = %+v", got)
+	}
+	if err := Save(cfg); err != nil {
+		t.Fatal(err)
+	}
+	saved, err := os.ReadFile(GetConfigPath())
+	if err != nil {
+		t.Fatal(err)
+	}
+	text := string(saved)
+	if !strings.Contains(text, "vault_key: openrouter_api_key") || strings.Contains(text, secret) {
+		t.Fatalf("saved = %s", text)
+	}
+}
+
 func TestShouldCheckUpdate(t *testing.T) {
 	tests := []struct {
 		name            string
