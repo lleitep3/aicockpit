@@ -1,6 +1,0 @@
-# config.yaml
-permissions:
-  require_approval_for:
-    - "rm"
-    - "drop table"
-    - "kubectl delete"

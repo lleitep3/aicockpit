@@ -1,8 +1,0 @@
-{"type":"system","subtype":"init","session_id":"sess-1","model":"claude-sonnet-5","cwd":"/work","tools":["Read","Edit"]}
-{"type":"stream_event","event":{"type":"content_block_start","index":0},"session_id":"sess-1"}
-{"type":"stream_event","event":{"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"Hel"}},"session_id":"sess-1"}
-{"type":"stream_event","event":{"type":"content_block_delta","index":0,"delta":{"type":"thinking_delta","text":"hmm"}},"session_id":"sess-1"}
-{"type":"assistant","message":{"id":"msg_1","type":"message","role":"assistant","model":"claude-sonnet-5","content":[{"type":"text","text":"Hello"},{"type":"tool_use","id":"toolu_1","name":"Read","input":{"file_path":"main.go"}}],"stop_reason":"tool_use"},"session_id":"sess-1"}
-{"type":"user","message":{"role":"user","content":[{"type":"tool_result","content":"package main"}]},"session_id":"sess-1"}
-{"type":"assistant","message":{"id":"msg_2","type":"message","role":"assistant","model":"claude-sonnet-5","content":"Hello from claude"},"session_id":"sess-1"}
-{"type":"result","subtype":"success","is_error":false,"duration_ms":12,"result":"Hello from claude","session_id":"sess-1","total_cost_usd":0.01}
