@@ -216,7 +216,6 @@ func NewKBAddCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translato
 	return addCmd
 }
 
-
 // NewKBRemoveCommand creates the kb remove subcommand.
 func NewKBRemoveCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translator) *cobra.Command {
 	removeCmd := &cobra.Command{

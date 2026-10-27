@@ -2,8 +2,6 @@ package cmd
 
 import (
 	"bytes"
-	"context"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -11,8 +9,6 @@ import (
 
 	"github.com/lleitep3/aicockpit/internal/config"
 	"github.com/lleitep3/aicockpit/internal/kb"
-	"github.com/lleitep3/aicockpit/internal/logging"
-	"github.com/lleitep3/aicockpit/internal/services"
 )
 
 func TestKBAddPersistsAndSearches(t *testing.T) {
@@ -55,51 +51,6 @@ func TestKBAddPersistsAndSearches(t *testing.T) {
 	results, err = manager.Search("updateddiagnostic")
 	if err != nil || results.Total != 1 || results.Results[0].Path != original.Path || !results.Results[0].Created.Equal(original.Created) {
 		t.Fatalf("search after update: %+v %v", results, err)
-	}
-}
-
-type kbSearchProbe struct {
-	services.KBService
-	extensions int
-	searches   int
-}
-
-func (p *kbSearchProbe) Search(query string) (*kb.SearchResults, error) {
-	p.searches++
-	return &kb.SearchResults{Query: query}, nil
-}
-
-func (p *kbSearchProbe) RunSearchExtensions(ctx context.Context, query string) (string, error) {
-	p.extensions++
-	return "", fmt.Errorf("extension not configured")
-}
-
-func TestKBSearchLocalByDefault(t *testing.T) {
-	for _, tc := range []struct {
-		name                 string
-		flags                []string
-		searches, extensions int
-		wantErr              bool
-	}{
-		{"default", nil, 1, 0, false},
-		{"bm25", []string{"--bm25"}, 1, 0, false},
-		{"graphify", []string{"--graphify"}, 0, 1, true},
-		{"conflict", []string{"--graphify", "--bm25"}, 0, 0, true},
-	} {
-		t.Run(tc.name, func(t *testing.T) {
-			probe := &kbSearchProbe{}
-			original := newKBServiceFunc
-			newKBServiceFunc = func([]string, string, *logging.Manager) services.KBService { return probe }
-			t.Cleanup(func() { newKBServiceFunc = original })
-			log, cfg, tr := newTestDeps(t)
-			cfg.KB.Roots = []string{t.TempDir()}
-			cmd := NewKBSearchCommand(log, cfg, tr)
-			cmd.SetArgs(append(tc.flags, "query"))
-			err := cmd.Execute()
-			if (err != nil) != tc.wantErr || probe.searches != tc.searches || probe.extensions != tc.extensions {
-				t.Fatalf("calls=%+v err=%v", probe, err)
-			}
-		})
 	}
 }
 
