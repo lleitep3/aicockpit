@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"path/filepath"
 	"strings"
 
 	"github.com/lleitep3/aicockpit/internal/config"
@@ -160,29 +161,61 @@ func NewKBListCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translat
 
 // NewKBAddCommand creates the kb add subcommand.
 func NewKBAddCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translator) *cobra.Command {
+	var root, contextName, updateID string
 	addCmd := &cobra.Command{
 		Use:   "add <file>",
 		Short: "Add a document to the knowledge base",
-		Long:  "Add a new document to the knowledge base",
+		Long:  "Save Markdown under YYYY-MM-DD/YYYY-MM-DD_HHMMSS-topic.md. Use --update ID to preserve an existing document's path and creation date.",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			filePath := args[0]
-
-			// Get KB directory
-			kbDir := config.GetCockpitDir() + "/kb"
-
-			// For now, just show a message
-			// Full implementation would copy file and validate
-			fmt.Printf("Adding document: %s\n", filePath)
-			fmt.Printf("To knowledge base: %s\n", kbDir)
-			fmt.Println("Feature coming soon...")
-
+			if root == "" {
+				root = filepath.Join(config.GetCockpitDir(), "kb")
+			}
+			absoluteRoot, err := filepath.Abs(root)
+			if err != nil {
+				return err
+			}
+			doc, err := kb.ImportFile(args[0], kb.ImportOptions{Root: absoluteRoot, Context: contextName, UpdateID: updateID})
+			if err != nil {
+				return fmt.Errorf("failed to save KB document: %w", err)
+			}
+			path := filepath.Join(absoluteRoot, doc.Path)
+			svc := newKBServiceFunc(cfg.KB.Roots, config.GetCockpitDir(), log)
+			registered := false
+			for _, existing := range cfg.KB.Roots {
+				absolute, err := filepath.Abs(existing)
+				if err != nil {
+					continue
+				}
+				rel, err := filepath.Rel(absolute, absoluteRoot)
+				if err == nil && (rel == "." || filepath.IsLocal(rel)) {
+					registered = true
+					break
+				}
+			}
+			if !registered {
+				if err := svc.AddRoot(absoluteRoot); err != nil {
+					return fmt.Errorf("document saved at %s, but registering root failed: %w", path, err)
+				}
+				cfg.KB.Roots = svc.GetRoots()
+				if err := cfg.Save(); err != nil {
+					return fmt.Errorf("document saved at %s, but saving roots failed: %w", path, err)
+				}
+			}
+			if err := svc.RebuildIndex(); err != nil {
+				return fmt.Errorf("document saved at %s, but indexing failed: %w; run cockpit kb rebuild-cache --extensions=false", path, err)
+			}
+			fmt.Fprintf(cmd.OutOrStdout(), "Saved: %s\nID: %s\n", path, doc.ID)
 			return nil
 		},
 	}
+	addCmd.Flags().StringVar(&root, "root", "", "Destination KB root (default ~/.cockpit/kb); registered for search")
+	addCmd.Flags().StringVar(&contextName, "context", "", "Project or topic this knowledge applies to (required for new entries)")
+	addCmd.Flags().StringVar(&updateID, "update", "", "Existing document ID in the destination root to update")
 
 	return addCmd
 }
+
 
 // NewKBRemoveCommand creates the kb remove subcommand.
 func NewKBRemoveCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translator) *cobra.Command {

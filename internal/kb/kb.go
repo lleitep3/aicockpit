@@ -6,14 +6,16 @@ import (
 
 // Metadata represents the metadata of a KB document.
 type Metadata struct {
-	Title       string    `yaml:"title"`
-	Description string    `yaml:"description"`
-	Tags        []string  `yaml:"tags"`
-	Created     time.Time `yaml:"created"`
-	Modified    time.Time `yaml:"modified"`
-	Related     []string  `yaml:"related"`
-	Author      string    `yaml:"author"`
-	Version     string    `yaml:"version"`
+	Title       string                 `yaml:"title"`
+	Description string                 `yaml:"description"`
+	Tags        []string               `yaml:"tags"`
+	Created     time.Time              `yaml:"created"`
+	Modified    time.Time              `yaml:"modified"`
+	Related     []string               `yaml:"related"`
+	Author      string                 `yaml:"author"`
+	Version     string                 `yaml:"version"`
+	Context     string                 `yaml:"context,omitempty"`
+	Extra       map[string]interface{} `yaml:",inline"`
 }
 
 // Document represents a KB document with metadata and content.

@@ -7,7 +7,7 @@ The Knowledge Base (KB) system in AICockpit is a powerful tool for organizing, s
 ## Features
 
 - **Keyword Search**: Fast, exact-match search based on document titles, tags, descriptions, and content
-- **Semantic Search**: Concept-based search that finds related documents even without exact keyword matches
+- **Optional Semantic Search**: Explicit `--graphify` search through configured extensions; local search needs no API key or Vault
 - **Metadata System**: Structured metadata headers for organizing documents
 - **Scoring System**: Probabilistic scoring (0-1) for search results
 - **Multiple Output Formats**: JSON, table, and human-readable formats
@@ -46,6 +46,7 @@ Your markdown content here...
 | `author` | string | No | Document author |
 | `version` | string | No | Document version |
 | `related` | array | No | IDs of related documents |
+| `context` | string | Yes for new imports | Project or topic, supplied in frontmatter or with `--context` |
 
 ## Directory Structure
 
@@ -94,9 +95,27 @@ cockpit kb list --format table
 ### Add Documents
 
 ```bash
-# Add a new document to KB
-cockpit kb add /path/to/document.md
+# Save a verified lesson about this project
+cockpit kb add /path/to/document.md --context aicockpit
+
+# Choose a project KB; the root is registered for search automatically
+cockpit kb add /path/to/document.md --context my-project --root /path/to/project/kb
+
+# Update a previous entry, preserving its creation timestamp, ID and path
+cockpit kb add /path/to/revised.md --root /path/to/project/kb --update <document-id>
 ```
+
+New entries use `YYYY-MM-DD/YYYY-MM-DD_HHMMSS-topic.md`, based on local creation time and the document title. For example: `2026-09-18/2026-09-18_153000-vault-diagnosis.md`. Timestamp collisions receive a numeric suffix instead of overwriting a document. YAML `created` and `modified` include the timezone offset. Existing metadata, including custom fields, is retained when omitted from a revision. Updates replace the body, so include all content that remains valid.
+
+Legacy date-only metadata (including quoted `"2026-06-20"`) remains supported and is interpreted as midnight UTC. Recursive indexing skips `.git`, `.agents` and `.codex` directories so generated agent assets are not mistaken for project knowledge.
+
+The command validates Markdown, writes it, registers the destination root if needed, and rebuilds the local search index. It reports the saved path and ID only after successful indexing. Partial failures explicitly identify an already-saved file; repair indexing with `cockpit kb rebuild-cache --extensions=false` instead of importing a duplicate. Missing files, invalid YAML and empty documents fail with a nonzero exit status.
+
+Re-adding the managed file itself keeps its identity. Re-adding an external source creates another entry unless `--update` is provided. Use the previous ID for revisions. Daily directories track creation, not every revision; use Git or backups for full history. Legacy directories remain readable and are not automatically moved.
+
+Curate only verified, reusable decisions, procedures and lessons for the declared context. Search and update existing knowledge before adding duplicates. Do not save every conversation, transient status, secrets or speculation. Agents should save appropriate knowledge directly and verify retrieval, without routinely asking whether to save it.
+
+Search uses local BM25 by default. `cockpit kb search "topic" --graphify` explicitly invokes semantic extensions and reports failures instead of claiming a local result came from semantic search. `--graphify` and `--bm25` cannot be combined.
 
 ### Remove Documents
 
