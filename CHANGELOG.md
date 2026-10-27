@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.57] - 2026-10-27
+
+### Changed since v0.4.56
+
+
 ### Features
 - add single-step cockpit ask command (#281)
 
@@ -27,6 +32,7 @@ No test changes
 
 ### Other Changes
 No other changes
+
 
 
 ## [0.4.56] - 2026-10-27
