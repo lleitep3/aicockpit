@@ -13,5 +13,5 @@
 // APIBackend is the HTTP backend. It calls the Anthropic Messages API or an
 // OpenAI-compatible Chat Completions endpoint, reads the provider token from
 // the vault at call time, and streams events. It does not run a tool loop.
-// The cockpit ask command is a later phase.
+// cockpit ask runs one turn on a Backend. A tool loop is a later phase.
 package agents

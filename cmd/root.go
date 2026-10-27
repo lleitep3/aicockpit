@@ -49,6 +49,7 @@ func NewRootCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translator
 	rootCmd.AddCommand(NewMetricsCommand(log, cfg, t))
 	rootCmd.AddCommand(NewKBCommand(log, cfg, t))
 	rootCmd.AddCommand(NewMemoryCommand(log, cfg, t))
+	rootCmd.AddCommand(NewAskCommand(log, cfg, t))
 	rootCmd.AddCommand(NewPkgCommand(cfg))
 	rootCmd.AddCommand(NewUpdateCommand(log, cfg, t))
 	rootCmd.AddCommand(NewProjectCommand(log, cfg, t))

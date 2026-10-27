@@ -4,7 +4,7 @@
 Add shared configuration for Cockpit packages, using the existing OS vault for secrets. No cloud changes, new credentials, or New Relic browser automation are part of this work.
 
 ## Findings
-The current namespace is a storage prefix, not authorization. CLI namespace flags skip the lock check; package identity is not propagated by the dispatcher. No cross-package grants exist. Builder assets describe nonexistent `cockpit agent` commands and duplicate package guidance. Correct these facts instead of replicating assumptions.
+The current namespace is a storage prefix, not authorization. CLI namespace flags skip the lock check; package identity is not propagated by the dispatcher. No cross-package grants exist. Builder assets describe nonexistent `cockpit agent` install commands. The assistant command is `cockpit ask`. They also duplicate package guidance. Correct these facts instead of replicating assumptions.
 
 ## Delivery plan
 1. Core profile service: namespace-owned public values and vault references, explicit read grants, validation, private atomic storage and concurrent-write protection.

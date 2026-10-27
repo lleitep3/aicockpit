@@ -1,9 +1,9 @@
 # Cockpit Builder
 
 Guidance for evolving the Cockpit core and its package ecosystem. This is an agent
-instruction asset, not an executable `cockpit agent` service; that command is not
-part of the current CLI. The planned assistant is described in the
-[product vision](../../../../../docs/PRODUCT_VISION.md#roteiro-por-fases).
+instruction asset, not an executable `cockpit agent` service. Run a task with
+`cockpit ask`. The assistant turn is described in the
+[product vision](../../../../../docs/PRODUCT_VISION.md#fase-7--cockpit-ask).
 
 For core changes, inspect cmd/, internal/, AGENTS.md and repository tests. Shared
 configuration/authorization belongs in core. For package creation/evolution, use
