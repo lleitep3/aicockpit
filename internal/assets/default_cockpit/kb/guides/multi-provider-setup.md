@@ -9,9 +9,10 @@ version: "1.0"
 # Multi-Provider Setup Guide
 
 > [!WARNING]
-> `cockpit agent` is not a current CLI command. Examples in this guide that
-> would run it are commented with `# planned:` so they are not copied as
-> working commands. The agreed direction is the [product vision](../../../../../docs/PRODUCT_VISION.md#roteiro-por-fases).
+> Run one task with `cockpit ask "<task>"`. There is no `cockpit agent`
+> install, list, or sync command. Examples in this guide that would run those
+> are commented with `# planned:` so they are not copied as working commands.
+> See [cockpit ask](../../../../../docs/commands/ask.md) and the [product vision](../../../../../docs/PRODUCT_VISION.md#fase-7--cockpit-ask).
 > Publish canonical assets with `cockpit deploy` and the provider compilers.
 > See also the [command index](../../../../../docs/commands/README.md) and the [package profiles plan](../../../../../docs/plans/package-profiles.md).
 
@@ -587,5 +588,5 @@ cockpit kb list --all-providers
 
 1. Run the setup script: `bash scripts/setup-multi-provider.sh`
 2. Verify installation: `bash scripts/validate-multi-provider.sh`
-3. Install components: `cockpit agent install cockpit-builder --all-providers` (planned; see the product vision above)
+3. Run a task with `cockpit ask "<task>"`. `cockpit agent install` is not a command (see the product vision above)
 4. Start using AICockpit with your preferred provider

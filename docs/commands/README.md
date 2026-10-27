@@ -16,13 +16,14 @@ Complete reference for all AICockpit CLI commands.
 | [`cockpit uninstall`](uninstall.md) | Remove AICockpit | STABLE |
 | `cockpit vault` | Manage secrets, credentials and lock state | AVAILABLE |
 | [`cockpit memory`](memory.md) | Start, stop, and check the optional local Hindsight server | AVAILABLE |
+| [`cockpit ask`](ask.md) | Run one assistant turn: recall, a worker, and retain | AVAILABLE |
 
 ### Planned Commands
 
 | Command | Description | Status |
 |---------|-------------|--------|
 | `cockpit pkg` | Package management | PLANNED |
-| `cockpit agent` | Agent management. Not implemented. See the [product vision](../PRODUCT_VISION.md#roteiro-por-fases). | PLANNED |
+| `cockpit agent` | Not a command. Run a task with [`cockpit ask`](ask.md). | — |
 | `cockpit skill` | Skill management | PLANNED |
 | `cockpit rule` | Rule management | PLANNED |
 | `cockpit hook` | Hook management | PLANNED |

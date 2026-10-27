@@ -41,6 +41,9 @@ type MemoryConfig struct {
 // AgentsConfig holds non-secret assistant settings.
 // Provider tokens stay in the vault.
 type AgentsConfig struct {
+	// Backend is the default worker for cockpit ask: claude, codex, api, or
+	// api:<provider>. Empty picks the first available worker.
+	Backend string `yaml:"backend,omitempty"`
 	// API selects the HTTP provider used by APIBackend.
 	API agents.APISettings `yaml:"api,omitempty"`
 }

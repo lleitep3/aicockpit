@@ -196,9 +196,13 @@ For more details, see [Quick Start Guide](docs/QUICK_START.md).
 - **`cockpit project add`** - Create a new task in the Kanban board
 - **`cockpit project move`** - Change the state of a task (todo, in_progress, done)
 
+### Assistant
+
+- **`cockpit ask "<task>"`** - Run one assistant turn (memory recall, a `claude`, `codex`, or API worker, streamed output, and retain). See [cockpit ask](docs/commands/ask.md).
+
 ### Planned Commands
 
-- **`cockpit agents`** - Manage AI agents (planned; the worker library is `internal/agents`, see [product vision](docs/PRODUCT_VISION.md#roteiro-por-fases))
+- **`cockpit agent`** - Not a command. Run a task with `cockpit ask` ([product vision](docs/PRODUCT_VISION.md#fase-7--cockpit-ask))
 - **`cockpit skills`** - Manage skills explicitly
 - **`cockpit rules`** - Manage rules explicitly
 

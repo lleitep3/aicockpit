@@ -203,6 +203,23 @@ func (s stubDocs) Documents([]string) ([]*kb.Document, error) {
 	return s.docs, s.err
 }
 
+func TestIntegrationMemory(t *testing.T) {
+	if (*Integration)(nil).Memory() != nil {
+		t.Fatal("nil integration")
+	}
+	if (&Integration{}).Memory() != nil {
+		t.Fatal("disabled integration")
+	}
+	backend, err := New(&Fake{}, testBanks())
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := (&Integration{mem: backend, enabled: true}).Memory()
+	if got == nil {
+		t.Fatal("missing memory")
+	}
+}
+
 func TestDocumentToken(t *testing.T) {
 	tests := []struct {
 		doc  *kb.Document
