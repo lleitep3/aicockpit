@@ -1,0 +1,31 @@
+name: Update Changelog
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: changelog-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  update-changelog:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-actions[bot]'
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_TOKEN }}
+
+      - name: Update CHANGELOG.md
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        run: bash scripts/update-changelog.sh ${{ github.event_name == 'pull_request' && '--dry-run' || '--pr' }}

@@ -1,0 +1,4 @@
+{
+  "allow": ["git diff", "npm test"],
+  "deny": ["rm -rf"]
+}

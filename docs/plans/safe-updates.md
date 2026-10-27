@@ -1,0 +1,213 @@
+# Safe Cockpit updates
+
+## Goal
+An explicit `cockpit update --all` updates the official binary and installed
+registry packages from any working directory, preserves user state, and reports
+independent outcomes. No merge or live package replacement is implied by this plan.
+
+## Evidence
+v0.4.41 updates source in the current directory and has no binary release assets.
+Package upgrade passes a package name rather than the index path; stale/divergent
+registry caches can hide merged packages. The upgrader removes old assets/package
+before validating the candidate and lacks automatic rollback. Deploy errors are
+reported as warnings. --version reads stale configuration instead of build metadata.
+
+## Ordered delivery
+1. **This PR — package transaction.** Resolve index paths; validate identity,
+   candidate files and version before replacement; stage candidate; take a complete
+   package/affected-canonical-assets snapshot; restore on hook/sync failure. Retain
+   recovery data on failure. Propagate deploy errors instead of reporting success.
+   Serialize updates sharing canonical assets. Test real temporary package trees.
+2. **Registry and package selection.** Refresh registries into validated snapshots
+   without merging stale histories or deleting local work. Respect configured origin,
+   disabled registries and pinned versions. Reject silent downgrade. Add installed
+   inventory and structured plan/outcomes; avoid ambiguous duplicate-package origins.
+3. **Binary update.** Fetch official release into isolated staging, verify checksums
+   and platform, atomically replace with rollback/backup. Until release artifacts
+   exist, build a verified official tag in a separate checkout with the required Go
+   toolchain; never checkout/pull inside the caller's repository. Windows replacement
+   needs a helper because a running executable cannot be replaced normally.
+4. **Unified UX and release validation.** Add explicit --all/--binary-only/
+   --packages-only, --yes and --check/structured status. No hidden prompts in CI.
+   Continue package checks when the binary is current; execute post-update work with
+   the new binary. Use build metadata for --version. Report partial failures and
+   correct exit status. Verify on native Linux/macOS/Windows before portability claims.
+
+## Invariants and limitations
+Credentials, profiles and user configuration outside managed package/asset paths
+are not rewritten. Backups include manifests. Never infer atomicity across remote
+APIs, arbitrary hooks or multiple packages; rollback covers managed local files.
+Hooks may cause external effects that cannot be undone: report that limitation.
+Process interruption retains backup/staging and a lock requiring reconciliation;
+this first transaction does not promise automatic recovery from power loss.
+Provider deployment failure is distinct from package activation: return failure
+and an actionable retry while retaining the package backup.
+
+## Validation and rollback
+Baseline package+CLI tests; failing candidate, name mismatch, missing assets,
+path traversal/symlinks, failing pre/post hooks, restore canonical contents and
+manifest, stale assets removed after success, preserve unrelated files, complete
+backup, busy lock, explicit deployment failure, nested registry paths. Full suite,
+race detection, vet, secret scan, CI. Use temporary fixtures before any live update.
+Rollback this code through the prior release; recover packages from the recorded
+complete snapshots. Do not auto-delete recovery material after failures.
+
+## Scope
+First delivery: three logical pieces (transaction/recovery, CLI integration, tests
+and operational documentation). Zero cloud/IaC resources; no new recurring costs.
+Future phases are intentionally separate reviewable PRs, not claimed implemented.
+
+## First implementation status
+The transaction and CLI integration are implemented on the feature branch.
+The full Linux suite passed (1,255 tests before two additional snapshot tests),
+and `go vet ./...` passed. New fixtures cover rollback after post-install failure,
+complete manifest backups, canonical customization preservation, absent assets,
+nested index paths, legacy index compatibility and explicit deployment failures.
+Follow-up validation expanded rollback coverage to 90.7% across `upgrader.go`
+and `upgrade_transaction.go` (individual files: 84.1% and 94.4%). The new registry
+refresh code reaches 93.8%; the upgrade CLI reaches 93.8%. These scoped figures
+are not the repository-wide coverage. No live installation was replaced.
+
+Package trees containing symbolic links or special files are rejected before
+activation in this first implementation. Snapshots are retained under backups;
+operators must reconcile a stale lock after confirming no updater is running.
+A failed restore retains the lock and reports the recovery snapshot location.
+This lock serializes upgrade commands only, not install/uninstall commands.
+
+## Registry refresh implementation plan
+Use a fresh shallow clone of the configured URL/branch, validate its index, then
+swap directories under a per-registry writer lock. Retain the previous cache,
+including local commits and untracked files. Clone/validation failures preserve
+the active cache. No cloud resources or recurring cost; retained clones consume
+local disk until explicitly cleaned by the operator. Test divergent histories,
+changed origin, invalid index, busy lock and preserved user files with local Git.
+Also prevent accidental package downgrades; explicit version requests remain
+available. Binary replacement remains a separate delivery.
+
+## Registry delivery behavior and validation
+A failed refresh now stops package selection; it does not install from stale
+cache or silently switch to a lower-priority registry. Browsing/listing retain
+existing warning-and-cache behavior. Automatic downgrade is rejected, including
+with `--force`; `pkg upgrade name@version` permits an explicitly requested version
+when that exact version is present in the selected index. No persistent version
+pin or installed-origin metadata is introduced by this delivery.
+
+Fresh clones are staged beside the active cache. Prior directories and failed
+staging directories are retained and their recovery paths are reported where
+applicable. A failed restoration retains the writer lock. This does not serialize
+readers with writers or promise automatic recovery from process termination;
+operators must reconcile retained directories/locks before retrying after a crash.
+
+Validated using real temporary Git repositories on Linux: divergent histories,
+untracked files, changed configured origin, invalid/symbolic indexes, lock
+contention, clone failure and injected directory-rename failures. Full suite:
+1,296 passing tests; the subsequent validation-centralization change also passed
+57 focused tests. macOS/Windows execution and the binary updater remain pending.
+
+## Binary update implementation plan
+Release v0.4.43 has no downloadable assets. This delivery uses the planned source
+fallback: clone the official HTTPS repository at the exact version tag into a
+private directory beside the resolved executable, confirm HEAD matches that tag,
+compile with an explicit embedded version and validate --version before activation.
+Never run Git or Make in the user's working repository. Preserve a complete binary
+backup, replace via same-filesystem rename, probe the installed executable and
+restore on probe failure. A per-executable lock prevents overlapping updates;
+retain recovery material and a lock if restoration fails. After activation, setup
+must run in the new executable, never the old in-memory code.
+
+Three logical parts: isolated build, transactional activation, CLI/version wiring.
+Requires Git, Go/toolchain download and write permission to the executable's parent.
+No cloud resources/cost; staging/source/backups consume local disk. Windows fails
+before mutation until a dedicated replacement helper is implemented. Linux is the
+native validation target; macOS behavior is not claimed tested. Prebuilt artifacts,
+checksums, Windows helper and update --all remain future work. Tests use temporary
+executables, injected failures and an isolated real Go build; never replace the
+operator's installed executable during development.
+
+## Binary delivery validation
+The isolated binary updater reaches 92.8% statement coverage. The complete
+suite passed 1,311 tests before the final additional focused fixtures; 32 focused
+tests then passed, including a real local Git tag and Go build, branch/tag collision,
+version mismatch, candidate/build/backup/rename failures, failed recovery retaining
+the lock, preserved symlink/permissions and new-executable setup dispatch. Lint of
+the changes and go vet passed. No operator installation was replaced.
+
+This is the source-build fallback, not a checksum-verified prebuilt download or
+signed-tag verification. Trust is the fixed official HTTPS origin plus checking
+that the checked-out commit matches the requested tag. User Git/Go overrides that
+could redirect the isolated build are excluded; dependency versions come from the
+release with module updates disabled. A working Git/Go installation and network
+for source/dependencies/toolchain may be needed. Recovery snapshots remain on disk.
+
+## Unified update implementation plan
+Add explicit --all/--binary-only/--packages-only scopes, --yes, --check and
+--report <file>. Existing plain update keeps its interactive binary flow. Scoped
+mutation requires --yes; --check refreshes registry caches but never activates
+packages/binaries, runs hooks or deploys. JSON reports use a versioned schema in
+a separate file so human output from existing package hooks cannot corrupt JSON.
+
+Update the binary first. After successful replacement, launch the new executable
+for the package-only phase and combine its report with the binary outcome. If the
+binary is current or fails, still inspect/update packages with the running binary.
+Report partial failures with nonzero exit status. Read installed manifests strictly,
+refresh each needed enabled registry once per run, honor configured priority,
+reject stale lookups and downgrades, verify candidate identity/version, and deploy
+once after successful package activations. Continue independent packages after an
+individual failure; do not promise a global transaction across hooks/providers.
+
+Tests: current binary with pending packages, binary failure with package success,
+new-executable handoff, check mode without mutation, partial package/deploy failure,
+missing/invalid manifest, disabled registry, idempotent second run, invalid scopes
+and JSON report errors. Validate with temporary Git registries and installed trees;
+no live installation changes. Three logical parts: batch engine, CLI/handoff,
+tests/documentation. No cloud resources; existing local snapshot disk costs apply.
+
+## Unified command usage and outcomes
+- Inspect: `cockpit update --all --check --report update-plan.json`.
+- Apply: `cockpit update --all --yes --report update-result.json`.
+- Limit scope with `--binary-only` or `--packages-only`; scopes are exclusive.
+- A scoped invocation without --yes or --check fails immediately with guidance.
+- Plain `cockpit update` retains the interactive binary-only behavior.
+
+The versioned JSON contains `schema_version`, `check` and `outcomes`; each outcome
+has component/name, optional from/to/message, and a status: current, available,
+updated, skipped, blocked or failed. Failed/blocked outcomes give nonzero exit.
+A dev binary is explicitly skipped, not reported as a current release. Package
+activation and provider deployment have separate outcomes. Report-writing failures
+return an error after printing the component results; they do not undo updates.
+
+Selection uses enabled registries in configured priority order, without persistent
+origin/pin metadata. Unregistered or invalid installed packages are reported as
+failures, not silently omitted. Package symlinks require manual reconciliation.
+Independent packages continue after failures; cross-package dependencies/hooks do
+not have a global rollback. Registry refresh snapshots and temporary child reports
+remain on disk. Check mode refreshes caches but does not run install hooks/deploy.
+
+Validation: complete suite 1,355 passing tests; race detector 427 passing tests in
+cmd/internal/update; real local Git package lifecycle check/apply/repeat; subprocess
+fixtures verify new-executable arguments and partial/missing/invalid reports.
+Binary replacement itself remains covered by the earlier isolated updater tests;
+no live operator binary/package was changed by this delivery. Linux validation;
+existing Windows binary-update limitation still applies.
+
+Scoped statement coverage: batch.go 96.8%, update_unified.go 90.3%; these are not
+repository-wide percentages. Final focused run passed 43 tests after CLI messages
+were adjusted. Invalid child JSON/schema outcomes are discarded, and the parent
+reports a handoff failure rather than treating partial parsed data as authoritative.
+
+## Validação real e fechamento (28/09/2026 UTC)
+
+Escopo: corrigir snapshots de dependências com links relativos internos, exigir hooks
+existentes e confinados, corrigir os manifests de Playwright/Graphify e reconciliar
+o inventário local preservando backups. Sem alterar infraestrutura AWS.
+
+Critérios: regressão de rollback com links; rejeição de links externos e em assets
+exportados; hook ausente/falhando não pode indicar sucesso; CI verde antes do merge;
+release instalada e lote real seguido de segunda execução sem mudanças.
+
+Rollback: snapshots locais retidos, binário anterior preservado, configuração dos
+registries copiada antes da manutenção. Fontes locais sem publicação permanecem
+identificadas como locais; não interpretar ausência de upstream como versão oficial.
+
+Documentação final: Partilhar ABA WU-006/WU-013, G-PLAN; evidências técnicas sem
+promover gates clínicos, de produção ou observabilidade sem medição.

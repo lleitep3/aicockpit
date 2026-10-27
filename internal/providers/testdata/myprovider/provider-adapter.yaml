@@ -1,0 +1,51 @@
+name: myprovider
+description: Example generic provider adapter
+version: "1.0.0"
+
+artifacts:
+  entrypoint:
+    enabled: true
+    path: "~/.myprovider/context.md"
+    template: |
+      # Project Context
+      {{ .ProjectContext }}
+
+      ## Golden Rules
+      {{ range .GoldenRules }}- {{ . }}
+      {{ end }}
+
+  rules:
+    enabled: true
+    path: "~/.myprovider/rules.md"
+    template: |
+      # Rules
+      {{ range . }}
+      ## {{ .Name }}
+      {{ .Content }}
+      {{ end }}
+
+  skills:
+    enabled: true
+    path: "~/.myprovider/skills/"
+    template: |
+      # Skills
+      {{ range . }}
+      ## {{ .Name }}
+      {{ .Description }}
+      {{ .Content }}
+      {{ end }}
+
+  workflows:
+    enabled: false
+    path: ""
+    template: ""
+
+  permissions:
+    enabled: false
+    path: ""
+    template: ""
+
+  agents:
+    enabled: false
+    path: ""
+    template: ""

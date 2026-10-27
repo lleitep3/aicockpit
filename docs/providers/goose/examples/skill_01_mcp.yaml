@@ -1,0 +1,4 @@
+extensions:
+  - name: my_database_mcp
+    cmd: python3
+    args: ["mcp_server.py"]

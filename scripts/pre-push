@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+# Pre-push hook for AICockpit.
+# Validates code security (vulnerabilities) and reports dependency updates.
+
+set -euo pipefail
+
+echo "🛡️ Running pre-push security & updates validation..."
+
+# 1. Check for govulncheck
+GOVULNCHECK_BIN="govulncheck"
+if ! command -v govulncheck &> /dev/null; then
+    # Try user's go/bin path
+    if [ -f "$HOME/go/bin/govulncheck" ]; then
+        GOVULNCHECK_BIN="$HOME/go/bin/govulncheck"
+    else
+        echo "  ❌ govulncheck not found! Please install it to proceed with the push:"
+        echo "     go install golang.org/x/vuln/cmd/govulncheck@latest"
+        exit 1
+    fi
+fi
+
+# 2. Run govulncheck
+echo "  • Scanning for vulnerability issues (govulncheck)..."
+if ! $GOVULNCHECK_BIN ./...; then
+    echo "  ❌ Vulnerabilities detected! Push aborted."
+    echo "     Please patch the affected modules/packages before pushing."
+    echo "     (Use 'git push --no-verify' only if you need to bypass this check temporarily)"
+    exit 1
+fi
+echo "  ✓ Security Scan: No vulnerabilities found"
+
+# 3. Check for dependency updates (Warning only, does not fail push)
+echo "  • Checking for available dependency updates..."
+if command -v go &> /dev/null; then
+    # Run go list and capture outdated dependencies
+    UPDATES=$(go list -m -u all 2>/dev/null | grep '\[' || true)
+    if [ -n "$UPDATES" ]; then
+        echo "  ⚠️ Outdated dependencies found:"
+        echo "$UPDATES" | sed 's/^/     - /'
+        echo "  💡 Consider updating these packages using 'go get <package>@latest'."
+    else
+        echo "  ✓ Dependencies: All packages are up to date"
+    fi
+else
+    echo "  ⚠️ Go command not found in PATH, skipping update checks."
+fi
+
+echo "✅ All security checks passed! Proceeding with push."
+exit 0

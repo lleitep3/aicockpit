@@ -1,0 +1,153 @@
+package update
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+	"strings"
+	"time"
+
+	"github.com/lleitep3/aicockpit/internal/resilience"
+	"github.com/lleitep3/aicockpit/internal/version"
+	"golang.org/x/mod/semver"
+)
+
+const (
+	defaultGithubRepoOwner = "lleitep3"
+	defaultGithubRepoName  = "aicockpit"
+	defaultGithubAPIURL    = "https://api.github.com/repos/%s/%s/releases/latest"
+)
+
+// GitHubRelease represents a GitHub release
+type GitHubRelease struct {
+	TagName string `json:"tag_name"`
+	Name    string `json:"name"`
+	Body    string `json:"body"`
+	HTMLURL string `json:"html_url"`
+}
+
+// Service handles update checking and changelog generation
+type Service struct {
+	client         *http.Client
+	retryClient    *resilience.RetryableClient
+	repoOwner      string
+	repoName       string
+	baseAPIURL     string
+	currentVersion string // overrides version.GetVersion() when non-empty (used in tests)
+}
+
+// NewUpdateService creates a new update service
+func NewUpdateService() *Service {
+	client := &http.Client{Timeout: 10 * time.Second}
+	return &Service{
+		client:      client,
+		retryClient: newRetryClient(client),
+		repoOwner:   defaultGithubRepoOwner,
+		repoName:    defaultGithubRepoName,
+		baseAPIURL:  defaultGithubAPIURL,
+	}
+}
+
+// NewUpdateServiceWithClient creates a new update service with a custom HTTP client and base URL.
+// currentVersion overrides version.GetVersion() so tests can run without real ldflags builds.
+func NewUpdateServiceWithClient(client *http.Client, baseURL string, currentVersion ...string) *Service {
+	svc := &Service{
+		client:      client,
+		retryClient: newRetryClient(client),
+		repoOwner:   defaultGithubRepoOwner,
+		repoName:    defaultGithubRepoName,
+		baseAPIURL:  baseURL,
+	}
+	if len(currentVersion) > 0 {
+		svc.currentVersion = currentVersion[0]
+	}
+	return svc
+}
+
+// newRetryClient builds a retryable HTTP client with a circuit breaker for GitHub API calls.
+func newRetryClient(client *http.Client) *resilience.RetryableClient {
+	breaker := resilience.NewCircuitBreaker(resilience.DefaultCircuitBreakerConfig())
+	return resilience.NewRetryableClient(client, resilience.DefaultConfig(), breaker)
+}
+
+// CheckForUpdates checks if a new version is available on GitHub
+func (s *Service) CheckForUpdates() (string, string, error) {
+	currentVersion := s.currentVersion
+	if currentVersion == "" {
+		currentVersion = version.GetVersion()
+	}
+
+	// "dev" means a local build without ldflags — skip update check to avoid
+	// false positives when comparing "dev" against any real semver.
+	if currentVersion == "dev" {
+		return "", "", nil
+	}
+
+	url := fmt.Sprintf(s.baseAPIURL, s.repoOwner, s.repoName)
+
+	resp, err := s.retryClient.Get(context.Background(), url)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to fetch release info: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", "", fmt.Errorf("github API returned status %d", resp.StatusCode)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	var release GitHubRelease
+	if err := json.Unmarshal(body, &release); err != nil {
+		return "", "", fmt.Errorf("failed to parse release info: %w", err)
+	}
+
+	latestVersion := strings.TrimPrefix(release.TagName, "v")
+
+	if s.isNewerVersion(latestVersion, currentVersion) {
+		return latestVersion, release.HTMLURL, nil
+	}
+
+	return "", "", nil
+}
+
+// isNewerVersion compares valid semantic versions and rejects automatic downgrade.
+func (s *Service) isNewerVersion(latest, current string) bool {
+	latest = "v" + strings.TrimPrefix(latest, "v")
+	current = "v" + strings.TrimPrefix(current, "v")
+	return semver.IsValid(latest) && semver.IsValid(current) && semver.Compare(latest, current) > 0
+}
+
+// GetReleaseNotes fetches the release notes for a specific version
+func (s *Service) GetReleaseNotes(version string) (string, error) {
+	// Build URL for specific tag
+	baseURL := strings.Replace(s.baseAPIURL, "/latest", "/tags/v"+version, 1)
+	url := fmt.Sprintf(baseURL, s.repoOwner, s.repoName)
+
+	resp, err := s.retryClient.Get(context.Background(), url)
+	if err != nil {
+		return "", fmt.Errorf("failed to fetch release notes: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("github API returned status %d", resp.StatusCode)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	var release GitHubRelease
+	if err := json.Unmarshal(body, &release); err != nil {
+		return "", fmt.Errorf("failed to parse release info: %w", err)
+	}
+
+	return release.Body, nil
+}

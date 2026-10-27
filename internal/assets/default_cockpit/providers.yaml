@@ -1,0 +1,229 @@
+# AICockpit Providers Configuration
+# This file defines all available AI providers and their supported features
+
+version: "1.0"
+description: "AI Providers Configuration for AICockpit"
+
+providers:
+  # Antigravity - Autonomous AI agent by Google DeepMind
+  antigravity:
+    enabled: true
+    name: "Antigravity"
+    description: "Autonomous AI agent by Google DeepMind"
+    workspace: "~/.gemini"
+    binary: "antigravity"
+    version: "1.0.0"
+    features:
+      skills:
+        enabled: true
+        path: "~/.gemini/config/skills"
+        description: "Reusable capabilities for agents"
+      rules:
+        enabled: true
+        path: "~/.gemini/GEMINI.md"
+        description: "Codebase rules and guidelines"
+      agents:
+        enabled: true
+        path: ".gemini/config/agents"
+        description: "Autonomous subagent templates"
+      workflows:
+        enabled: true
+        path: ".gemini/config/workflows"
+        description: "Workflow files and scripts"
+      permissions:
+        enabled: true
+        path: ".gemini/config/config.json"
+        description: "Global permission grants for cockpit commands"
+
+  # Codex - OpenAI coding agent
+  # The first Codex adapter targets project-local files. User-global paths and
+  # CODEX_HOME-aware deployment are covered by the Codex scope workstream.
+  codex:
+    enabled: true
+    name: "Codex"
+    description: "OpenAI coding agent"
+    workspace: "~/.codex"
+    binary: "codex"
+    version: "1.0.0"
+    features:
+      rules:
+        enabled: true
+        path: "AGENTS.md"
+        description: "Project instructions and canonical AICockpit rules"
+      skills:
+        enabled: true
+        path: ".agents/skills"
+        description: "Reusable Codex skills"
+      workflows:
+        enabled: true
+        path: ".agents/skills"
+        description: "Workflow skills for Codex"
+      permissions:
+        enabled: true
+        path: ".codex/rules/aicockpit.rules"
+        description: "Project-local Codex execpolicy rules"
+      agents:
+        enabled: true
+        path: ".codex/agents"
+        description: "Project-local Codex custom agents"
+      mcp:
+        enabled: true
+        path: ".codex/config.toml"
+        description: "Project Codex MCP servers. Hindsight banks are injected when memory.hindsight.enabled is true"
+
+  # Claude Code - project MCP config. Canonical rules and skills are not compiled yet.
+  claude:
+    enabled: true
+    name: "Claude Code"
+    description: "Claude Code CLI"
+    workspace: "~/.claude"
+    binary: "claude"
+    version: "1.0.0"
+    features:
+      mcp:
+        enabled: true
+        path: ".mcp.json"
+        description: "Project MCP servers. Hindsight banks are injected when memory.hindsight.enabled is true"
+
+  # GitHub Copilot CLI - global user-level instructions and assets rooted at ~/.copilot
+  github-copilot:
+    enabled: true
+    name: "GitHub Copilot CLI"
+    description: "GitHub Copilot CLI user-level instructions, skills, and agents"
+    workspace: "~/.copilot"
+    binary: "copilot"
+    version: "1.0.0"
+    features:
+      rules:
+        enabled: true
+        path: "~/.copilot/copilot-instructions.md"
+        description: "Global Copilot CLI instructions and golden rules"
+      skills:
+        enabled: true
+        path: "~/.copilot/skills"
+        description: "User-level GitHub Copilot CLI skills"
+      workflows:
+        enabled: true
+        path: "~/.copilot/skills"
+        description: "Canonical workflows published as Copilot CLI skills"
+      permissions:
+        enabled: false
+        description: "Managed by Copilot CLI; canonical permission policies are not portable"
+      agents:
+        enabled: true
+        path: "~/.copilot/agents"
+        description: "User-level GitHub Copilot CLI custom agents"
+      mcp:
+        enabled: true
+        path: "~/.copilot/mcp-config.json"
+        description: "User-level Copilot CLI MCP servers. Hindsight banks are injected when memory.hindsight.enabled is true"
+
+  # Gemini CLI - project settings.json. Distinct from the Antigravity provider.
+  gemini:
+    enabled: true
+    name: "Gemini CLI"
+    description: "Gemini CLI"
+    workspace: "~/.gemini"
+    binary: "gemini"
+    version: "1.0.0"
+    features:
+      mcp:
+        enabled: true
+        path: ".gemini/settings.json"
+        description: "Project Gemini CLI MCP servers. Hindsight banks are injected when memory.hindsight.enabled is true"
+
+  # Devin - Autonomous AI agent by Cognition
+  devin:
+    enabled: true
+    name: "Devin"
+    description: "Autonomous AI software engineer by Cognition"
+    workspace: "~/.config/devin"
+    binary: "devin"
+    version: "1.0.0"
+    features:
+      entrypoint:
+        enabled: true
+        path: "~/.config/devin/AGENTS.md"
+        description: "Devin's main agent entrypoint (global rules)"
+      skills:
+        enabled: true
+        path: "~/.config/devin/skills"
+        description: "Reusable capabilities for Devin (global skills)"
+      rules:
+        enabled: true
+        path: ".devin/AGENTS.md"
+        description: "Project-level rules and context for Devin"
+      gold_rules:
+        enabled: true
+        path: "~/.codeium/windsurf/memories/global_rules.md"
+        description: "Global gold rules injected into Devin's memory system (Windsurf compatibility)"
+      workflows:
+        enabled: true
+        path: ".devin/config.yaml"
+        description: "Devin custom tools and configuration (workflows implemented as skills)"
+      agents:
+        enabled: true
+        path: "~/.config/devin/agents"
+        description: "Custom subagent profiles for Devin"
+      permissions:
+        enabled: true
+        path: "~/.config/devin/config.json"
+        description: "Permission grants for cockpit commands (global config)"
+
+  # Goose - Open-source AI agent by Block
+  goose:
+    enabled: true
+    name: "Goose"
+    description: "Open-source AI agent by Block"
+    workspace: "~/.config/goose"
+    binary: "goose"
+    version: "1.0.1"
+    features:
+      agents:
+        enabled: true
+        path: "~/.agents/agents/"
+        description: "Autonomous subagent templates for Goose"
+      skills:
+        enabled: true
+        path: "~/.agents/skills/"
+        description: "Reusable capabilities for Goose"
+      rules:
+        enabled: true
+        path: "~/AppData/Roaming/Block/goose/config/.goosehints"
+        description: "Always-on rules and guidelines"
+      workflows:
+        enabled: true
+        path: "~/AppData/Roaming/Block/goose/config/recipes"
+        description: "Goose workflow files == recipes"
+      permissions:
+        enabled: true
+        path: "~/AppData/Roaming/Block/goose/config/permission.yaml"
+        description: "Goose global extensions and permissions"
+      hooks:
+        enabled: true
+        path: "~/.agents/hooks/"
+        description: "Lifecycle hooks for automation and policy enforcement"
+
+# Feature definitions
+features:
+  agents:
+    description: "Autonomous AI agents for task execution"
+    example: "cockpit-builder agent"
+  skills:
+    description: "Reusable capabilities that agents can leverage"
+    example: "go-development skill"
+  rules:
+    description: "Always-on rules and guidelines"
+    example: "Project coding standards"
+  gold_rules:
+    description: "High-priority rules injected into provider global memory"
+    example: "Always use rtk prefix for terminal commands"
+  hooks:
+    description: "Lifecycle hooks for automation and policy enforcement"
+    example: "Command validation hook"
+  workflows:
+    description: "Workflow files and scripts"
+    example: "Continuous deployment steps"
+  permissions:
+    description: "Global permission grants ensuring cockpit commands run in all contexts"
+    example: "command(cockpit), command(make), command(git)"

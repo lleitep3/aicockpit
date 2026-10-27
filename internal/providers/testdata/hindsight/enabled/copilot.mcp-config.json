@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "hindsight-project": {
+      "type": "http",
+      "url": "http://127.0.0.1:8888/mcp/demo-app/",
+      "tools": [
+        "*"
+      ]
+    },
+    "hindsight-user": {
+      "type": "http",
+      "url": "http://127.0.0.1:8888/mcp/ada/",
+      "tools": [
+        "*"
+      ]
+    }
+  }
+}
