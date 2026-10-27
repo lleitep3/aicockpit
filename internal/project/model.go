@@ -39,17 +39,23 @@ type Link struct {
 
 // Metadata holds all the YAML frontmatter structural data
 type Metadata struct {
-	Title          string    `yaml:"title"`
-	Slug           string    `yaml:"slug"`
-	Description    string    `yaml:"description"`
-	BoardColumns   []string  `yaml:"board_columns"`
-	Tasks          []Task    `yaml:"tasks"`
-	Repositories   []string  `yaml:"repositories"`
-	Workspaces     []string  `yaml:"workspaces"`
-	KnowledgeBases []string  `yaml:"knowledge_bases"`
-	Links          []Link    `yaml:"links"`
-	Tags           []string  `yaml:"tags"`
-	StartDate      time.Time `yaml:"start_date"`
+	Title           string    `yaml:"title"`
+	Slug            string    `yaml:"slug"`
+	Description     string    `yaml:"description"`
+	Instructions    string    `yaml:"instructions,omitempty"`
+	ProviderID      string    `yaml:"provider_id,omitempty"`
+	ModelID         string    `yaml:"model_id,omitempty"`
+	ReasoningEffort string    `yaml:"reasoning_effort,omitempty"`
+	ApprovalPolicy  string    `yaml:"approval_policy,omitempty"`
+	RoutingMode     string    `yaml:"routing_mode,omitempty"`
+	BoardColumns    []string  `yaml:"board_columns"`
+	Tasks           []Task    `yaml:"tasks"`
+	Repositories    []string  `yaml:"repositories"`
+	Workspaces      []string  `yaml:"workspaces"`
+	KnowledgeBases  []string  `yaml:"knowledge_bases"`
+	Links           []Link    `yaml:"links"`
+	Tags            []string  `yaml:"tags"`
+	StartDate       time.Time `yaml:"start_date"`
 }
 
 // Project represents the complete project file context
