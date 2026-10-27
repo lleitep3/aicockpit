@@ -1,7 +1,0 @@
-allowed_commands:
-  - ls
-  - cat
-  - pwd
-denied_commands:
-  - rm
-  - mv

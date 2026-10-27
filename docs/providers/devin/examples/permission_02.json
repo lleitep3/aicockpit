@@ -1,4 +1,0 @@
-{
-  "allow": ["docker-compose up"],
-  "deny": []
-}
