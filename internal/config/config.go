@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/lleitep3/aicockpit/internal/agents"
 	"github.com/lleitep3/aicockpit/internal/hindsight"
 	"github.com/lleitep3/aicockpit/internal/packages"
 	"github.com/lleitep3/aicockpit/internal/version"
@@ -20,6 +21,7 @@ type Config struct {
 	EnabledProviders  []string                  `yaml:"enabled_providers"`
 	KB                KBConfig                  `yaml:"kb"`
 	Memory            MemoryConfig              `yaml:"memory,omitempty"`
+	Agents            AgentsConfig              `yaml:"agents,omitempty"`
 	PackageRegistries []packages.RegistryConfig `yaml:"package_registries"`
 	LastUpdateCheck   string                    `yaml:"last_update_check"`
 	AutoUpdateCheck   bool                      `yaml:"auto_update_check"`
@@ -34,6 +36,13 @@ type KBConfig struct {
 // Secret values are not stored in this struct.
 type MemoryConfig struct {
 	Hindsight hindsight.Settings `yaml:"hindsight,omitempty"`
+}
+
+// AgentsConfig holds non-secret assistant settings.
+// Provider tokens stay in the vault.
+type AgentsConfig struct {
+	// API selects the HTTP provider used by APIBackend.
+	API agents.APISettings `yaml:"api,omitempty"`
 }
 
 var defaultConfig = Config{
@@ -117,6 +126,7 @@ type legacyConfig struct {
 	EnabledProviders  []string                  `yaml:"enabled_providers"`
 	KB                KBConfig                  `yaml:"kb"`
 	Memory            MemoryConfig              `yaml:"memory,omitempty"`
+	Agents            AgentsConfig              `yaml:"agents,omitempty"`
 	PackageRegistries []packages.RegistryConfig `yaml:"package_registries"`
 	LastUpdateCheck   string                    `yaml:"last_update_check"`
 	AutoUpdateCheck   bool                      `yaml:"auto_update_check"`
@@ -135,6 +145,7 @@ func (l *legacyConfig) toConfig() Config {
 		EnabledProviders:  l.EnabledProviders,
 		KB:                l.KB,
 		Memory:            l.Memory,
+		Agents:            l.Agents,
 		PackageRegistries: l.PackageRegistries,
 		LastUpdateCheck:   l.LastUpdateCheck,
 		AutoUpdateCheck:   l.AutoUpdateCheck,

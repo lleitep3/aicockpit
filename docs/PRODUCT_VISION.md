@@ -144,9 +144,10 @@ cada bank é declarado pelos compiladores quando o serviço está habilitado.
 ## Roteiro por fases
 
 Cada fase entrega um contrato testável e deixa as seguintes intactas. As
-fases 1 a 4 estão no código. A fase 5 está em `internal/agents` para
-`claude` e `codex`, sem comando novo. Os nomes das fases seguintes são o
-alvo do desenho e ainda não existem na CLI.
+fases 1 a 4 estão no código. As fases 5 e 6 estão em `internal/agents`
+(`CLIBackend` para `claude` e `codex`, `APIBackend` para as APIs), sem
+comando novo. Os nomes das fases seguintes são o alvo do desenho e ainda
+não existem na CLI.
 
 | Fase | Entrega | Resultado |
 |---|---|---|
@@ -155,7 +156,7 @@ alvo do desenho e ainda não existem na CLI.
 | 3 | Integração `memory-hindsight` | Backend `memory.Memory` com o cliente Go oficial, atrás de uma interface de teste. `kb search` acrescenta o recall e `kb index` retém documentos em `RunSearchExtensions` e `RunIndexExtensions`. Um bank por projeto e um por usuário. Serviço desligado ou inacessível deixa só o KB local. O código do Hindsight continua fora do repositório. |
 | 4 | Compiladores injetam o MCP do Hindsight | Cada bank configurado vira um servidor MCP declarado aos provedores que já recebem skills e MCP. Sem bank, os compiladores não inventam um endpoint. |
 | 5 | `internal/agents` com `Backend` e `CLIBackend` | Interface única de worker para uma tarefa. `CLIBackend` executa `claude -p` (stream-json) e `codex exec` (JSONL), com timeout, cancelamento, diretório e modelo opcional. `gemini -p` e `copilot` ficam para depois. |
-| 6 | `APIBackend` | O mesmo `Backend` chama a API do provedor com o token do vault. Falha de vault fechado ou token ausente nega a chamada. |
+| 6 | `APIBackend` | O mesmo `Backend` chama a API do provedor com o token do vault. Anthropic Messages e Chat Completions compatível com OpenAI. Falha de vault fechado ou token ausente nega a chamada. Sem laço de ferramentas. |
 | 7 | `cockpit ask` | Entrada do assistente: uma pergunta ou tarefa escolhe um `Backend` e devolve a resposta. Ainda sem laço de ferramentas. |
 | 8 | Tool loop | Laço de ferramentas com MCP, guardrails lidos de `permissions.yaml` e sessões persistidas. Comando negado pela política não executa. |
 | 9 | Router | Escolhe worker, modo CLI ou API e modelo conforme a tarefa, a disponibilidade local e a política. O chamador ainda pode fixar o backend. |
@@ -252,15 +253,38 @@ Os argumentos seguem a documentação atual de cada CLI:
 * Claude Code headless: `claude -p --output-format stream-json --verbose --include-partial-messages`, com `--model` só quando a tarefa pede um modelo. O comando principal não tem flag de diretório; o processo usa o diretório da tarefa. `CLAUDECODE` e `CLAUDE_CODE_ENTRYPOINT` saem do ambiente herdado para um `claude` aninhado não recusar o arranque.
 * Codex non-interactive: `codex exec --json --skip-git-repo-check`, com `--model` e `--cd` opcionais. `--skip-git-repo-check` existe porque a tarefa pode apontar para um diretório que não é um repositório Git. O sandbox não é alterado e permanece o padrão read-only da CLI.
 
-`gemini -p`, `copilot`, `APIBackend` e `cockpit ask` continuam nas fases
-seguintes. `cockpit doctor` reporta instalação e versão de `claude` e
-`codex`. A ausência não reprova o doctor.
+`gemini -p`, `copilot` e `cockpit ask` continuam nas fases seguintes.
+`cockpit doctor` reporta instalação e versão de `claude` e `codex`. A
+ausência não reprova o doctor.
 
 ### Fase 6 — Backend de API
 
-`APIBackend` implementa o mesmo `Backend` com o cliente HTTP do provedor. O
-token sai do vault no momento da chamada, pelo namespace autorizado, e não é
-ecoado em erro. Provedor sem token configurado retorna erro antes do request.
+Implementada em `internal/agents`. `APIBackend` implementa o mesmo `Backend`
+e faz uma completação simples, ainda sem laço de ferramentas. O token sai do
+vault no momento da chamada, pelo namespace e pela chave configurados, e não
+é ecoado em erro, log ou arquivo. Vault fechado ou token ausente recusa a
+chamada antes do HTTP.
+
+Dois clientes, ambos com streaming:
+
+* Anthropic Messages (`provider: anthropic`), em `{base}/v1/messages`.
+* Chat Completions compatível com OpenAI (`openai`, `ollama`, `lmstudio`,
+  `openrouter`). A URL base escolhe o host; o payload é o mesmo
+  `{base}/v1/chat/completions`.
+
+```yaml
+agents:
+  api:
+    provider: anthropic
+    model: claude-sonnet-4-5
+    base_url: https://api.anthropic.com
+    vault_namespace: agents
+    vault_key: anthropic_api_key
+```
+
+O valor do token fica no vault (`cockpit vault set --namespace agents anthropic_api_key`) e não entra neste arquivo. A omissão de `vault_namespace` usa `agents`. A omissão de `vault_key` usa `<provider>_api_key`. `ToolSpec` e `ToolCall` reservam o formato das ferramentas; `Run` não as envia e não as executa. Os testes injetam um `HTTPDoer` e usam `httptest`, sem rede.
+
+`cockpit doctor` acrescenta uma linha por provedor conhecido. A linha diz se o token está configurado e nunca imprime o segredo. Token ausente ou vault fechado não reprova o doctor.
 
 ### Fase 7 — cockpit ask
 
