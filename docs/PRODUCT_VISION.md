@@ -2,9 +2,10 @@
 
 Estado: direção acordada com o dono do projeto. As fases 1 a 4 estão
 implementadas em `internal/memory`, `internal/hindsight`,
-`internal/memoryhindsight` e `internal/providers`. As fases 5 em diante
-deste roteiro ainda não estão implementadas. A seção [Papel atual](#papel-atual)
-descreve o que o código faz hoje.
+`internal/memoryhindsight` e `internal/providers`. A fase 5 está
+implementada em `internal/agents` para as CLIs `claude` e `codex`. As fases
+6 em diante deste roteiro ainda não estão implementadas. A seção
+[Papel atual](#papel-atual) descreve o que o código faz hoje.
 
 Planos como o [P0-02](plans/p0-02-vault-state-implementation-plan.md) apontam
 para este documento. O arquivo `docs/plans/user-harness-roadmap.md` não está
@@ -63,9 +64,12 @@ graph LR
   Codex, Gemini CLI e GitHub Copilot CLI.
 
 `cockpit doctor` verifica a existência de diretórios e arquivos locais
-(configuração, vault, logs, pacotes, cache) e reporta o Hindsight. Sem
-`memory.hindsight.enabled`, esse check é informativo e não reprova o doctor.
-Não há fila de ferramentas nem orquestração de CLIs de modelo.
+(configuração, vault, logs, pacotes, cache), reporta o Hindsight e informa
+se as CLIs `claude` e `codex` estão instaladas e em qual versão. Sem
+`memory.hindsight.enabled`, o check do Hindsight é informativo. CLI ausente
+também não reprova o doctor. `internal/agents` executa uma tarefa em
+`claude -p` ou `codex exec`. Não há comando `cockpit ask`, backend de API,
+fila de ferramentas nem router.
 
 Assets como `cockpit-builder` são instruções compiladas para os provedores.
 Não existe serviço executável `cockpit agent`. Comandos dessa forma citados
@@ -140,8 +144,9 @@ cada bank é declarado pelos compiladores quando o serviço está habilitado.
 ## Roteiro por fases
 
 Cada fase entrega um contrato testável e deixa as seguintes intactas. As
-fases 1 a 4 estão no código. Os nomes das fases seguintes são o alvo do
-desenho e ainda não existem na CLI.
+fases 1 a 4 estão no código. A fase 5 está em `internal/agents` para
+`claude` e `codex`, sem comando novo. Os nomes das fases seguintes são o
+alvo do desenho e ainda não existem na CLI.
 
 | Fase | Entrega | Resultado |
 |---|---|---|
@@ -149,7 +154,7 @@ desenho e ainda não existem na CLI.
 | 2 | `cockpit memory up`, `down`, `status` e check no `cockpit doctor` | A CLI sobe e derruba o container oficial do Hindsight (portas 8888 e 9999, pg0, segredo do vault só no ambiente do container). O doctor reporta a saúde e não falha quando o serviço não está configurado. Sem extensão de KB e sem MCP. |
 | 3 | Integração `memory-hindsight` | Backend `memory.Memory` com o cliente Go oficial, atrás de uma interface de teste. `kb search` acrescenta o recall e `kb index` retém documentos em `RunSearchExtensions` e `RunIndexExtensions`. Um bank por projeto e um por usuário. Serviço desligado ou inacessível deixa só o KB local. O código do Hindsight continua fora do repositório. |
 | 4 | Compiladores injetam o MCP do Hindsight | Cada bank configurado vira um servidor MCP declarado aos provedores que já recebem skills e MCP. Sem bank, os compiladores não inventam um endpoint. |
-| 5 | `internal/agents` com `Backend` e `CLIBackend` | Interface única de worker. `CLIBackend` executa `claude -p`, `codex exec`, `gemini -p` e `copilot`, com timeout, cancelamento e captura de saída. |
+| 5 | `internal/agents` com `Backend` e `CLIBackend` | Interface única de worker para uma tarefa. `CLIBackend` executa `claude -p` (stream-json) e `codex exec` (JSONL), com timeout, cancelamento, diretório e modelo opcional. `gemini -p` e `copilot` ficam para depois. |
 | 6 | `APIBackend` | O mesmo `Backend` chama a API do provedor com o token do vault. Falha de vault fechado ou token ausente nega a chamada. |
 | 7 | `cockpit ask` | Entrada do assistente: uma pergunta ou tarefa escolhe um `Backend` e devolve a resposta. Ainda sem laço de ferramentas. |
 | 8 | Tool loop | Laço de ferramentas com MCP, guardrails lidos de `permissions.yaml` e sessões persistidas. Comando negado pela política não executa. |
@@ -235,11 +240,21 @@ continua sem traduzir `permissions.yaml`.
 
 ### Fase 5 — Backend de CLI
 
-`internal/agents.Backend` é a porta de um worker: iniciar uma conversa,
-enviar um turno, cancelar e ler o estado. `CLIBackend` configura o executável,
-os argumentos base (`claude -p`, `codex exec`, `gemini -p`, `copilot`) e o
-ambiente. Segredos só entram se a fase 6 ou um `cockpit config exec` já os
-tiver injetado de propósito. Testes usam um binário falso.
+Implementada em `internal/agents` para `claude` e `codex`. `Backend.Run`
+recebe uma tarefa (prompt, diretório de trabalho, timeout e modelo opcional),
+entrega eventos em fluxo e devolve o resultado final. Cancelar o contexto
+encerra o subprocesso. `CLIBackend` fala com o binário por um `Runner`
+injetável. Os testes leem fixtures do formato de saída e não invocam as CLIs
+reais. Este pacote não acrescenta variáveis de ambiente e não lê o vault.
+
+Os argumentos seguem a documentação atual de cada CLI:
+
+* Claude Code headless: `claude -p --output-format stream-json --verbose --include-partial-messages`, com `--model` só quando a tarefa pede um modelo. O comando principal não tem flag de diretório; o processo usa o diretório da tarefa. `CLAUDECODE` e `CLAUDE_CODE_ENTRYPOINT` saem do ambiente herdado para um `claude` aninhado não recusar o arranque.
+* Codex non-interactive: `codex exec --json --skip-git-repo-check`, com `--model` e `--cd` opcionais. `--skip-git-repo-check` existe porque a tarefa pode apontar para um diretório que não é um repositório Git. O sandbox não é alterado e permanece o padrão read-only da CLI.
+
+`gemini -p`, `copilot`, `APIBackend` e `cockpit ask` continuam nas fases
+seguintes. `cockpit doctor` reporta instalação e versão de `claude` e
+`codex`. A ausência não reprova o doctor.
 
 ### Fase 6 — Backend de API
 

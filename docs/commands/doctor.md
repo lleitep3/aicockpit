@@ -15,10 +15,14 @@ cockpit doctor [flags]
 
 ## Description
 
-The doctor command checks local directories and the optional Hindsight server.
-When `memory.hindsight.enabled` is false, the Hindsight row is skipped and does
+The doctor command checks local directories, the optional Hindsight server, and
+whether the `claude` and `codex` CLIs are installed. When
+`memory.hindsight.enabled` is false, the Hindsight row is skipped and does
 not fail the command. When it is true, the row reports whether the container
 is running and whether `GET /health` on the API port succeeds.
+
+The Claude CLI and Codex CLI rows report the version when the binary is on
+`PATH`. A missing binary is skipped. Neither row fails the command.
 
 The doctor command also checks:
 

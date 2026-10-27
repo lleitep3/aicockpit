@@ -4,7 +4,7 @@ Bem-vindo à documentação oficial da arquitetura do **AICockpit**. Esta pasta 
 
 Se você deseja desenvolver para o Cockpit, entender como pacotes são geridos, ou integrar uma nova IA provedora ao sistema, você está no lugar certo.
 
-A direção do produto — assistente que orquestra CLIs locais ou APIs, com memória no KB e Hindsight opcional — está na [visão de produto](../PRODUCT_VISION.md). O contrato operacional do vault está no [índice do vault](../vault/README.md).
+A direção do produto — assistente que orquestra CLIs locais ou APIs, com memória no KB e Hindsight opcional — está na [visão de produto](../PRODUCT_VISION.md). A execução de uma tarefa em `claude` ou `codex` está em `internal/agents`. Ainda não há `cockpit ask` nem backend de API. O contrato operacional do vault está no [índice do vault](../vault/README.md).
 
 ## 🛤️ Trilha de Leitura (Reading Trail)
 
