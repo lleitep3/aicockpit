@@ -96,6 +96,20 @@
     return stats;
   }
 
+  function filterProjects(projects, query = "") {
+    const normalizedQuery = String(query).trim().toLocaleLowerCase("pt-BR");
+    if (!normalizedQuery) return projects || [];
+    return (projects || []).filter((project) => {
+      const searchable = [
+        project?.name,
+        project?.description,
+        project?.workspace,
+        ...(Array.isArray(project?.repositories) ? project.repositories : []),
+      ].filter(Boolean).join(" ").toLocaleLowerCase("pt-BR");
+      return searchable.includes(normalizedQuery);
+    });
+  }
+
   function filterConversations(conversations, selectedProjectIDs = new Set(), showArchived = false) {
     const filterByProject = selectedProjectIDs && selectedProjectIDs.size > 0;
     return (conversations || []).filter((item) => {
@@ -105,12 +119,24 @@
     });
   }
 
+  function conversationsWithActivity(conversations) {
+    return (conversations || []).filter((item) => Number(item.message_count) > 0 || Boolean(item.latest_turn_status));
+  }
+
+  function turnStillRunning(conversation, turnId) {
+    const turn = (conversation?.turns || []).find((item) => item.id === turnId);
+    return turn?.status === "running";
+  }
+
   const api = {
     changedConversations,
     clipboardImageFiles,
+    conversationsWithActivity,
+    filterProjects,
     groupConversationsByRoot,
     projectConversationStats,
     filterConversations,
+    turnStillRunning,
   };
   global.CockpitInteractions = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;

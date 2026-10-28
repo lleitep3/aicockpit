@@ -130,6 +130,12 @@ EOF
 
 ---
 
+## Personal Agent frontend verification
+
+- Run `npm test` from `internal/personalagent/desktop` for desktop runtime and web helper tests.
+- Run `node --test --experimental-test-coverage internal/personalagent/web/*.test.cjs` from the repository root for web helper coverage.
+- Web assets are embedded in the Go binary. New scripts need a route in `internal/personalagent/http.go`; rebuild and restart the runtime to load changes.
+
 ## ✅ Task Checklist for Agents
 
 Before concluding any task, ensure:
@@ -139,5 +145,11 @@ Before concluding any task, ensure:
 - [ ] PR body uses the mandatory template above and passes `scripts/validate-pr.sh`.
 - [ ] KB has been checked or updated.
 - [ ] No secrets were committed.
+
+### Personal Agent quota checks
+
+- Run `go test -race ./internal/personalagent` and `npm test --prefix internal/personalagent/desktop` for provider quota changes.
+- Live Codex quota verification is opt-in: `COCKPIT_TEST_LIVE_QUOTA=1 go test ./internal/personalagent -run TestLiveCodexQuota -v -count=1`. This reads account limits without sending an inference prompt.
+- Context/session token consumption is not account credit balance. Missing quota data must remain unknown; model-specific quota exhaustion must not disable an entire provider without a verified shared limit.
 
 **Remember**: You are building the system that orchestrates you. Aim for excellence, autonomy, and extreme efficiency.

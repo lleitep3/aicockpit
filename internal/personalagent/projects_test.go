@@ -93,6 +93,34 @@ func TestProjectLifecycleAndConversationBinding(t *testing.T) {
 	}
 }
 
+func TestConversationSummariesIncludeMessageCounts(t *testing.T) {
+	service, store := newRoutingTestService(t)
+	empty, err := service.CreateConversation(context.Background(), "codex", "model-fast", "", "on-request", RoutingModeManual)
+	if err != nil {
+		t.Fatalf("CreateConversation(empty) error = %v", err)
+	}
+	active, err := service.CreateConversation(context.Background(), "codex", "model-fast", "", "on-request", RoutingModeManual)
+	if err != nil {
+		t.Fatalf("CreateConversation(active) error = %v", err)
+	}
+	active.Messages = []Message{{ID: "msg_1", Role: "user", Content: "hello"}}
+	if err := store.Save(active); err != nil {
+		t.Fatalf("Save(active) error = %v", err)
+	}
+
+	summaries, err := service.ConversationSummaries()
+	if err != nil {
+		t.Fatalf("ConversationSummaries() error = %v", err)
+	}
+	counts := make(map[string]int, len(summaries))
+	for _, summary := range summaries {
+		counts[summary.ID] = summary.MessageCount
+	}
+	if len(summaries) != 2 || counts[empty.ID] != 0 || counts[active.ID] != 1 {
+		t.Fatalf("conversation summary message counts = %#v, want empty=0 and active=1", counts)
+	}
+}
+
 func TestStartTurnInjectsProjectContextAndAIDraft(t *testing.T) {
 	baseDir := t.TempDir()
 	store, err := NewStoreWithProjectsDir(filepath.Join(baseDir, "conversations"), filepath.Join(baseDir, "projects"))
