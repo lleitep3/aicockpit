@@ -14,6 +14,24 @@ const (
 	MetadataDelimiter = "---"
 )
 
+// UnmarshalYAML accepts the date-only format documented by earlier Cockpit
+// versions, including quoted YAML strings, as well as RFC3339 timestamps.
+func (m *Metadata) UnmarshalYAML(node *yaml.Node) error {
+	type plainMetadata Metadata
+	if node.Kind == yaml.MappingNode {
+		for i := 0; i+1 < len(node.Content); i += 2 {
+			key, value := node.Content[i].Value, node.Content[i+1]
+			if key != "created" && key != "modified" {
+				continue
+			}
+			if date, err := time.Parse(time.DateOnly, value.Value); err == nil {
+				value.Value, value.Tag = date.Format(time.RFC3339), "!!timestamp"
+			}
+		}
+	}
+	return node.Decode((*plainMetadata)(m))
+}
+
 // ParseDocument parses a KB document from raw content.
 // Expected format:
 // ---

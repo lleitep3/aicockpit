@@ -593,8 +593,8 @@ func TestKBListCommand_EmptyRoot(t *testing.T) {
 func TestKBAddCommand_Run(t *testing.T) {
 	log, cfg, tr := newTestDeps(t)
 	cmd := NewKBAddCommand(log, cfg, tr)
-	if err := cmd.RunE(cmd, []string{"/some/file.md"}); err != nil {
-		t.Errorf("add run error = %v", err)
+	if err := cmd.RunE(cmd, []string{"/some/file.md"}); err == nil {
+		t.Fatal("missing source must fail instead of claiming success")
 	}
 }
 

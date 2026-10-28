@@ -129,6 +129,9 @@ func (p *FileIndexProvider) buildRootIndex(root string) (RootIndex, error) {
 
 		// Skip directories
 		if info.IsDir() {
+			if path != root && (info.Name() == ".git" || info.Name() == ".agents" || info.Name() == ".codex") {
+				return filepath.SkipDir
+			}
 			return nil
 		}
 
