@@ -9,9 +9,10 @@ version: "1.0"
 # AICockpit Manifest System
 
 > [!WARNING]
-> `cockpit agent` is not a current CLI command. Examples in this guide that
-> would run it are commented with `# planned:` so they are not copied as
-> working commands. The agreed direction is the [product vision](../../PRODUCT_VISION.md#roteiro-por-fases).
+> Run one task with `cockpit ask "<task>"`. There is no `cockpit agent`
+> install, list, or sync command. Examples in this guide that would run those
+> are commented with `# planned:` so they are not copied as working commands.
+> See [cockpit ask](../../commands/ask.md) and the [product vision](../../PRODUCT_VISION.md#fase-7--cockpit-ask).
 > Publish canonical assets with `cockpit deploy` and the provider compilers.
 > See also the [command index](../../commands/README.md) and the [package profiles plan](../../plans/package-profiles.md).
 
@@ -396,7 +397,7 @@ cockpit manifest add agent cockpit-builder
 cockpit manifest verify
 
 # 4. Test component
-# planned: cockpit agent run cockpit-builder --help
+# the assistant command is: cockpit ask "<task>"
 ```
 
 ### Uninstallation

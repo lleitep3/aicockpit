@@ -29,7 +29,7 @@ func NewRootCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translator
 			t.SetLanguage(cfg.Language)
 
 			// Skip update check for certain commands
-			if cmd.Name() == "update" || cmd.Name() == "setup" {
+			if cmd.Name() == "update" || cmd.Name() == "setup" || cmd.Name() == "agent" {
 				return
 			}
 
@@ -49,11 +49,13 @@ func NewRootCommand(log *logging.Manager, cfg *config.Config, t *i18n.Translator
 	rootCmd.AddCommand(NewMetricsCommand(log, cfg, t))
 	rootCmd.AddCommand(NewKBCommand(log, cfg, t))
 	rootCmd.AddCommand(NewMemoryCommand(log, cfg, t))
+	rootCmd.AddCommand(NewAskCommand(log, cfg, t))
 	rootCmd.AddCommand(NewPkgCommand(cfg))
 	rootCmd.AddCommand(NewUpdateCommand(log, cfg, t))
 	rootCmd.AddCommand(NewProjectCommand(log, cfg, t))
 	rootCmd.AddCommand(NewCodexCommand())
 	rootCmd.AddCommand(NewSkillsCommand())
+	rootCmd.AddCommand(NewAgentCommand())
 
 	// Load commands from installed packages
 	if err := LoadPackageCommands(rootCmd); err != nil {
@@ -146,6 +148,9 @@ func checkForUpdatesWithService(log *logging.Manager, cfg *config.Config, t *i18
 func decorateCommands(cmd *cobra.Command, log *logging.Manager) {
 	for _, subCmd := range cmd.Commands() {
 		decorateCommands(subCmd, log)
+	}
+	if cmd.Name() == "agent" {
+		return
 	}
 
 	// Skip decorating the root command itself

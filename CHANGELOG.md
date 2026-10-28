@@ -7,6 +7,90 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.59] - 2026-10-27
+
+### Changed since v0.4.58
+
+
+### Features
+- add local Cockpit Personal Agent and root grouping (#288)
+
+### Bug Fixes
+No bug fixes
+
+### Performance
+No performance improvements
+
+### Breaking Changes
+No breaking changes
+
+### Documentation
+No documentation changes
+
+### Testing
+No test changes
+
+### Other Changes
+No other changes
+
+
+
+## [0.4.58] - 2026-10-27
+
+### Changed since v0.4.57
+
+
+### Features
+- add local Cockpit Personal Agent and Electron desktop (#285)
+
+### Bug Fixes
+No bug fixes
+
+### Performance
+No performance improvements
+
+### Breaking Changes
+No breaking changes
+
+### Documentation
+No documentation changes
+
+### Testing
+No test changes
+
+### Other Changes
+- Revert "feat(personalagent): add local Cockpit Personal Agent and Electron desktop (#285)"
+
+
+
+## [0.4.57] - 2026-10-27
+
+### Changed since v0.4.56
+
+
+### Features
+- add single-step cockpit ask command (#281)
+
+### Bug Fixes
+No bug fixes
+
+### Performance
+No performance improvements
+
+### Breaking Changes
+No breaking changes
+
+### Documentation
+No documentation changes
+
+### Testing
+No test changes
+
+### Other Changes
+No other changes
+
+
+
 ## [0.4.56] - 2026-10-27
 
 ### Changed since v0.4.55

@@ -32,6 +32,19 @@ O adapter do Devin atualmente compila e propaga os seguintes artefatos canônico
 - `workflows`: Gera as definições de tools/skills no arquivo `.devin/config.yaml`.
 - `permissions`: Gerencia liberações de comandos injetando grants no arquivo de permissões local (`~/.devin/config.local.json`).
 
+## Conversas pelo Devin CLI no Personal Agent
+
+O Personal Agent detecta o executável `devin` no `PATH` e carrega os modelos da
+conta com `devin models list --format json`. Os turnos usam o modelo selecionado
+e o modo não interativo `devin --print`; a resposta só chega à interface quando
+o comando termina, sem streaming ou tool calling do Cockpit.
+
+Como o modo `--print` não fornece ao adapter o ID da sessão criada, o Cockpit
+transfere o histórico canônico no prompt a cada turno, em vez de retomar uma
+sessão nativa Devin. A política `on-request` preserva o modo padrão `auto` do
+CLI; `never`, quando escolhida explicitamente, usa o modo `dangerous` do Devin.
+As aprovações internas do CLI não são apresentadas como aprovações do Cockpit.
+
 ## Metadados
 - **Versão da Integração:** 1.0.0
 - **Última Atualização:** 21 de Junho de 2026

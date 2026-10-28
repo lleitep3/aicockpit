@@ -176,5 +176,5 @@ O namespace é uma fronteira da CLI, não um sandbox para código hostil do mesm
 Validação de manifesto não substitui testes de comportamento. Teste falhas de paths,
 dependências ausentes, bloqueio do vault e exposição de segredos. Relate separadamente
 testes locais, simulação de navegador, integração real e checks da CI. Siga o workflow
-`cockpit-evolution.md`; nenhum comando `cockpit agent` deve ser presumido existente.
-O roteiro planejado está na [visão de produto](../../../docs/PRODUCT_VISION.md#roteiro-por-fases).
+`cockpit-evolution.md`. O comando do assistente é `cockpit ask`. Não existe `cockpit agent`.
+A fase 7 está na [visão de produto](../../../docs/PRODUCT_VISION.md#fase-7--cockpit-ask).

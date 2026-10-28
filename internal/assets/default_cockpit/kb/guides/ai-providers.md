@@ -9,9 +9,10 @@ version: "1.0"
 # AI Providers Configuration
 
 > [!WARNING]
-> `cockpit agent` is not a current CLI command. Examples in this guide that
-> would run it are commented with `# planned:` so they are not copied as
-> working commands. The agreed direction is the [product vision](../../../../../docs/PRODUCT_VISION.md#roteiro-por-fases).
+> Run one task with `cockpit ask "<task>"`. There is no `cockpit agent`
+> install, list, or sync command. Examples in this guide that would run those
+> are commented with `# planned:` so they are not copied as working commands.
+> See [cockpit ask](../../../../../docs/commands/ask.md) and the [product vision](../../../../../docs/PRODUCT_VISION.md#fase-7--cockpit-ask).
 > Publish canonical assets with `cockpit deploy` and the provider compilers.
 > See also the [command index](../../../../../docs/commands/README.md) and the [package profiles plan](../../../../../docs/plans/package-profiles.md).
 

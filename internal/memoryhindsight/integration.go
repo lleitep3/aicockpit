@@ -67,6 +67,15 @@ func (in *Integration) Enabled() bool {
 	return in != nil && in.enabled
 }
 
+// Memory returns the Hindsight memory backend.
+// It is nil when the integration is disabled or was not opened.
+func (in *Integration) Memory() memory.Memory {
+	if in == nil || !in.enabled {
+		return nil
+	}
+	return in.mem
+}
+
 // Banks returns the resolved project and user bank ids.
 func (in *Integration) Banks() Names {
 	if in == nil {

@@ -2,9 +2,10 @@
 
 Estado: direção acordada com o dono do projeto. As fases 1 a 4 estão
 implementadas em `internal/memory`, `internal/hindsight`,
-`internal/memoryhindsight` e `internal/providers`. A fase 5 está
-implementada em `internal/agents` para as CLIs `claude` e `codex`. As fases
-6 em diante deste roteiro ainda não estão implementadas. A seção
+`internal/memoryhindsight` e `internal/providers`. As fases 5 e 6 estão
+implementadas em `internal/agents` (`CLIBackend` e `APIBackend`). A fase 7
+está no comando `cockpit ask`. As fases 8 em diante deste roteiro ainda não
+estão implementadas. A seção
 [Papel atual](#papel-atual) descreve o que o código faz hoje.
 
 Planos como o [P0-02](plans/p0-02-vault-state-implementation-plan.md) apontam
@@ -68,14 +69,18 @@ graph LR
 se as CLIs `claude` e `codex` estão instaladas e em qual versão. Sem
 `memory.hindsight.enabled`, o check do Hindsight é informativo. CLI ausente
 também não reprova o doctor. `internal/agents` executa uma tarefa em
-`claude -p` ou `codex exec`. Não há comando `cockpit ask`, backend de API,
-fila de ferramentas nem router.
+`claude -p`, `codex exec` ou na API do provedor. `cockpit ask "<task>"`
+faz um turno: recall na memória, prompt, execução num `Backend` e retain
+de um registro curto. O backend vem de `--backend` (`claude`, `codex` ou
+`api:<provider>`), de `agents.backend` na configuração, ou do primeiro
+disponível. `--no-memory` pula o recall e o retain. Não há laço de
+ferramentas nem router.
 
 Assets como `cockpit-builder` são instruções compiladas para os provedores.
-Não existe serviço executável `cockpit agent`. Comandos dessa forma citados
-em guias antigos estão marcados como planejados e apontam para o
-[roteiro](#roteiro-por-fases). O índice de comandos em
-[docs/commands/README.md](commands/README.md) registra o mesmo status.
+Não existe comando `cockpit agent`. O assistente é `cockpit ask`. Comandos
+antigos de instalação (`cockpit agent install` e similares) continuam sem
+implementação. O índice de comandos em
+[docs/commands/README.md](commands/README.md) registra `cockpit ask`.
 
 ## Direção acordada
 
@@ -117,7 +122,7 @@ graph TD
 
 A memória do assistente entra por uma interface Go em `internal/memory`.
 A primeira implementação usa o KB local: gravar, buscar e recuperar contexto
-a partir dos documentos já indexados. Pacotes e o futuro `cockpit ask`
+a partir dos documentos já indexados. Pacotes e `cockpit ask`
 dependem dessa interface. O fornecedor concreto fica atrás do backend.
 
 ### Hindsight como serviço opcional
@@ -145,9 +150,9 @@ cada bank é declarado pelos compiladores quando o serviço está habilitado.
 
 Cada fase entrega um contrato testável e deixa as seguintes intactas. As
 fases 1 a 4 estão no código. As fases 5 e 6 estão em `internal/agents`
-(`CLIBackend` para `claude` e `codex`, `APIBackend` para as APIs), sem
-comando novo. Os nomes das fases seguintes são o alvo do desenho e ainda
-não existem na CLI.
+(`CLIBackend` para `claude` e `codex`, `APIBackend` para as APIs). A fase 7
+é o comando `cockpit ask`. Os nomes das fases seguintes são o alvo do
+desenho e ainda não existem na CLI.
 
 | Fase | Entrega | Resultado |
 |---|---|---|
@@ -157,7 +162,7 @@ não existem na CLI.
 | 4 | Compiladores injetam o MCP do Hindsight | Cada bank configurado vira um servidor MCP declarado aos provedores que já recebem skills e MCP. Sem bank, os compiladores não inventam um endpoint. |
 | 5 | `internal/agents` com `Backend` e `CLIBackend` | Interface única de worker para uma tarefa. `CLIBackend` executa `claude -p` (stream-json) e `codex exec` (JSONL), com timeout, cancelamento, diretório e modelo opcional. `gemini -p` e `copilot` ficam para depois. |
 | 6 | `APIBackend` | O mesmo `Backend` chama a API do provedor com o token do vault. Anthropic Messages e Chat Completions compatível com OpenAI. Falha de vault fechado ou token ausente nega a chamada. Sem laço de ferramentas. |
-| 7 | `cockpit ask` | Entrada do assistente: uma pergunta ou tarefa escolhe um `Backend` e devolve a resposta. Ainda sem laço de ferramentas. |
+| 7 | `cockpit ask` | Um turno: recall, prompt, um `Backend` e retain. `--backend` fixa o worker; sem flag, vale `agents.backend` ou o primeiro disponível. Ainda sem laço de ferramentas e sem router. |
 | 8 | Tool loop | Laço de ferramentas com MCP, guardrails lidos de `permissions.yaml` e sessões persistidas. Comando negado pela política não executa. |
 | 9 | Router | Escolhe worker, modo CLI ou API e modelo conforme a tarefa, a disponibilidade local e a política. O chamador ainda pode fixar o backend. |
 | 10 | Daemon, rotinas e canais | Processo residente, rotinas agendadas e canais de entrada para o mesmo `cockpit ask`. Os canais concretos entram quando houver um desenho próprio. |
@@ -253,9 +258,9 @@ Os argumentos seguem a documentação atual de cada CLI:
 * Claude Code headless: `claude -p --output-format stream-json --verbose --include-partial-messages`, com `--model` só quando a tarefa pede um modelo. O comando principal não tem flag de diretório; o processo usa o diretório da tarefa. `CLAUDECODE` e `CLAUDE_CODE_ENTRYPOINT` saem do ambiente herdado para um `claude` aninhado não recusar o arranque.
 * Codex non-interactive: `codex exec --json --skip-git-repo-check`, com `--model` e `--cd` opcionais. `--skip-git-repo-check` existe porque a tarefa pode apontar para um diretório que não é um repositório Git. O sandbox não é alterado e permanece o padrão read-only da CLI.
 
-`gemini -p`, `copilot` e `cockpit ask` continuam nas fases seguintes.
-`cockpit doctor` reporta instalação e versão de `claude` e `codex`. A
-ausência não reprova o doctor.
+`gemini -p` e `copilot` continuam nas fases seguintes. `cockpit ask` está
+na fase 7. `cockpit doctor` reporta instalação e versão de `claude` e
+`codex`. A ausência não reprova o doctor.
 
 ### Fase 6 — Backend de API
 
@@ -288,10 +293,47 @@ O valor do token fica no vault (`cockpit vault set --namespace agents anthropic_
 
 ### Fase 7 — cockpit ask
 
-`cockpit ask` é o comando do assistente. Ele exige um backend disponível,
-grava a troca na sessão quando a fase 8 existir e, até lá, executa um turno.
-A saída humana e a saída JSON compartilham o mesmo resultado. Este comando é
-o sucessor planejado da ideia antiga de `cockpit agent run`.
+Implementada no comando `cockpit ask` e no pacote `internal/ask`. Um turno
+faz recall na memória, monta o prompt, executa um `Backend` e retém um
+registro curto da tarefa e do resultado. Não há laço de ferramentas nem
+router. A sessão da fase 8 ainda não existe.
+
+```bash
+cockpit ask "explique o pacote internal/memory"
+cockpit ask --backend claude --model sonnet --workdir . --timeout 2m "revise este diff"
+cockpit ask --backend api:anthropic --no-memory "responda sem consultar a memória"
+cockpit ask --json "resuma o estado do vault"
+```
+
+O backend explícito é `--backend`, com `claude`, `codex`, `api` ou
+`api:<provider>`. Sem a flag, vale `agents.backend` na configuração. Sem os
+dois, a escolha é o primeiro disponível, nesta ordem: `claude`, `codex` e,
+se `agents.api.provider` estiver definido e o token existir no vault, a API.
+Nenhum disponível produz um erro que lista o que foi verificado. Um backend
+nomeado e indisponível também falha, sem cair no seguinte. Esta ordem fixa
+não é o router da fase 9.
+
+```yaml
+agents:
+  backend: claude
+  api:
+    provider: anthropic
+    model: claude-sonnet-4-5
+```
+
+A saída humana escreve o texto do worker conforme os eventos chegam.
+`--json` imprime o mesmo resultado (`backend`, `model`, `text`,
+`session_id`, `recalled`, `retained`) sem misturar tokens no objeto.
+
+Com memória, `Recall` usa a tarefa como consulta no KB local. Se o
+Hindsight está habilitado, o recall dele entra no prompt; falha de rede
+não impede o turno e fica só com o KB. O retain grava o registro no KB e,
+quando o serviço responde, também no Hindsight. `--no-memory` pula os dois.
+Os testes usam `memory.Fake` e um `Backend` falso e não invocam CLIs nem a
+rede.
+
+`cockpit ask` é o sucessor da ideia antiga de `cockpit agent run`. Não há
+comando `cockpit agent`.
 
 ### Fase 8 — Laço de ferramentas
 
@@ -308,7 +350,8 @@ privado sob `~/.cockpit/`.
 O router implementa a escolha que `cockpit ask` usa quando a pessoa não fixa
 o worker. A decisão considera binário presente no `PATH`, token no vault,
 política do projeto e o pedido. A escolha fica na sessão para auditoria. Um
-flag explícito de backend continua tendo prioridade.
+flag explícito de backend continua tendo prioridade. A ordem fixa da fase 7
+(claude, codex, API configurada) não é este router.
 
 ### Fase 10 — Daemon, rotinas e canais
 
