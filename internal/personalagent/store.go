@@ -170,14 +170,15 @@ func (s *Store) ListConversationSummaries() ([]ConversationSummary, error) {
 			return nil, fmt.Errorf("read conversation %s summary: %w", id, err)
 		}
 		var record struct {
-			ID                   string    `json:"id"`
-			AssistantMode        bool      `json:"assistant_mode"`
-			Archived             bool      `json:"archived"`
-			ProjectID            string    `json:"project_id"`
-			ParentConversationID string    `json:"parent_conversation_id"`
-			RootConversationID   string    `json:"root_conversation_id"`
-			Title                string    `json:"title"`
-			UpdatedAt            time.Time `json:"updated_at"`
+			ID                   string            `json:"id"`
+			AssistantMode        bool              `json:"assistant_mode"`
+			Archived             bool              `json:"archived"`
+			ProjectID            string            `json:"project_id"`
+			ParentConversationID string            `json:"parent_conversation_id"`
+			RootConversationID   string            `json:"root_conversation_id"`
+			Title                string            `json:"title"`
+			UpdatedAt            time.Time         `json:"updated_at"`
+			Messages             []json.RawMessage `json:"messages"`
 			Turns                []struct {
 				Status string `json:"status"`
 			} `json:"turns"`
@@ -204,6 +205,7 @@ func (s *Store) ListConversationSummaries() ([]ConversationSummary, error) {
 			RootConversationID:   rootID,
 			Title:                record.Title,
 			UpdatedAt:            record.UpdatedAt,
+			MessageCount:         len(record.Messages),
 		}
 		if len(record.Turns) > 0 {
 			summary.LatestTurnStatus = record.Turns[len(record.Turns)-1].Status

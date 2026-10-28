@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="./app.css" />
     <script src="./markdown.js" defer></script>
     <script src="./interaction.js" defer></script>
+    <script src="./preview.js" defer></script>
+    <script src="./quota.js" defer></script>
     <script src="./app.js" defer></script>
   </head>
   <body>
@@ -24,15 +26,41 @@
         </div>
         <button class="new-chat" id="new-chat"><span>＋</span> Nova conversa</button>
         <button class="new-chat assistant-chat-button" id="assistant-chat" type="button"><span>✦</span> Assistente Cockpit</button>
-        <div class="section-header">
+        <div class="section-header project-section-header">
           <span class="section-label">PROJETOS</span>
           <div class="section-actions">
-            <button class="section-clear-btn hidden" id="clear-project-filter" type="button" title="Limpar filtro de projetos">Todos</button>
             <button class="section-icon-btn ai-spark-btn" id="ai-create-project" type="button" title="Criar projeto com IA" aria-label="Criar projeto com IA">✦</button>
             <button class="section-icon-btn" id="create-project" type="button" title="Criar projeto" aria-label="Criar projeto">＋</button>
           </div>
         </div>
-        <nav class="project-list" id="project-list" aria-label="Projetos"></nav>
+        <div class="project-picker" id="project-picker">
+          <button class="project-picker-toggle" id="project-picker-toggle" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="project-picker-popover">
+            <span class="project-picker-icon" aria-hidden="true">▰</span>
+            <span class="project-picker-copy">
+              <small>Filtro de projetos</small>
+              <strong id="project-picker-label">Todos os projetos</strong>
+            </span>
+            <span class="project-picker-count hidden" id="project-picker-count"></span>
+            <span class="project-picker-caret" aria-hidden="true">⌄</span>
+          </button>
+          <div class="project-picker-popover hidden" id="project-picker-popover" role="dialog" aria-label="Selecionar projetos">
+            <div class="project-picker-heading">
+              <div><strong>Seus projetos</strong><small>Filtre conversas por projeto</small></div>
+              <button class="section-clear-btn hidden" id="clear-project-filter" type="button">Limpar</button>
+            </div>
+            <label class="project-search-wrap">
+              <span aria-hidden="true">⌕</span>
+              <input id="project-search" class="project-search" type="search" placeholder="Buscar projeto…" autocomplete="off" aria-label="Buscar projeto" />
+              <kbd>/</kbd>
+            </label>
+            <nav class="project-list" id="project-list" aria-label="Projetos"></nav>
+            <div class="project-picker-footer">
+              <span id="project-picker-summary" role="status" aria-live="polite" aria-atomic="true"></span>
+              <button class="project-picker-create" id="project-picker-create" type="button">＋ Novo</button>
+              <button class="project-picker-create project-picker-ai-create" id="project-picker-ai-create" type="button">✦ IA</button>
+            </div>
+          </div>
+        </div>
         <div class="section-header">
           <span class="section-label" id="conversations-section-label">CONVERSAS</span>
           <div class="section-actions">
@@ -67,6 +95,7 @@
             <button id="spawn-subchat-btn" class="tool-button spawn-subchat-btn hidden" type="button" title="Criar nova sub-sessão vinculada a esta conversa raiz">↳ Sub-sessão</button>
             <select id="conversation-parent-select" class="project-assign-select hidden" title="Vincular conversa a uma conversa raiz" aria-label="Conversa raiz"></select>
             <select id="conversation-project-select" class="project-assign-select hidden" title="Vincular conversa a um projeto" aria-label="Projeto da conversa"></select>
+            <button id="link-preview-toggle" class="tool-button hidden" type="button" aria-controls="link-preview" aria-expanded="false">Visualização</button>
             <button id="notification-toggle" class="notification-toggle" type="button" title="Ativar notificações de conversas" aria-label="Ativar notificações de conversas">♧</button>
             <div class="topbar-caption">AGENTE LOCAL · HISTÓRICO AUDITÁVEL</div>
           </div>
@@ -147,6 +176,15 @@
           <div id="composer-disclaimer" class="composer-disclaimer">O agente pode ler e alterar arquivos dentro do workspace. Política de aprovação: confirmação quando solicitada. Sandbox: workspace-write.</div>
         </footer>
       </main>
+      <aside id="link-preview" class="link-preview hidden" aria-labelledby="link-preview-title">
+        <header class="link-preview-header">
+          <strong id="link-preview-title">Visualização</strong>
+          <a id="link-preview-external" target="_blank" rel="noopener noreferrer" class="link-preview-external">Abrir em nova aba</a>
+          <button id="link-preview-close" class="popover-close" type="button" aria-label="Fechar visualização">×</button>
+        </header>
+        <p class="link-preview-notice">Alguns sites bloqueiam visualização incorporada. Nesse caso, abra em nova aba.</p>
+        <iframe id="link-preview-frame" title="Visualização do link" sandbox="allow-scripts" referrerpolicy="no-referrer"></iframe>
+      </aside>
     </div>
 
     <div id="project-modal-backdrop" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="project-modal-title">

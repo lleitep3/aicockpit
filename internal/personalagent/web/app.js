@@ -1,8 +1,9 @@
 let token = document.querySelector('meta[name="cockpit-token"]').content;
 const state = {
   providers: [], catalogs: new Map(), projects: [], activeProjectId: "", selectedProjectIds: new Set(),
-  renamingProjectId: "", editingProjectId: "", defaultWorkspace: "",
+  renamingProjectId: "", editingProjectId: "", defaultWorkspace: "", projectSearch: "",
   conversations: [], conversation: null, collapsedRootIds: new Set(), showArchived: false,
+  pendingParentConversationId: "",
   activeTurn: null, activeTurnConversationID: "", eventIDs: new Map(), attachments: [], routing: null,
   unreadConversations: new Set(), conversationSyncInitialized: false, conversationSyncInProgress: false,
   conversationSyncErrorShown: false, sendingMessage: false, addingAttachments: false, dropDepth: 0, markdownWarningShown: false,
@@ -66,10 +67,16 @@ function currentSelection() {
 async function loadProviders() {
   const result = await api("/providers");
   state.providers = result.providers;
-  const preferred = state.providers.find((p) => p.id === "antigravity" && p.supported)
-    || state.providers.find((p) => p.id === "copilot" && p.supported)
-    || state.providers.find((p) => p.supported);
-  const defaultProviderId = preferred?.id || "codex";
+  const preferred = state.providers.find((p) => p.id === "antigravity" && CockpitQuota.providerAvailable(p))
+    || state.providers.find((p) => p.id === "copilot" && CockpitQuota.providerAvailable(p))
+    || state.providers.find((p) => CockpitQuota.providerAvailable(p));
+  if (!preferred) {
+    state.draft.provider_id = "";
+    state.draft.model_id = "";
+    updateSelectionControls();
+    return;
+  }
+  const defaultProviderId = preferred.id;
   state.draft.provider_id = defaultProviderId;
   await loadModels(defaultProviderId);
   const first = state.catalogs.get(defaultProviderId)?.models.find((model) => model.default && model.selectable)
@@ -98,11 +105,28 @@ function renderProjectList() {
   const list = byId("project-list");
   if (!list) return;
   list.replaceChildren();
-  if (!state.projects.length) {
+  const updateFooter = () => {
+    const summary = byId("project-picker-summary");
+    if (!summary) return;
+    const selectedCount = state.selectedProjectIds.size;
+    const resultSummary = state.projectSearch.trim()
+      ? `${visibleProjects.length} resultado(s) de ${state.projects.length}`
+      : `${state.projects.length} projeto(s)`;
+    summary.textContent = selectedCount
+      ? `${selectedCount} projeto(s) selecionado(s) · ${resultSummary}`
+      : resultSummary;
+  };
+  const visibleProjects = window.CockpitInteractions?.filterProjects
+    ? window.CockpitInteractions.filterProjects(state.projects, state.projectSearch)
+    : state.projects;
+  if (!visibleProjects.length) {
     const empty = document.createElement("div");
     empty.className = "project-empty";
-    empty.textContent = "Nenhum projeto criado";
+    empty.textContent = state.projects.length
+      ? "Nenhum projeto encontrado"
+      : "Nenhum projeto criado";
     list.append(empty);
+    updateFooter();
     return;
   }
   const statsByProject = window.CockpitInteractions?.projectConversationStats
@@ -113,7 +137,7 @@ function renderProjectList() {
         state.showArchived,
       )
     : new Map();
-  for (const project of state.projects) {
+  for (const project of visibleProjects) {
     const isChecked = state.selectedProjectIds.has(project.id);
     const stats = statsByProject.get(project.id) || { count: 0, hasUpdate: false, hasRunning: false };
     const row = document.createElement("div");
@@ -122,11 +146,12 @@ function renderProjectList() {
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
     checkbox.className = "project-checkbox";
+    checkbox.dataset.projectId = project.id;
     checkbox.checked = isChecked;
     checkbox.title = "Filtrar conversas deste projeto";
     checkbox.setAttribute("aria-label", `Filtrar projeto ${project.name}`);
     checkbox.addEventListener("click", (event) => event.stopPropagation());
-    checkbox.addEventListener("change", () => toggleProjectFilter(project.id, checkbox.checked));
+    checkbox.addEventListener("change", () => toggleProjectFilter(project.id, checkbox.checked, true));
     row.append(checkbox);
 
     if (state.renamingProjectId === project.id) {
@@ -206,12 +231,14 @@ function renderProjectList() {
     infoBtn.textContent = "⚙";
     infoBtn.addEventListener("click", (event) => {
       event.stopPropagation();
+      closePickers();
       openProjectModal(project.id);
     });
 
     row.append(main, countBadge, infoBtn);
     list.append(row);
   }
+  updateFooter();
 }
 
 async function createInlineProject() {
@@ -256,7 +283,7 @@ async function renameProjectInline(project, nextName) {
   }
 }
 
-function toggleProjectFilter(projectId, forceState) {
+function toggleProjectFilter(projectId, forceState, preserveCheckboxFocus = false) {
   if (!projectId) {
     state.selectedProjectIds.clear();
     state.activeProjectId = "";
@@ -277,6 +304,11 @@ function toggleProjectFilter(projectId, forceState) {
     applyProjectDefaultsToDraft(activeProject);
   }
   renderProjectList();
+  if (preserveCheckboxFocus && projectId && !byId("project-picker-popover")?.classList.contains("hidden")) {
+    const focusedCheckbox = Array.from(document.querySelectorAll(".project-checkbox"))
+      .find((checkbox) => checkbox.dataset.projectId === projectId);
+    focusedCheckbox?.focus();
+  }
   renderConversationList();
   updateTopbarProjectState();
 }
@@ -304,7 +336,10 @@ function updateTopbarProjectState() {
   const archiveBtn = byId("toggle-archived-conversations");
   const workspaceEl = byId("workspace");
   const assignSelect = byId("conversation-project-select");
+  const pickerLabel = byId("project-picker-label");
+  const pickerCount = byId("project-picker-count");
   const assistantMode = Boolean(state.conversation?.assistant_mode);
+  const selectedProjects = state.projects.filter((item) => state.selectedProjectIds.has(item.id));
 
   if (workspaceEl) {
     workspaceEl.textContent = assistantMode
@@ -330,6 +365,15 @@ function updateTopbarProjectState() {
       label = `${label} · ${state.selectedProjectIds.size} PROJETOS`;
     }
     sectionLabel.textContent = label;
+  }
+  if (pickerLabel && pickerCount) {
+    pickerLabel.textContent = selectedProjects.length === 1
+      ? selectedProjects[0].name
+      : selectedProjects.length > 1
+        ? `${selectedProjects.length} projetos selecionados`
+        : "Todos os projetos";
+    pickerCount.textContent = selectedProjects.length ? String(selectedProjects.length) : "";
+    pickerCount.classList.toggle("hidden", selectedProjects.length === 0);
   }
   if (archiveBtn) {
     const archivedCount = state.conversations.filter((item) => item.archived).length;
@@ -420,9 +464,9 @@ async function openProjectModal(projectId = "", focusAI = false) {
   providerSelect.replaceChildren(makeOption("Padrão (Codex)", ""));
   for (const provider of state.providers) {
     providerSelect.append(makeOption(
-      provider.supported ? provider.name : `${provider.name} · indisponível`,
+      CockpitQuota.providerAvailable(provider) ? provider.name : `${provider.name} · indisponível`,
       provider.id,
-      !provider.supported,
+      !CockpitQuota.providerAvailable(provider),
     ));
   }
   providerSelect.value = project?.provider_id || "";
@@ -599,7 +643,7 @@ async function spawnSubConversation(parentID = "") {
 
 async function loadConversations() {
   const result = await api("/conversations?summary=true");
-  const incoming = result.conversations || [];
+  const incoming = window.CockpitInteractions.conversationsWithActivity(result.conversations);
   const changed = state.conversationSyncInitialized
     ? window.CockpitInteractions.changedConversations(state.conversations, incoming, state.conversation?.id)
     : [];
@@ -905,38 +949,14 @@ async function createConversation(options = {}) {
       : null;
     const effectiveProjectId = parentConv?.project_id || state.activeProjectId || "";
     const activeProject = state.projects.find((item) => item.id === effectiveProjectId);
-    if (activeProject && !state.conversation) {
-      applyProjectDefaultsToDraft(activeProject);
-    }
-    const selection = currentSelection();
-    const providerId = activeProject?.provider_id || selection.provider_id || "codex";
-    if (!selection.model_id) await loadModels(providerId);
-    const initial = currentSelection();
-    const conversation = await api("/conversations", {
-      method: "POST",
-      body: JSON.stringify({
-        project_id: effectiveProjectId,
-        parent_conversation_id: parentConversationId,
-        provider_id: activeProject?.provider_id || initial.provider_id || "codex",
-        model_id: activeProject?.model_id || initial.model_id,
-        reasoning_effort: activeProject?.reasoning_effort || initial.reasoning_effort || "",
-        approval_policy: activeProject?.approval_policy || initial.approval_policy || "on-request",
-        routing_mode: activeProject?.routing_mode || initial.routing_mode || "manual",
-      }),
-    });
-    if (parentConversationId) {
-      const rootID = conversation.root_conversation_id || parentConversationId;
-      state.collapsedRootIds.delete(rootID);
-    }
-    state.conversation = conversation;
-    await loadConversations();
+    if (activeProject) applyProjectDefaultsToDraft(activeProject);
+    state.pendingParentConversationId = parentConversationId;
+    state.conversation = null;
     renderConversation();
+    renderConversationList();
     updateSelectionControls();
     updateTopbarProjectState();
     byId("message-input").focus();
-    if (parentConversationId) {
-      showToast("Sub-sessão criada e agrupada à conversa raiz.");
-    }
     return true;
   } catch (error) {
     showToast(error.message);
@@ -944,10 +964,43 @@ async function createConversation(options = {}) {
   }
 }
 
+async function ensureConversation() {
+  if (state.conversation) return true;
+  const parentConversationId = state.pendingParentConversationId;
+  const parentConversation = parentConversationId
+    ? state.conversations.find((item) => item.id === parentConversationId)
+    : null;
+  const projectId = parentConversation?.project_id || state.activeProjectId || "";
+  const project = state.projects.find((item) => item.id === projectId);
+  const selection = currentSelection();
+  const providerId = project?.provider_id || selection.provider_id || "codex";
+  if (!selection.model_id) await loadModels(providerId);
+  const initial = currentSelection();
+  const conversation = await api("/conversations", {
+    method: "POST",
+    body: JSON.stringify({
+      project_id: projectId,
+      parent_conversation_id: parentConversationId,
+      provider_id: project?.provider_id || initial.provider_id || "codex",
+      model_id: project?.model_id || initial.model_id,
+      reasoning_effort: project?.reasoning_effort || initial.reasoning_effort || "",
+      approval_policy: project?.approval_policy || initial.approval_policy || "on-request",
+      routing_mode: project?.routing_mode || initial.routing_mode || "manual",
+    }),
+  });
+  if (parentConversationId) {
+    const rootID = conversation.root_conversation_id || parentConversationId;
+    state.collapsedRootIds.delete(rootID);
+  }
+  state.pendingParentConversationId = "";
+  state.conversation = conversation;
+  return true;
+}
+
 async function createAssistantSession() {
   try {
     const result = await api("/assistant/providers");
-    const provider = result.providers.find((item) => item.id === "codex" && item.supported);
+    const provider = result.providers.find((item) => item.id === "codex" && CockpitQuota.providerAvailable(item));
     if (!provider) throw new Error("Instale e autentique um provider com ferramentas estruturadas para usar o Assistente Cockpit.");
     const catalog = await loadModels(provider.id);
     const model = catalog.models.find((item) => item.default && item.selectable)
@@ -958,6 +1011,7 @@ async function createAssistantSession() {
       body: JSON.stringify({ model_id: model.id }),
     });
     state.activeProjectId = "";
+    state.pendingParentConversationId = "";
     state.conversation = conversation;
     await loadConversations();
     renderConversation();
@@ -981,7 +1035,7 @@ async function openConversation(id, resumeStream = true) {
       showToast("Anexos do rascunho removidos ao trocar de conversa.");
     }
     const providerId = state.conversation.selection.provider_id;
-    const provider = state.providers.find((item) => item.id === providerId && item.supported);
+    const provider = state.providers.find((item) => item.id === providerId && CockpitQuota.providerAvailable(item));
     if (provider) {
       try { await loadModels(providerId); } catch (error) { showToast(error.message); }
     }
@@ -1200,7 +1254,6 @@ function turnDetails(turn) {
 
 async function sendMessage() {
   if (state.activeTurn || state.sendingMessage) return;
-  if (!state.conversation && !(await createConversation())) return;
   const input = byId("message-input");
   const content = input.value.trim();
   const attachments = [...state.attachments];
@@ -1211,6 +1264,7 @@ async function sendMessage() {
   state.sendingMessage = true;
   updateSendButton();
   try {
+    if (!state.conversation && !(await ensureConversation())) return;
     const messagePath = state.conversation.assistant_mode
       ? `/assistant/sessions/${state.conversation.id}/messages`
       : `/conversations/${state.conversation.id}/messages`;
@@ -1227,6 +1281,7 @@ async function sendMessage() {
     const conversationID = state.conversation.id;
     setActiveTurn(result.turn_id, conversationID);
     await openConversation(conversationID, false);
+    await loadConversations();
     await streamTurn(result.turn_id, conversationID, Boolean(state.conversation?.assistant_mode));
   } catch (error) {
     showToast(error.message);
@@ -1271,6 +1326,9 @@ async function streamTurn(turnId, conversationID = state.conversation?.id, assis
         }
         if (finished) break;
       }
+      if (!finished) {
+        finished = !(await turnStillRunning(conversationID, turnId, assistantMode));
+      }
       if (finished) {
         await refreshAfterTurn(conversationID);
         break;
@@ -1279,6 +1337,17 @@ async function streamTurn(turnId, conversationID = state.conversation?.id, assis
       showToast(error.message);
     }
     if (!finished && state.activeTurn === turnId) await new Promise((resolve) => setTimeout(resolve, 1200));
+  }
+}
+
+async function turnStillRunning(conversationID, turnId, assistantMode) {
+  try {
+    const conversation = assistantMode
+      ? await api(`/assistant/sessions/${encodeURIComponent(conversationID)}`)
+      : await api(`/conversations/${encodeURIComponent(conversationID)}`);
+    return window.CockpitInteractions.turnStillRunning(conversation, turnId);
+  } catch {
+    return true;
   }
 }
 
@@ -1556,12 +1625,15 @@ async function decideApproval(turnId, requestID, decision, card) {
 }
 
 async function refreshAfterTurn(conversationID) {
-  if (state.conversation?.id === conversationID) {
-    state.conversation = await api(`/conversations/${conversationID}`);
-    renderConversation();
+  try {
+    if (state.conversation?.id === conversationID) {
+      state.conversation = await api(`/conversations/${conversationID}`);
+      renderConversation();
+    }
+    await loadConversations();
+  } finally {
+    setActiveTurn(null, conversationID);
   }
-  setActiveTurn(null, conversationID);
-  await loadConversations();
 }
 
 async function cancelTurn() {
@@ -1649,13 +1721,13 @@ function renderProviderOptions() {
     const button = document.createElement("button");
     button.className = `picker-option${provider.id === selected.provider_id ? " selected" : ""}`;
     button.type = "button";
-    button.disabled = !provider.supported;
-    button.title = provider.status;
+    button.disabled = !CockpitQuota.providerAvailable(provider);
+    button.title = provider.quota?.guidance || provider.status;
     const labels = document.createElement("span");
     const name = document.createElement("strong");
     name.textContent = provider.name;
     const status = document.createElement("small");
-    status.textContent = provider.supported ? "Adapter de conversa disponível" : provider.detected ? "CLI detectado · adapter pendente" : "CLI não instalado";
+    status.textContent = provider.supported ? CockpitQuota.providerQuotaLabel(provider) : provider.detected ? "CLI detectado · adapter pendente" : "CLI não instalado";
     labels.append(name, status);
     const check = document.createElement("span");
     check.className = "checkmark";
@@ -1739,7 +1811,18 @@ function togglePicker(id) {
 
 function closePickers() {
   for (const panel of document.querySelectorAll(".picker-popover")) panel.classList.add("hidden");
+  byId("project-picker-popover")?.classList.add("hidden");
   for (const trigger of document.querySelectorAll("[aria-expanded]")) trigger.setAttribute("aria-expanded", "false");
+}
+
+function toggleProjectPicker() {
+  const panel = byId("project-picker-popover");
+  const trigger = byId("project-picker-toggle");
+  const opening = panel.classList.contains("hidden");
+  closePickers();
+  panel.classList.toggle("hidden", !opening);
+  trigger.setAttribute("aria-expanded", String(opening));
+  if (opening) byId("project-search").focus();
 }
 
 function setActiveTurn(turnID, conversationID = state.conversation?.id || "") {
@@ -1954,7 +2037,7 @@ async function openRoutingPanel() {
   try {
     state.routing = await api("/routing");
     const providerIDs = [...new Set(state.routing.rules.map((rule) => rule.provider_id))];
-    const supportedIDs = new Set(state.providers.filter((provider) => provider.supported).map((provider) => provider.id));
+    const supportedIDs = new Set(state.providers.filter((provider) => CockpitQuota.providerAvailable(provider)).map((provider) => provider.id));
     await Promise.all(providerIDs.filter((id) => supportedIDs.has(id)).map((id) => loadModels(id)));
     await renderRoutingRules();
     panel.classList.remove("hidden");
@@ -1980,9 +2063,9 @@ async function renderRoutingRules() {
     providerSelect.setAttribute("aria-label", `Provider para ${descriptor.label}`);
     for (const provider of state.providers) {
       providerSelect.append(makeOption(
-        provider.supported ? provider.name : `${provider.name} · indisponível`,
+        CockpitQuota.providerAvailable(provider) ? provider.name : `${provider.name} · indisponível`,
         provider.id,
-        !provider.supported,
+        !CockpitQuota.providerAvailable(provider),
       ));
     }
     if (!state.providers.some((provider) => provider.id === rule.provider_id)) {
@@ -2019,7 +2102,7 @@ async function renderRoutingRules() {
       effortSelect.disabled = !model?.reasoning_efforts?.length;
     };
     await fillRouteModels();
-    providerSelect.disabled = !state.providers.some((provider) => provider.supported);
+    providerSelect.disabled = !state.providers.some((provider) => CockpitQuota.providerAvailable(provider));
     providerSelect.addEventListener("change", async () => {
       rule.provider_id = providerSelect.value;
       rule.model_id = "";
@@ -2072,12 +2155,28 @@ function startVoiceInput() {
 }
 
 function bindUI() {
+  const preview = window.CockpitPreview.createPreviewPanel(document);
+  byId("message-list").addEventListener("click", preview.handleClick);
   byId("new-chat").addEventListener("click", createConversation);
   byId("assistant-chat").addEventListener("click", createAssistantSession);
   byId("welcome-new").addEventListener("click", createConversation);
   byId("create-project").addEventListener("click", createInlineProject);
   byId("ai-create-project").addEventListener("click", () => openProjectModal("", true));
+  byId("project-picker-create").addEventListener("click", () => {
+    state.projectSearch = "";
+    byId("project-search").value = "";
+    createInlineProject();
+  });
+  byId("project-picker-ai-create").addEventListener("click", () => {
+    closePickers();
+    openProjectModal("", true);
+  });
   byId("clear-project-filter").addEventListener("click", () => selectProject(""));
+  byId("project-picker-toggle").addEventListener("click", toggleProjectPicker);
+  byId("project-search").addEventListener("input", (event) => {
+    state.projectSearch = event.target.value;
+    renderProjectList();
+  });
   byId("toggle-archived-conversations").addEventListener("click", toggleArchivedConversationsView);
   byId("project-modal-close").addEventListener("click", closeProjectModal);
   byId("project-cancel-btn").addEventListener("click", closeProjectModal);
@@ -2135,9 +2234,16 @@ function bindUI() {
   byId("provider-picker-toggle").setAttribute("aria-controls", "provider-picker");
   byId("model-picker-toggle").setAttribute("aria-controls", "model-picker");
   byId("approval-picker-toggle").setAttribute("aria-controls", "approval-picker");
-  byId("provider-picker-toggle").addEventListener("click", () => togglePicker("provider-picker"));
+  byId("provider-picker-toggle").addEventListener("click", async () => {
+    togglePicker("provider-picker");
+    try {
+      state.providers = (await api("/providers")).providers;
+      renderProviderOptions();
+    } catch (error) { showToast(error.message); }
+  });
   byId("model-picker-toggle").addEventListener("click", () => togglePicker("model-picker"));
   byId("approval-picker-toggle").addEventListener("click", () => togglePicker("approval-picker"));
+  byId("project-picker-toggle").setAttribute("aria-controls", "project-picker-popover");
   byId("routing-mode-toggle").addEventListener("click", toggleRoutingMode);
   byId("routing-settings-toggle").addEventListener("click", openRoutingPanel);
   byId("routing-panel-close").addEventListener("click", () => byId("routing-panel").classList.add("hidden"));
@@ -2152,7 +2258,20 @@ function bindUI() {
     if (!document.hidden) checkConversationUpdates();
   });
   document.addEventListener("click", (event) => {
-    if (!event.target.closest(".picker-anchor")) closePickers();
+    if (!event.target.closest(".picker-anchor") && !event.target.closest(".project-picker")) closePickers();
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !byId("project-picker-popover").classList.contains("hidden")) {
+      closePickers();
+      byId("project-picker-toggle").focus();
+      return;
+    }
+    if (event.key === "/" && !event.ctrlKey && !event.metaKey && !event.altKey &&
+        !event.target.matches("input, textarea, select, [contenteditable='true']")) {
+      event.preventDefault();
+      if (byId("project-picker-popover").classList.contains("hidden")) toggleProjectPicker();
+      else byId("project-search").focus();
+    }
   });
 }
 

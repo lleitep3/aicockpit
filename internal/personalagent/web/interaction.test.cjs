@@ -4,9 +4,12 @@ const assert = require("node:assert/strict");
 const {
   changedConversations,
   clipboardImageFiles,
+  conversationsWithActivity,
   filterConversations,
+  filterProjects,
   groupConversationsByRoot,
   projectConversationStats,
+  turnStillRunning,
 } = require("./interaction.js");
 
 test("clipboard image extraction accepts supported image files and avoids duplicates", () => {
@@ -45,6 +48,16 @@ test("conversation update detection ignores the selected chat and unchanged time
   ];
 
   assert.deepEqual(changedConversations(previous, incoming, "selected"), [incoming[2]]);
+});
+
+test("conversation list hides empty drafts and preserves conversations with messages or turns", () => {
+  const conversations = [
+    { id: "empty", message_count: 0 },
+    { id: "messaged", message_count: 1 },
+    { id: "running", message_count: 0, latest_turn_status: "running" },
+  ];
+
+  assert.deepEqual(conversationsWithActivity(conversations), [conversations[1], conversations[2]]);
 });
 
 test("groupConversationsByRoot groups spawned child sessions under their root conversation", () => {
@@ -114,6 +127,18 @@ test("projectConversationStats calculates conversation counts and update signals
   });
 });
 
+test("filterProjects searches names, descriptions, workspaces, and repositories", () => {
+  const projects = [
+    { id: "a", name: "Cockpit", description: "CLI local" },
+    { id: "b", name: "Payments", workspace: "/work/billing" },
+    { id: "c", name: "Website", repositories: ["https://github.com/org/web"] },
+  ];
+
+  assert.deepEqual(filterProjects(projects, "  BILLING "), [projects[1]]);
+  assert.deepEqual(filterProjects(projects, "github.com/org"), [projects[2]]);
+  assert.deepEqual(filterProjects(projects, ""), projects);
+});
+
 test("filterConversations filters by archived flag and multiple selected project checkboxes", () => {
   const conversations = [
     { id: "c1", project_id: "proj_a", archived: false },
@@ -134,4 +159,20 @@ test("filterConversations filters by archived flag and multiple selected project
     filterConversations(conversations, new Set(["proj_a"]), true).map((c) => c.id),
     ["c3"],
   );
+});
+
+test("turnStillRunning reports the persisted status of the requested turn", () => {
+  const conversation = {
+    turns: [
+      { id: "t-running", status: "running" },
+      { id: "t-done", status: "completed" },
+      { id: "t-failed", status: "failed" },
+    ],
+  };
+
+  assert.equal(turnStillRunning(conversation, "t-running"), true);
+  assert.equal(turnStillRunning(conversation, "t-done"), false);
+  assert.equal(turnStillRunning(conversation, "t-failed"), false);
+  assert.equal(turnStillRunning(conversation, "t-missing"), false);
+  assert.equal(turnStillRunning(null, "t-running"), false);
 });

@@ -9,20 +9,25 @@
     })[character]);
   }
 
-  function inlineMarkdown(value) {
-    const token = /\[([^\]]+)\]\((https?:\/\/[^)\s]+|mailto:[^)\s]+)\)|\*\*([^*]+)\*\*|__([^_]+)__|~~([^~]+)~~|`([^`]+)`|\*([^*\n]+)\*|_([^_\n]+)_/g;
+  function inlineMarkdown(value, allowLinks = true) {
+    const token = /\[([^\]]+)\]\((https?:\/\/[^)\s]+|mailto:[^)\s]+)\)|\*\*([^*]+)\*\*|__([^_]+)__|~~([^~]+)~~|`([^`]+)`|\*([^*\n]+)\*|_([^_\n]+)_|(https?:\/\/[^\s<>`"']+)/g;
     let output = "";
     let cursor = 0;
     for (const match of value.matchAll(token)) {
       output += escapeHTML(value.slice(cursor, match.index));
-      if (match[1] !== undefined) {
-        output += `<a href="${escapeHTML(match[2])}" target="_blank" rel="noopener noreferrer">${inlineMarkdown(match[1])}</a>`;
+      if (!allowLinks && (match[1] !== undefined || match[9] !== undefined)) {
+        output += escapeHTML(match[0]);
+      } else if (match[1] !== undefined) {
+        output += `<a href="${escapeHTML(match[2])}" target="_blank" rel="noopener noreferrer">${inlineMarkdown(match[1], false)}</a>`;
       } else if (match[3] !== undefined || match[4] !== undefined) {
-        output += `<strong>${inlineMarkdown(match[3] ?? match[4])}</strong>`;
+        output += `<strong>${inlineMarkdown(match[3] ?? match[4], allowLinks)}</strong>`;
       } else if (match[5] !== undefined) {
-        output += `<del>${inlineMarkdown(match[5])}</del>`;
+        output += `<del>${inlineMarkdown(match[5], allowLinks)}</del>`;
       } else if (match[6] !== undefined) {
         output += `<code>${escapeHTML(match[6])}</code>`;
+      } else if (match[9] !== undefined) {
+        const url = match[9].replace(/[.,;:!?)\]]+$/, "");
+        output += `<a href="${escapeHTML(url)}" target="_blank" rel="noopener noreferrer">${escapeHTML(url)}</a>${escapeHTML(match[9].slice(url.length))}`;
       } else {
         output += `<em>${escapeHTML(match[7] ?? match[8])}</em>`;
       }
@@ -118,7 +123,7 @@
           quote.push(lines[index].replace(/^\s*>\s?/, ""));
           index += 1;
         }
-        output.push(`<blockquote><p>${quote.map(inlineMarkdown).join("<br>")}</p></blockquote>`);
+        output.push(`<blockquote><p>${quote.map((line) => inlineMarkdown(line)).join("<br>")}</p></blockquote>`);
         continue;
       }
 
@@ -160,7 +165,7 @@
         paragraph.push(lines[index]);
         index += 1;
       }
-      output.push(`<p>${paragraph.map(inlineMarkdown).join("<br>")}</p>`);
+      output.push(`<p>${paragraph.map((line) => inlineMarkdown(line)).join("<br>")}</p>`);
     }
     return output.join("");
   }

@@ -220,6 +220,34 @@ func TestRoutingHTTPRejectsForeignMutationOrigin(t *testing.T) {
 	}
 }
 
+func TestHTTPServesSandboxedLinkPreview(t *testing.T) {
+	service, _ := newRoutingTestService(t)
+	const host = "127.0.0.1:4321"
+	handler := NewHTTPHandler(service, "token", host)
+	for _, tc := range []struct {
+		path string
+		want string
+	}{
+		{"/", `sandbox="allow-scripts"`},
+		{"/preview.js", "CockpitPreview"},
+		{"/quota.js", "CockpitQuota"},
+	} {
+		t.Run(tc.path, func(t *testing.T) {
+			response := httptest.NewRecorder()
+			handler.ServeHTTP(response, httptest.NewRequest(http.MethodGet, "http://"+host+tc.path, nil))
+			if response.Code != http.StatusOK || !strings.Contains(response.Body.String(), tc.want) {
+				t.Fatalf("GET %s = %d, want preview asset containing %q", tc.path, response.Code, tc.want)
+			}
+			policy := response.Header().Get("Content-Security-Policy")
+			for _, directive := range []string{"frame-src http: https:", "script-src 'self'", "connect-src 'self'", "frame-ancestors 'none'"} {
+				if !strings.Contains(policy, directive) {
+					t.Errorf("CSP missing %q", directive)
+				}
+			}
+		})
+	}
+}
+
 func TestHTTPServesMarkdownRendererAndAllowsInlineImagePreviews(t *testing.T) {
 	service, _ := newRoutingTestService(t)
 	const host = "127.0.0.1:4321"

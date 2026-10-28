@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os/exec"
+	"sync"
 )
 
 type Adapter interface {
@@ -12,8 +13,11 @@ type Adapter interface {
 }
 
 type ProviderRegistry struct {
-	adapters map[string]Adapter
-	paths    map[string]string
+	quotaMu    sync.Mutex
+	quotas     map[string]ProviderQuota
+	quotaCalls map[string]*quotaCall
+	adapters   map[string]Adapter
+	paths      map[string]string
 }
 
 func NewProviderRegistry() *ProviderRegistry {
@@ -83,6 +87,9 @@ func (r *ProviderRegistry) List() []Provider {
 }
 
 func (r *ProviderRegistry) Catalog(ctx context.Context, providerID string) (Catalog, error) {
+	if err := r.requireQuota(providerID); err != nil {
+		return Catalog{}, err
+	}
 	adapter := r.adapters[providerID]
 	if adapter == nil {
 		return Catalog{}, fmt.Errorf("provider %q has no conversation adapter", providerID)

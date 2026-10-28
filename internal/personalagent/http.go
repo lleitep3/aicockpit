@@ -34,6 +34,8 @@ func NewHTTPHandler(service *Service, token, host string) http.Handler {
 	mux.Handle("/app.css", http.FileServer(http.FS(assets)))
 	mux.Handle("/markdown.js", http.FileServer(http.FS(assets)))
 	mux.Handle("/interaction.js", http.FileServer(http.FS(assets)))
+	mux.Handle("/preview.js", http.FileServer(http.FS(assets)))
+	mux.Handle("/quota.js", http.FileServer(http.FS(assets)))
 	mux.Handle("/app.js", http.FileServer(http.FS(assets)))
 	mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.FS(assets))))
 	mux.HandleFunc("/api/v1/", handler.handleAPI)
@@ -572,7 +574,7 @@ func (h *HTTPHandler) securityHeaders(next http.Handler) http.Handler {
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		w.Header().Set("Referrer-Policy", "no-referrer")
 		w.Header().Set("X-Frame-Options", "DENY")
-		w.Header().Set("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'")
+		w.Header().Set("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-src http: https:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'")
 		next.ServeHTTP(w, r)
 	})
 }

@@ -14,14 +14,15 @@ const (
 )
 
 type Provider struct {
-	ID           string   `json:"id"`
-	Name         string   `json:"name"`
-	Detected     bool     `json:"detected"`
-	Supported    bool     `json:"supported"`
-	Executable   string   `json:"executable,omitempty"`
-	Version      string   `json:"version,omitempty"`
-	Status       string   `json:"status"`
-	Capabilities []string `json:"capabilities"`
+	Quota        ProviderQuota `json:"quota"`
+	ID           string        `json:"id"`
+	Name         string        `json:"name"`
+	Detected     bool          `json:"detected"`
+	Supported    bool          `json:"supported"`
+	Executable   string        `json:"executable,omitempty"`
+	Version      string        `json:"version,omitempty"`
+	Status       string        `json:"status"`
+	Capabilities []string      `json:"capabilities"`
 }
 
 type Model struct {
@@ -190,6 +191,7 @@ type ConversationSummary struct {
 	RootConversationID   string    `json:"root_conversation_id,omitempty"`
 	Title                string    `json:"title"`
 	UpdatedAt            time.Time `json:"updated_at"`
+	MessageCount         int       `json:"message_count"`
 	LatestTurnStatus     string    `json:"latest_turn_status,omitempty"`
 }
 

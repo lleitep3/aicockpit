@@ -122,7 +122,11 @@ func (s *Service) assistantWorkspace() (string, error) {
 }
 
 func (s *Service) Providers() []Provider {
-	return s.providers.List()
+	providers := s.providers.List()
+	for i := range providers {
+		providers[i].Quota = s.providers.QuotaSnapshot(providers[i].ID)
+	}
+	return providers
 }
 
 func (s *Service) Models(ctx context.Context, providerID string) (Catalog, error) {
@@ -266,7 +270,7 @@ func (s *Service) Conversation(id string) (Conversation, error) {
 }
 
 func (s *Service) AssistantProviders() []Provider {
-	providers := s.providers.List()
+	providers := s.Providers()
 	available := make([]Provider, 0, len(providers))
 	for _, provider := range providers {
 		if !provider.Supported || !containsString(provider.Capabilities, "tools") {
@@ -1055,6 +1059,9 @@ func (s *Service) startTurn(
 	}
 	if approvedAction != nil && conversation.Selection != approvedAction.DestinationConfig {
 		return "", errors.New("destination selection changed after approval")
+	}
+	if err := s.providers.requireQuota(selection.ProviderID); err != nil {
+		return "", err
 	}
 	adapter, ok := s.providers.Adapter(selection.ProviderID)
 	if !ok {

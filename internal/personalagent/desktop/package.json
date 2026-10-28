@@ -10,7 +10,7 @@
   "private": true,
   "main": "main.cjs",
   "scripts": {
-    "test": "node --test runtime.test.cjs ../web/markdown.test.cjs ../web/interaction.test.cjs",
+    "test": "node --test runtime.test.cjs ../web/markdown.test.cjs ../web/interaction.test.cjs ../web/preview.test.cjs ../web/quota.test.cjs",
     "build:backend": "node scripts/build-backend.cjs",
     "start": "electron --no-sandbox .",
     "prestart": "npm run build:backend",

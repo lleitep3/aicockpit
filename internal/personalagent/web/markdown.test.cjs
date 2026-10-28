@@ -25,6 +25,20 @@ test("renders only safe links with external-window protections", () => {
   );
 });
 
+test("turns plain web URLs into links but leaves code untouched", () => {
+  const html = render("Abra http://localhost:3000/ ou https://example.com/page. `https://example.com/code`");
+  assert.match(html, /href="http:\/\/localhost:3000\/"/);
+  assert.match(html, /href="https:\/\/example.com\/page"[^>]*>https:\/\/example.com\/page<\/a>\./);
+  assert.match(html, /<code>https:\/\/example.com\/code<\/code>/);
+});
+
+test("URL labels remain a single anchor, including formatted labels", () => {
+  for (const label of ["https://example.com", "**https://example.com**", "~~https://example.com~~"]) {
+    const html = render(`[${label}](https://example.com)`);
+    assert.equal((html.match(/<a /g) || []).length, 1);
+  }
+});
+
 test("renders Markdown tables and alignment without interpreting HTML", () => {
   const html = render("| Name | Value |\n|:---:|---:|\n| `<img>` | **42** |");
   assert.match(html, /<th class="align-center">Name<\/th>/);
