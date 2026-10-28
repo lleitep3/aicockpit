@@ -6,6 +6,7 @@ const state = {
   pendingParentConversationId: "",
   surface: "agent", dashboardLoading: false,
   activeTurn: null, activeTurnConversationID: "", eventIDs: new Map(), attachments: [], routing: null,
+  bots: [], botMessage: "", botTurnId: "", botLoading: false,
   unreadConversations: new Set(), conversationSyncInitialized: false, conversationSyncInProgress: false,
   conversationSyncErrorShown: false, sendingMessage: false, addingAttachments: false, dropDepth: 0, markdownWarningShown: false,
   draft: { provider_id: "antigravity", model_id: "", reasoning_effort: "", approval_policy: "on-request", routing_mode: "manual" },
@@ -78,36 +79,165 @@ function closeSurfaceSwitcher() {
 }
 
 function selectSurface(surface) {
-  state.surface = surface === "dashboard" ? "dashboard" : "agent";
-  const showingDashboard = state.surface === "dashboard";
-  byId("agent-surface").classList.toggle("hidden", showingDashboard);
-  byId("dashboard-view").classList.toggle("hidden", !showingDashboard);
-  closeSurfaceSwitcher();
-  closePickers();
-  if (showingDashboard) {
+  if (surface === "dashboard") {
+    state.surface = "dashboard";
+    byId("agent-surface").classList.toggle("hidden", true);
+    byId("bot-surface").classList.toggle("hidden", true);
+    byId("dashboard-view").classList.toggle("hidden", false);
+    closeSurfaceSwitcher();
+    closePickers();
     byId("link-preview-close").click();
     loadDashboardOverview();
+  } else if (surface === "bot") {
+    state.surface = "bot";
+    byId("agent-surface").classList.toggle("hidden", true);
+    byId("bot-surface").classList.toggle("hidden", false);
+    byId("dashboard-view").classList.toggle("hidden", true);
+    closeSurfaceSwitcher();
+    closePickers();
+    loadBots();
+  } else {
+    state.surface = "agent";
+    byId("agent-surface").classList.toggle("hidden", false);
+    byId("bot-surface").classList.toggle("hidden", true);
+    byId("dashboard-view").classList.toggle("hidden", true);
+    closeSurfaceSwitcher();
+    closePickers();
   }
   renderSurfaceSwitcher();
 }
 
-function dashboardCard(label, value, detail = "") {
-  const card = document.createElement("article");
-  card.className = "dashboard-kpi-card";
-  const heading = document.createElement("small");
-  heading.className = "dashboard-kpi-label";
-  heading.textContent = label;
-  const metric = document.createElement("strong");
-  metric.className = "dashboard-kpi-value";
-  metric.textContent = String(value);
-  card.append(heading, metric);
-  if (detail) {
-    const note = document.createElement("small");
-    note.className = "dashboard-kpi-detail";
-    note.textContent = detail;
-    card.append(note);
+async function loadBots() {
+  state.bots = [];
+  state.botMessage = "";
+  byId("bot-loading").classList.remove("hidden");
+  byId("bot-grid").classList.add("hidden");
+  byId("bot-welcome").classList.add("hidden");
+  try {
+    const response = await fetch("/api/v1/bots");
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(text || `HTTP ${response.status}`);
+    }
+    state.bots = await response.json();
+    if (state.bots.length === 0) {
+      byId("bot-welcome").classList.remove("hidden");
+      byId("bot-grid").classList.add("hidden");
+    } else {
+      byId("bot-welcome").classList.add("hidden");
+      renderBotGrid();
+      byId("bot-grid").classList.remove("hidden");
+      if (state.bots.length === 1 && !state.botMessage) {
+        const bot = state.bots[0];
+        state.botMessage = `Bem-vindo ao bot ${bot.name} (handle: ${bot.handle}). Que tarefa você quer que ele faça?`;
+        byId("bot-message-input").value = state.botMessage;
+        byId("bot-message-input").focus();
+      }
+    }
+  } catch (err) {
+    showToast(`Não foi possível carregar bots: ${err.message}`);
+    byId("bot-loading").classList.add("hidden");
+    byId("bot-welcome").classList.remove("hidden");
   }
-  return card;
+}
+
+function renderBotGrid() {
+  const grid = byId("bot-grid");
+  grid.innerHTML = "";
+  for (const bot of state.bots) {
+    const card = document.createElement("article");
+    card.className = "bot-card";
+
+    const header = document.createElement("div");
+    header.className = "bot-card-header";
+    const name = document.createElement("div");
+    name.className = "bot-card-name";
+    name.textContent = bot.name;
+    const handle = document.createElement("div");
+    handle.className = "bot-card-handle";
+    handle.textContent = bot.handle;
+    header.appendChild(name);
+    header.appendChild(handle);
+
+    const meta = document.createElement("div");
+    meta.className = "bot-card-meta";
+    const status = document.createElement("span");
+    status.className = `bot-card-status ${bot.status || "inactive"}`;
+    status.textContent = bot.status || "inactive";
+    meta.appendChild(status);
+    if (bot.role) {
+      const role = document.createElement("span");
+      role.textContent = bot.role;
+      meta.appendChild(role);
+    }
+
+    header.appendChild(meta);
+    card.appendChild(header);
+
+    const actions = document.createElement("div");
+    actions.className = "bot-card-actions";
+    const chatBtn = document.createElement("button");
+    chatBtn.type = "button";
+    chatBtn.textContent = "Conversar";
+    chatBtn.addEventListener("click", () => selectBot(bot));
+    actions.appendChild(chatBtn);
+    const editBtn = document.createElement("button");
+    editBtn.type = "button";
+    editBtn.textContent = "Editar";
+    editBtn.addEventListener("click", () => editBot(bot));
+    actions.appendChild(editBtn);
+    card.appendChild(actions);
+
+    grid.appendChild(card);
+  }
+}
+
+async function selectBot(bot) {
+  state.botBot = bot;
+  state.botMessage = "";
+  state.botTurnId = "";
+  byId("bot-thread").hidden = false;
+  byId("bot-message-input").value = "";
+  byId("bot-thread-name").textContent = bot.name;
+  await loadBotMessageList(bot);
+}
+
+async function editBot(bot) {
+  const name = prompt("Nome do bot:", bot.name);
+  if (!name) return;
+  const handle = prompt("Handle (identificador):", bot.handle);
+  if (!handle) return;
+  try {
+    const response = await fetch(`/api/v1/bots/${bot.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, handle }),
+    });
+    if (!response.ok) throw new Error("update failed");
+    loadBots();
+    showToast("Bot atualizado");
+  } catch (err) {
+    showToast(`Falha ao atualizar: ${err.message}`);
+  }
+}
+
+async function loadBotMessageList(bot) {
+  byId("bot-loading").classList.remove("hidden");
+  byId("bot-message-list").innerHTML = "";
+  try {
+    const response = await fetch(`/api/v1/bots/${bot.id}/messages`);
+    if (!response.ok) throw new Error("messages fetch failed");
+    const data = await response.json();
+    for (const msg of data.messages || []) {
+      const row = messageRow(msg.role, msg.content, msg.id);
+      byId("bot-message-list").appendChild(row);
+    }
+    scrollToBottom();
+    byId("bot-loading").classList.add("hidden");
+  } catch (err) {
+    byId("bot-loading").classList.add("hidden");
+    showToast(`Não foi possível carregar histórico: ${err.message}`);
+  }
 }
 
 function renderDashboardCommands(commands) {
@@ -135,6 +265,25 @@ function renderDashboardCommands(commands) {
   }
   panel.append(heading, list);
   return panel;
+}
+
+function dashboardCard(label, value, detail = "") {
+  const card = document.createElement("article");
+  card.className = "dashboard-kpi-card";
+  const heading = document.createElement("small");
+  heading.className = "dashboard-kpi-label";
+  heading.textContent = label;
+  const metric = document.createElement("strong");
+  metric.className = "dashboard-kpi-value";
+  metric.textContent = String(value);
+  card.append(heading, metric);
+  if (detail) {
+    const note = document.createElement("small");
+    note.className = "dashboard-kpi-detail";
+    note.textContent = detail;
+    card.append(note);
+  }
+  return card;
 }
 
 function renderDashboardOverview(kpi = {}) {
@@ -2416,6 +2565,19 @@ function bindUI() {
     button.addEventListener("click", () => setApprovalPolicy(button.dataset.approval));
   }
   byId("voice-input").addEventListener("click", startVoiceInput);
+
+  // Bot surface event listeners
+  byId("bot-create-btn").addEventListener("click", createBot);
+  byId("bot-refresh-btn").addEventListener("click", loadBots);
+  byId("bot-thread-back").addEventListener("click", closeBotThread);
+  byId("send-bot-message").addEventListener("click", sendBotMessage);
+  byId("bot-message-input").addEventListener("input", resizeBotInput);
+  byId("bot-message-input").addEventListener("keydown", (event) => {
+    if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
+      event.preventDefault();
+      sendBotMessage();
+    }
+  });
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden) checkConversationUpdates();
   });
@@ -2458,6 +2620,132 @@ async function init() {
   } catch (error) { showToast(error.message); }
   updateNotificationButton();
   setInterval(checkConversationUpdates, 15_000);
+}
+
+async function sendBotMessage() {
+  const bot = state.botBot;
+  if (!bot) return;
+  if (state.botLoading) return;
+  const content = byId("bot-message-input").value.trim();
+  if (!content) return;
+  state.botLoading = true;
+  byId("bot-message-input").disabled = true;
+  state.botMessage = content;
+
+  const userRow = messageRow("user", content);
+  byId("bot-message-list").appendChild(userRow);
+
+  const botId = bot.id;
+  try {
+    const response = await fetch("/api/v1/bots/" + encodeURIComponent(botId) + "/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content }),
+    });
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(text || `HTTP ${response.status}`);
+    }
+    state.botTurnId = "";
+    state.botLoading = false;
+    byId("bot-message-input").disabled = false;
+    byId("bot-message-input").value = "";
+    showToast("Mensagem enviada ao bot");
+    loadBotMessageList(bot);
+    await pollBotResponse(botId);
+  } catch (err) {
+    state.botLoading = false;
+    byId("bot-message-input").disabled = false;
+    showToast(`Falha ao enviar: ${err.message}`);
+  }
+}
+
+async function closeBotThread() {
+  state.botBot = null;
+  state.botMessage = "";
+  state.botTurnId = "";
+  byId("bot-thread").hidden = true;
+  byId("bot-message-input").value = "";
+  byId("bot-message-list").innerHTML = "";
+}
+
+async function loadBotMessageList(bot) {
+  byId("bot-loading").classList.remove("hidden");
+  byId("bot-message-list").innerHTML = "";
+  try {
+    const response = await fetch("/api/v1/bots/" + encodeURIComponent(bot.id) + "/messages");
+    if (!response.ok) throw new Error("messages fetch failed");
+    const data = await response.json();
+    for (const msg of data.messages || []) {
+      const row = messageRow(msg.role, msg.content, msg.id);
+      byId("bot-message-list").appendChild(row);
+    }
+    scrollToBottom();
+    byId("bot-loading").classList.add("hidden");
+  } catch (err) {
+    byId("bot-loading").classList.add("hidden");
+    showToast(`Não foi possível carregar histórico: ${err.message}`);
+  }
+}
+
+async function pollBotResponse(botId) {
+  const deadline = Date.now() + 120_000;
+  while (Date.now() < deadline) {
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    try {
+      const response = await fetch("/api/v1/bots/" + encodeURIComponent(botId) + "/messages");
+      if (!response.ok) continue;
+      const data = await response.json();
+      for (const msg of data.messages || []) {
+        if (msg.id !== state.botTurnId) continue;
+        const row = messageRow(msg.role, msg.content, msg.id);
+        byId("bot-message-list").appendChild(row);
+        scrollToBottom();
+      }
+      if (data.messages && data.messages.some((m) => m.id === state.botTurnId)) return;
+    } catch (err) { /* retry */ }
+  }
+}
+
+async function createBot() {
+  const name = prompt("Nome do bot:", "Meu Bot");
+  if (!name) return;
+  const handle = prompt("Handle (identificador):", "meu-bot");
+  if (!handle) return;
+  const objective = prompt("Objetivo do bot:", "");
+  const persona = prompt("Persona:", "");
+  const providerId = prompt("Provider:", state.providers[0]?.id || "");
+  const modelId = prompt("Modelo:", state.providers[0]?.models?.[0]?.id || "");
+  try {
+    const response = await fetch("/api/v1/bots", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, handle, objective, persona, provider_id: providerId, model_id: modelId }),
+    });
+    if (!response.ok) throw new Error("create failed");
+    loadBots();
+    showToast("Bot criado");
+  } catch (err) {
+    showToast(`Falha ao criar: ${err.message}`);
+  }
+}
+
+async function resizeBotInput() {
+  const input = byId("bot-message-input");
+  input.style.height = "auto";
+  input.style.height = Math.min(input.scrollHeight, 200) + "px";
+}
+
+function hasDraggedFiles(event) {
+  return event.dataTransfer && event.dataTransfer.types && event.dataTransfer.types.length > 0;
+}
+
+async function handleFileDrop(event) {
+  if (!hasDraggedFiles(event)) return;
+  event.preventDefault();
+  const files = event.dataTransfer.files;
+  if (!files.length) return;
+  await addFiles(files);
 }
 
 function taskClassLabel(taskClass) { return routeClasses.find((item) => item.id === taskClass)?.label || taskClass || ""; }

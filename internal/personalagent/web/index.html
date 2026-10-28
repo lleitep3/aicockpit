@@ -76,8 +76,11 @@
               <span class="surface-switcher-caret" aria-hidden="true">⌄</span>
             </button>
             <div id="surface-switcher-menu" class="surface-switcher-menu hidden" role="menu" aria-label="Alternar área do Cockpit">
-              <button class="surface-switcher-option selected" type="button" role="menuitem" data-surface="agent">
+              <button class="surface-switcher-option" type="button" role="menuitem" data-surface="agent">
                 <span><strong>Personal Agent</strong><small>Conversas, projetos e providers</small></span><span class="surface-switcher-check">✓</span>
+              </button>
+              <button class="surface-switcher-option selected" type="button" role="menuitem" data-surface="bot">
+                <span><strong>Multibot</strong><small>Bots, rotinas e observadores</small></span><span class="surface-switcher-check"></span>
               </button>
               <button class="surface-switcher-option" type="button" role="menuitem" data-surface="dashboard">
                 <span><strong>Cockpit Dashboard</strong><small>Visão geral do Cockpit</small></span><span class="surface-switcher-check"></span>
@@ -126,6 +129,60 @@
             <div class="welcome-note"><span>●</span> Seus arquivos e conversas permanecem na sua máquina</div>
           </div>
           <div class="message-list hidden" id="message-list"></div>
+        </section>
+
+        <section class="bot-surface" id="bot-surface">
+          <header class="topbar">
+            <div class="topbar-left">
+              <div class="workspace-label"><span class="workspace-dot"></span><span id="bot-workspace">Carregando bots…</span></div>
+              <div class="project-active-pill hidden" id="bot-active-pill">
+                <span class="project-pill-icon">🤖</span>
+                <span id="bot-active-name">Bot</span>
+                <button id="bot-active-edit" class="project-pill-btn" type="button" title="Configurar este bot">⚙</button>
+              </div>
+            </div>
+            <div class="topbar-right">
+              <button id="bot-create-btn" class="tool-button primary" type="button">+ Novo Bot</button>
+              <button id="bot-refresh-btn" class="tool-button" type="button">⟳</button>
+              <div class="topbar-caption">MULTIBOT · BOTS E ROTINAS</div>
+            </div>
+          </header>
+
+          <section class="bot-list" id="bot-list">
+            <div id="bot-loading" class="conversation-loading hidden" role="status" aria-live="polite">
+              <span class="loading-spinner" aria-hidden="true"></span><span id="bot-loading-label">Carregando bots…</span>
+            </div>
+            <div class="welcome" id="bot-welcome">
+              <div class="welcome-mark">🤖</div>
+              <div class="eyebrow">SEU MULTIBOT</div>
+              <h1>Seus bots</h1>
+              <p>Gerencie bots, rotinas e observadores. Cada bot tem seu próprio workspace e loop conversacional.</p>
+              <button class="primary-button" id="bot-create-welcome">Criar primeiro bot <span>↗</span></button>
+            </div>
+            <div class="bot-grid hidden" id="bot-grid"></div>
+          </section>
+        </section>
+
+        <section class="bot-thread" id="bot-thread" hidden>
+          <div class="bot-thread-header">
+            <button id="bot-thread-back" class="tool-button" type="button">← Voltar</button>
+            <div class="workspace-label"><span class="workspace-dot"></span><span id="bot-thread-name">Bot</span></div>
+          </div>
+          <div class="message-list" id="bot-message-list"></div>
+          <div class="composer-area">
+            <div class="composer-wrap">
+              <div id="drop-overlay" class="drop-overlay hidden" role="status">Solte arquivos ou imagens para anexar à conversa</div>
+              <textarea id="bot-message-input" rows="1" placeholder="Mensagem para o bot…" aria-label="Mensagem"></textarea>
+              <div id="attachment-list" class="attachment-list" aria-live="polite"></div>
+              <div class="composer-tools">
+                <div class="composer-controls">
+                  <input id="file-input" type="file" accept=".c,.cc,.css,.csv,.go,.h,.html,.java,.js,.json,.jsx,.log,.md,.py,.rs,.sh,.sql,.text,.toml,.ts,.tsx,.txt,.xml,.yaml,.yml,image/png,image/jpeg,image/webp,image/gif" multiple hidden />
+                  <button id="attach-files" class="tool-button icon-tool" type="button" title="Anexar arquivos ou imagens" aria-label="Anexar arquivos ou imagens">＋</button>
+                  <button id="send-bot-message" class="tool-button primary" type="button">Enviar</button>
+                </div>
+              </div>
+            </div>
+          </div>
         </section>
 
         <footer class="composer-area">

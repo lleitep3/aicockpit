@@ -201,6 +201,34 @@ func (h *HTTPHandler) handleAPI(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+	if len(parts) == 3 && parts[0] == "bots" && parts[2] == "messages" {
+		switch r.Method {
+		case http.MethodGet:
+			messages, err := h.service.BotMessages(parts[1])
+			if err != nil {
+				writeError(w, http.StatusBadGateway, "messages_list_failed", err.Error())
+				return
+			}
+			writeJSON(w, http.StatusOK, messages)
+		case http.MethodPost:
+			var request struct {
+				Content     string       `json:"content"`
+				Attachments []Attachment `json:"attachments"`
+			}
+			if !decodeBody(w, r, &request) {
+				return
+			}
+			turnID, err := h.service.StartTurn(parts[1], request.Content, request.Attachments)
+			if err != nil {
+				writeError(w, http.StatusConflict, "assistant_turn_start_failed", err.Error())
+				return
+			}
+			writeJSON(w, http.StatusAccepted, map[string]string{"turn_id": turnID})
+		default:
+			methodNotAllowed(w)
+		}
+		return
+	}
 	if len(parts) == 3 && parts[0] == "bots" && parts[2] == "observers" {
 		switch r.Method {
 		case http.MethodGet:
@@ -308,20 +336,32 @@ func (h *HTTPHandler) assistant(w http.ResponseWriter, r *http.Request, parts []
 		writeJSON(w, http.StatusOK, session)
 		return
 	}
-	if len(parts) == 3 && parts[2] == "messages" && r.Method == http.MethodPost {
-		var request struct {
-			Content     string       `json:"content"`
-			Attachments []Attachment `json:"attachments"`
+	if len(parts) == 3 && parts[2] == "messages" {
+		switch r.Method {
+		case http.MethodGet:
+			messages, err := h.service.AssistantMessages(sessionID)
+			if err != nil {
+				writeError(w, http.StatusBadGateway, "messages_list_failed", err.Error())
+				return
+			}
+			writeJSON(w, http.StatusOK, messages)
+		case http.MethodPost:
+			var request struct {
+				Content     string       `json:"content"`
+				Attachments []Attachment `json:"attachments"`
+			}
+			if !decodeBody(w, r, &request) {
+				return
+			}
+			turnID, err := h.service.StartTurn(sessionID, request.Content, request.Attachments)
+			if err != nil {
+				writeError(w, http.StatusConflict, "assistant_turn_start_failed", err.Error())
+				return
+			}
+			writeJSON(w, http.StatusAccepted, map[string]string{"turn_id": turnID})
+		default:
+			methodNotAllowed(w)
 		}
-		if !decodeBody(w, r, &request) {
-			return
-		}
-		turnID, err := h.service.StartTurn(sessionID, request.Content, request.Attachments)
-		if err != nil {
-			writeError(w, http.StatusConflict, "assistant_turn_start_failed", err.Error())
-			return
-		}
-		writeJSON(w, http.StatusAccepted, map[string]string{"turn_id": turnID})
 		return
 	}
 	if len(parts) == 5 && parts[2] == "turns" && parts[4] == "events" && r.Method == http.MethodGet {

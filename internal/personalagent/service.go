@@ -255,6 +255,24 @@ func (s *Service) Conversations() ([]Conversation, error) {
 	return conversations, nil
 }
 
+// AssistantMessages returns the message history for an assistant session.
+func (s *Service) AssistantMessages(sessionID string) (any, error) {
+	convo, err := s.Conversation(sessionID)
+	if err != nil {
+		return nil, err
+	}
+	messages := make([]any, 0, len(convo.Messages))
+	for _, m := range convo.Messages {
+		messages = append(messages, map[string]any{
+			"id":      m.ID,
+			"role":    m.Role,
+			"content": m.Content,
+			"at":      m.CreatedAt,
+		})
+	}
+	return map[string]any{"session_id": sessionID, "messages": messages}, nil
+}
+
 func (s *Service) ConversationSummaries() ([]ConversationSummary, error) {
 	summaries, err := s.store.ListConversationSummaries()
 	if err != nil {
@@ -268,6 +286,24 @@ func (s *Service) ConversationSummaries() ([]ConversationSummary, error) {
 
 func (s *Service) Conversation(id string) (Conversation, error) {
 	return s.store.Load(id)
+}
+
+// BotMessages returns the message history for a bot's conversation.
+func (s *Service) BotMessages(botID string) (any, error) {
+	convo, err := s.Conversation(botID)
+	if err != nil {
+		return nil, err
+	}
+	messages := make([]any, 0, len(convo.Messages))
+	for _, m := range convo.Messages {
+		messages = append(messages, map[string]any{
+			"id":      m.ID,
+			"role":    m.Role,
+			"content": m.Content,
+			"at":      m.CreatedAt,
+		})
+	}
+	return map[string]any{"bot_id": botID, "messages": messages}, nil
 }
 
 func (s *Service) AssistantProviders() []Provider {
