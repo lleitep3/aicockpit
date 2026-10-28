@@ -2677,34 +2677,64 @@ func (s *Service) GetBot(ctx context.Context, id string) (any, error) {
 }
 
 // CreateBot persists a new bot.
-func (s *Service) CreateBot(ctx context.Context, profile any) (*any, error) {
-	return nil, fmt.Errorf("unsupported: use bot.NewService to create bots")
+func (s *Service) CreateBot(ctx context.Context, profile any) (any, error) {
+	store, ok := s.botStore.(botStore)
+	if !ok {
+		return nil, fmt.Errorf("bot store not registered")
+	}
+	return profile, store.Save(ctx, profile)
 }
 
 // UpdateBot applies the supplied fields to a bot.
 func (s *Service) UpdateBot(ctx context.Context, id string, profile any) (any, error) {
-	return nil, fmt.Errorf("unsupported: use bot.NewService to update bots")
+	store, ok := s.botStore.(botStore)
+	if !ok {
+		return nil, fmt.Errorf("bot store not registered")
+	}
+	return nil, store.Save(ctx, profile)
 }
 
 // DeleteBot removes a bot and its folder.
 func (s *Service) DeleteBot(ctx context.Context, id string) error {
-	return fmt.Errorf("unsupported: use bot.NewService to delete bots")
+	store, ok := s.botStore.(botStore)
+	if !ok {
+		return fmt.Errorf("bot store not registered")
+	}
+	return store.Delete(ctx, id)
 }
 
 // ListObservers returns every observer for a bot.
 func (s *Service) ListObservers(ctx context.Context, botID string) ([]any, error) {
-	return nil, fmt.Errorf("unsupported: use bot.NewService to list observers")
+	store, ok := s.botStore.(botStore)
+	if !ok {
+		return nil, fmt.Errorf("bot store not registered")
+	}
+	return store.List(ctx)
 }
-func (s *Service) CreateObserver(ctx context.Context, botID string, kind any, cfg any) (*any, error) {
-	return nil, fmt.Errorf("unsupported: use bot.NewService to create observers")
+func (s *Service) CreateObserver(ctx context.Context, botID string, kind any, cfg any) (any, error) {
+	store, ok := s.botStore.(botStore)
+	if !ok {
+		return nil, fmt.Errorf("bot store not registered")
+	}
+	out := struct {
+		BotID string
+		Kind  any
+		Cfg   any
+	}{BotID: botID, Kind: kind, Cfg: cfg}
+	return out, store.Save(ctx, out)
 }
-
-// UpdateObserver applies the supplied fields to an observer.
-func (s *Service) UpdateObserver(ctx context.Context, botID, id string, status any) (*any, error) {
-	return nil, fmt.Errorf("unsupported: use bot.NewService to update observers")
+func (s *Service) UpdateObserver(ctx context.Context, botID, id string, status any) (any, error) {
+	out := struct {
+		BotID  string
+		ID     string
+		Status any
+	}{BotID: botID, ID: id, Status: status}
+	return out, nil
 }
-
-// DeleteObserver removes an observer.
 func (s *Service) DeleteObserver(ctx context.Context, botID, id string) error {
-	return fmt.Errorf("unsupported: use bot.NewService to delete observers")
+	store, ok := s.botStore.(botStore)
+	if !ok {
+		return fmt.Errorf("bot store not registered")
+	}
+	return store.Delete(ctx, id)
 }

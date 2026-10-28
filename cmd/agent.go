@@ -15,6 +15,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/lleitep3/aicockpit/internal/bot"
 	"github.com/lleitep3/aicockpit/internal/config"
 	"github.com/lleitep3/aicockpit/internal/personalagent"
 	personalagenttui "github.com/lleitep3/aicockpit/internal/personalagent/tui"
@@ -147,14 +148,22 @@ func resolveAgentWorkspace(workspace string) string {
 }
 
 func runAgentServer(parent context.Context, command *cobra.Command, workspace string, port int) error {
-	store, err := personalagent.NewStore(filepath.Join(config.GetCockpitDir(), "conversations"))
+	conversationStore, err := personalagent.NewStore(filepath.Join(config.GetCockpitDir(), "conversations"))
 	if err != nil {
 		return err
 	}
-	service, err := personalagent.NewService(store, personalagent.NewProviderRegistry(), workspace)
+	paSvc, err := personalagent.NewService(conversationStore, personalagent.NewProviderRegistry(), workspace)
 	if err != nil {
 		return err
 	}
+	// Create the bot store and service. bot.Service registers the botStore
+	// adapter so the personalagent bot methods resolve against this store.
+	botStore, err := bot.NewStore(filepath.Join(config.GetCockpitDir(), "bots"))
+	if err != nil {
+		return err
+	}
+	bot.NewService(paSvc, botStore, workspace)
+
 	dashboard := personalagent.NewDashboardBridge(filepath.Join(config.GetCockpitDir(), "workspace", "cockpit-dashboard"))
 	token, err := personalagent.NewID("session_")
 	if err != nil {
@@ -168,7 +177,7 @@ func runAgentServer(parent context.Context, command *cobra.Command, workspace st
 	defer listener.Close()
 	host := listener.Addr().String()
 	server := &http.Server{
-		Handler:           personalagent.NewHTTPHandlerWithDashboard(service, token, host, dashboard),
+		Handler:           personalagent.NewHTTPHandlerWithDashboard(paSvc, token, host, dashboard),
 		ReadHeaderTimeout: 5 * time.Second,
 		IdleTimeout:       90 * time.Second,
 	}
@@ -183,14 +192,14 @@ func runAgentServer(parent context.Context, command *cobra.Command, workspace st
 		httpErr := server.Shutdown(httpCtx)
 		cancelHTTP()
 		serviceCtx, cancelService := context.WithTimeout(context.Background(), 8*time.Second)
-		serviceErr := service.Shutdown(serviceCtx)
+		serviceErr := paSvc.Shutdown(serviceCtx)
 		cancelService()
 		dashboardCtx, cancelDashboard := context.WithTimeout(context.Background(), 5*time.Second)
 		dashboardErr := dashboard.Close(dashboardCtx)
 		cancelDashboard()
 		shutdownErr = errors.Join(httpErr, serviceErr, dashboardErr)
 	}()
-	_, _ = fmt.Fprintf(command.OutOrStdout(), "Cockpit Personal Agent\nWorkspace: %s\nOpen: http://%s\nPress Ctrl+C to stop.\n", service.Workspace(), host)
+	_, _ = fmt.Fprintf(command.OutOrStdout(), "Cockpit Personal Agent\nWorkspace: %s\nOpen: http://%s\nPress Ctrl+C to stop.\n", paSvc.Workspace(), host)
 	serveErr := server.Serve(listener)
 	if !errors.Is(serveErr, http.ErrServerClosed) {
 		stop()
