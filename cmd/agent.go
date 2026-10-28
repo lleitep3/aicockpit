@@ -155,6 +155,7 @@ func runAgentServer(parent context.Context, command *cobra.Command, workspace st
 	if err != nil {
 		return err
 	}
+	dashboard := personalagent.NewDashboardBridge(filepath.Join(config.GetCockpitDir(), "workspace", "cockpit-dashboard"))
 	token, err := personalagent.NewID("session_")
 	if err != nil {
 		return err
@@ -167,7 +168,7 @@ func runAgentServer(parent context.Context, command *cobra.Command, workspace st
 	defer listener.Close()
 	host := listener.Addr().String()
 	server := &http.Server{
-		Handler:           personalagent.NewHTTPHandler(service, token, host),
+		Handler:           personalagent.NewHTTPHandlerWithDashboard(service, token, host, dashboard),
 		ReadHeaderTimeout: 5 * time.Second,
 		IdleTimeout:       90 * time.Second,
 	}
@@ -184,7 +185,10 @@ func runAgentServer(parent context.Context, command *cobra.Command, workspace st
 		serviceCtx, cancelService := context.WithTimeout(context.Background(), 8*time.Second)
 		serviceErr := service.Shutdown(serviceCtx)
 		cancelService()
-		shutdownErr = errors.Join(httpErr, serviceErr)
+		dashboardCtx, cancelDashboard := context.WithTimeout(context.Background(), 5*time.Second)
+		dashboardErr := dashboard.Close(dashboardCtx)
+		cancelDashboard()
+		shutdownErr = errors.Join(httpErr, serviceErr, dashboardErr)
 	}()
 	_, _ = fmt.Fprintf(command.OutOrStdout(), "Cockpit Personal Agent\nWorkspace: %s\nOpen: http://%s\nPress Ctrl+C to stop.\n", service.Workspace(), host)
 	serveErr := server.Serve(listener)

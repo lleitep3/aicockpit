@@ -213,10 +213,76 @@ func TestRoutingHTTPRejectsForeignMutationOrigin(t *testing.T) {
 	request := httptest.NewRequest(http.MethodPut, "http://"+host+"/api/v1/routing", strings.NewReader(`{"rules":[]}`))
 	request.Header.Set("Authorization", "Bearer token")
 	request.Header.Set("Origin", "http://localhost:4321")
+	request.Header.Set("Sec-Fetch-Site", "cross-site")
+	request.Header.Set("Sec-Fetch-Mode", "cors")
 	response := httptest.NewRecorder()
 	handler.ServeHTTP(response, request)
 	if response.Code != http.StatusForbidden {
 		t.Fatalf("foreign origin status = %d, want 403", response.Code)
+	}
+}
+
+func TestRoutingHTTPAllowsSameOriginPreviewProxyMutation(t *testing.T) {
+	service, _ := newRoutingTestService(t)
+	const host = "127.0.0.1:4321"
+	handler := NewHTTPHandler(service, "token", host)
+	request := httptest.NewRequest(http.MethodPut, "http://"+host+"/api/v1/routing", strings.NewReader("{"))
+	request.Header.Set("Authorization", "Bearer token")
+	request.Header.Set("Origin", "http://127.0.0.1:32935")
+	request.Header.Set("Sec-Fetch-Site", "same-origin")
+	request.Header.Set("Sec-Fetch-Mode", "cors")
+	response := httptest.NewRecorder()
+	handler.ServeHTTP(response, request)
+	if response.Code != http.StatusBadRequest || !strings.Contains(response.Body.String(), "invalid_request") {
+		t.Fatalf("same-origin proxy request status = %d, want body-validation 400: %s", response.Code, response.Body.String())
+	}
+}
+
+func TestRoutingHTTPChangesProviderThroughSameOriginPreviewProxy(t *testing.T) {
+	service, _ := newRoutingTestService(t)
+	service.providers.adapters["antigravity"] = routingTestAdapter{catalog: Catalog{
+		ProviderID:   "antigravity",
+		Source:       "test-antigravity-catalog",
+		DiscoveredAt: time.Now().UTC(),
+		Models:       []Model{{ID: "gemini-test", Name: "Gemini Test", Default: true, Selectable: true}},
+	}}
+	service.providers.quotaMu.Lock()
+	service.providers.quotas = map[string]ProviderQuota{
+		"antigravity": {Status: "available", CheckedAt: time.Now().UTC()},
+	}
+	service.providers.quotaMu.Unlock()
+
+	conversation, err := service.CreateConversation(
+		context.Background(), "codex", "model-fast", "", "on-request", RoutingModeManual,
+	)
+	if err != nil {
+		t.Fatalf("CreateConversation() error = %v", err)
+	}
+
+	const host = "127.0.0.1:4321"
+	handler := NewHTTPHandler(service, "token", host)
+	body := `{"provider_id":"antigravity","model_id":"gemini-test","approval_policy":"on-request","routing_mode":"manual"}`
+	request := httptest.NewRequest(
+		http.MethodPatch,
+		"http://"+host+"/api/v1/conversations/"+conversation.ID+"/selection",
+		strings.NewReader(body),
+	)
+	request.Header.Set("Authorization", "Bearer token")
+	request.Header.Set("Origin", "http://127.0.0.1:32935")
+	request.Header.Set("Sec-Fetch-Site", "same-origin")
+	request.Header.Set("Sec-Fetch-Mode", "cors")
+	response := httptest.NewRecorder()
+	handler.ServeHTTP(response, request)
+	if response.Code != http.StatusOK {
+		t.Fatalf("PATCH selection status = %d, want 200: %s", response.Code, response.Body.String())
+	}
+
+	updated, err := service.Conversation(conversation.ID)
+	if err != nil {
+		t.Fatalf("Conversation() error = %v", err)
+	}
+	if updated.Selection.ProviderID != "antigravity" || updated.Selection.ModelID != "gemini-test" {
+		t.Fatalf("selection = %+v, want Antigravity / gemini-test", updated.Selection)
 	}
 }
 

@@ -4,6 +4,7 @@ const state = {
   renamingProjectId: "", editingProjectId: "", defaultWorkspace: "", projectSearch: "",
   conversations: [], conversation: null, collapsedRootIds: new Set(), showArchived: false,
   pendingParentConversationId: "",
+  surface: "agent", dashboardLoading: false,
   activeTurn: null, activeTurnConversationID: "", eventIDs: new Map(), attachments: [], routing: null,
   unreadConversations: new Set(), conversationSyncInitialized: false, conversationSyncInProgress: false,
   conversationSyncErrorShown: false, sendingMessage: false, addingAttachments: false, dropDepth: 0, markdownWarningShown: false,
@@ -50,6 +51,129 @@ function showToast(message) {
   toast.classList.add("visible");
   clearTimeout(showToast.timer);
   showToast.timer = setTimeout(() => toast.classList.remove("visible"), 3600);
+}
+
+function renderSurfaceSwitcher() {
+  const dashboard = state.surface === "dashboard";
+  byId("surface-switcher-label").textContent = dashboard ? "Cockpit Dashboard" : "Personal Agent";
+  byId("surface-switcher-description").textContent = dashboard ? "Visão geral do Cockpit" : "Conversas locais";
+  byId("surface-switcher-icon").textContent = dashboard ? "▦" : "⌂";
+  for (const option of document.querySelectorAll("[data-surface]")) {
+    const selected = option.dataset.surface === state.surface;
+    option.classList.toggle("selected", selected);
+    option.querySelector(".surface-switcher-check").textContent = selected ? "✓" : "";
+  }
+}
+
+function toggleSurfaceSwitcher() {
+  const menu = byId("surface-switcher-menu");
+  const opening = menu.classList.contains("hidden");
+  menu.classList.toggle("hidden", !opening);
+  byId("surface-switcher-toggle").setAttribute("aria-expanded", String(opening));
+}
+
+function closeSurfaceSwitcher() {
+  byId("surface-switcher-menu").classList.add("hidden");
+  byId("surface-switcher-toggle").setAttribute("aria-expanded", "false");
+}
+
+function selectSurface(surface) {
+  state.surface = surface === "dashboard" ? "dashboard" : "agent";
+  const showingDashboard = state.surface === "dashboard";
+  byId("agent-surface").classList.toggle("hidden", showingDashboard);
+  byId("dashboard-view").classList.toggle("hidden", !showingDashboard);
+  closeSurfaceSwitcher();
+  closePickers();
+  if (showingDashboard) {
+    byId("link-preview-close").click();
+    loadDashboardOverview();
+  }
+  renderSurfaceSwitcher();
+}
+
+function dashboardCard(label, value, detail = "") {
+  const card = document.createElement("article");
+  card.className = "dashboard-kpi-card";
+  const heading = document.createElement("small");
+  heading.className = "dashboard-kpi-label";
+  heading.textContent = label;
+  const metric = document.createElement("strong");
+  metric.className = "dashboard-kpi-value";
+  metric.textContent = String(value);
+  card.append(heading, metric);
+  if (detail) {
+    const note = document.createElement("small");
+    note.className = "dashboard-kpi-detail";
+    note.textContent = detail;
+    card.append(note);
+  }
+  return card;
+}
+
+function renderDashboardCommands(commands) {
+  const panel = document.createElement("section");
+  panel.className = "dashboard-panel";
+  const heading = document.createElement("h2");
+  heading.textContent = "Comandos mais usados · 7 dias";
+  const list = document.createElement("div");
+  list.className = "dashboard-command-list";
+  for (const item of commands) {
+    const row = document.createElement("div");
+    row.className = "dashboard-command-row";
+    const command = document.createElement("span");
+    command.textContent = item.command || "Comando";
+    const count = document.createElement("strong");
+    count.textContent = String(item.count ?? 0);
+    row.append(command, count);
+    list.append(row);
+  }
+  if (!commands.length) {
+    const empty = document.createElement("small");
+    empty.className = "dashboard-kpi-detail";
+    empty.textContent = "Nenhuma execução registrada neste período.";
+    list.append(empty);
+  }
+  panel.append(heading, list);
+  return panel;
+}
+
+function renderDashboardOverview(kpi = {}) {
+  const content = byId("dashboard-overview-content");
+  content.replaceChildren();
+  const cards = document.createElement("div");
+  cards.className = "dashboard-kpi-grid";
+  const successRate = Number(kpi.executions_success_rate);
+  const success = Number.isFinite(successRate) ? `${Math.round(successRate)}% de sucesso` : "";
+  const vaultStatus = typeof kpi.vault_locked === "boolean"
+    ? kpi.vault_locked ? "Bloqueado" : "Desbloqueado"
+    : "Desconhecido";
+  cards.append(
+    dashboardCard("Projetos ativos", kpi.projects_active ?? 0),
+    dashboardCard("Pacotes instalados", kpi.packages_total ?? 0),
+    dashboardCard("Documentos na KB", kpi.kb_total ?? 0, `${kpi.kb_connections ?? 0} conexões diretas`),
+    dashboardCard("Execuções", kpi.executions_total ?? 0, success),
+    dashboardCard("Mini-apps ativos", `${kpi.mini_apps_active ?? 0}/${kpi.mini_apps_total ?? 0}`),
+    dashboardCard("Cofre", vaultStatus),
+    dashboardCard("Execuções com falha", kpi.executions_failed ?? 0),
+  );
+  content.append(cards, renderDashboardCommands(kpi.top_commands || []));
+}
+
+async function loadDashboardOverview() {
+  if (state.dashboardLoading) return;
+  state.dashboardLoading = true;
+  byId("dashboard-loading").classList.remove("hidden");
+  byId("dashboard-error").classList.add("hidden");
+  try {
+    const result = await api("/dashboard/overview");
+    renderDashboardOverview(result.kpi || {});
+  } catch (error) {
+    byId("dashboard-error-message").textContent = error.message;
+    byId("dashboard-error").classList.remove("hidden");
+  } finally {
+    state.dashboardLoading = false;
+    byId("dashboard-loading").classList.add("hidden");
+  }
 }
 
 function makeOption(label, value, disabled = false) {
@@ -1722,13 +1846,28 @@ function renderProviderOptions() {
     button.className = `picker-option${provider.id === selected.provider_id ? " selected" : ""}`;
     button.type = "button";
     button.disabled = !CockpitQuota.providerAvailable(provider);
-    button.title = provider.quota?.guidance || provider.status;
+    const quota = provider.supported ? CockpitQuota.providerQuotaSummary(provider) : null;
+    button.title = quota?.label || provider.status;
     const labels = document.createElement("span");
     const name = document.createElement("strong");
     name.textContent = provider.name;
     const status = document.createElement("small");
-    status.textContent = provider.supported ? CockpitQuota.providerQuotaLabel(provider) : provider.detected ? "CLI detectado · adapter pendente" : "CLI não instalado";
+    status.className = `provider-quota provider-quota-${quota?.state || "unknown"}`;
+    const indicator = document.createElement("span");
+    indicator.className = "provider-quota-indicator";
+    indicator.setAttribute("aria-hidden", "true");
+    indicator.textContent = quota?.symbol || "●";
+    const statusLabel = document.createElement("span");
+    statusLabel.textContent = quota?.label || (provider.detected ? "Adapter pendente" : "CLI não instalado");
+    status.append(indicator, statusLabel);
     labels.append(name, status);
+    const details = [quota?.nextRefill && `Refil ${quota.nextRefill}`, quota?.credits].filter(Boolean);
+    if (details.length) {
+      const metadata = document.createElement("small");
+      metadata.className = "provider-quota-details";
+      metadata.textContent = details.join(" · ");
+      labels.append(metadata);
+    }
     const check = document.createElement("span");
     check.className = "checkmark";
     check.textContent = provider.id === selected.provider_id ? "✓" : "";
@@ -1736,6 +1875,13 @@ function renderProviderOptions() {
     button.addEventListener("click", () => chooseProvider(provider.id));
     options.append(button);
   }
+}
+
+async function refreshPickerProviders() {
+  const result = await api("/providers");
+  state.providers = result.providers;
+  renderProviderOptions();
+  renderModelOptions();
 }
 
 async function chooseProvider(providerId) {
@@ -1768,6 +1914,14 @@ function renderModelOptions(filter = byId("model-search")?.value || "") {
     const description = document.createElement("small");
     description.textContent = model.description || (model.selectable ? model.id : "Não selecionável neste provider");
     labels.append(name, description);
+    const provider = state.providers.find((item) => item.id === selection.provider_id);
+    const quotaLabel = CockpitQuota.modelQuotaLabel(provider, model);
+    if (quotaLabel) {
+      const quota = document.createElement("small");
+      quota.className = "model-quota";
+      quota.textContent = quotaLabel;
+      labels.append(quota);
+    }
     const check = document.createElement("span");
     check.className = "checkmark";
     check.textContent = model.id === selection.model_id ? "✓" : "";
@@ -2157,6 +2311,14 @@ function startVoiceInput() {
 function bindUI() {
   const preview = window.CockpitPreview.createPreviewPanel(document);
   byId("message-list").addEventListener("click", preview.handleClick);
+  byId("surface-switcher-toggle").addEventListener("click", toggleSurfaceSwitcher);
+  for (const option of document.querySelectorAll("[data-surface]")) {
+    option.addEventListener("click", () => selectSurface(option.dataset.surface));
+  }
+  byId("dashboard-refresh").addEventListener("click", () => {
+    if (!state.dashboardLoading) loadDashboardOverview();
+  });
+  byId("dashboard-retry").addEventListener("click", loadDashboardOverview);
   byId("new-chat").addEventListener("click", createConversation);
   byId("assistant-chat").addEventListener("click", createAssistantSession);
   byId("welcome-new").addEventListener("click", createConversation);
@@ -2236,12 +2398,12 @@ function bindUI() {
   byId("approval-picker-toggle").setAttribute("aria-controls", "approval-picker");
   byId("provider-picker-toggle").addEventListener("click", async () => {
     togglePicker("provider-picker");
-    try {
-      state.providers = (await api("/providers")).providers;
-      renderProviderOptions();
-    } catch (error) { showToast(error.message); }
+    try { await refreshPickerProviders(); } catch (error) { showToast(error.message); }
   });
-  byId("model-picker-toggle").addEventListener("click", () => togglePicker("model-picker"));
+  byId("model-picker-toggle").addEventListener("click", async () => {
+    togglePicker("model-picker");
+    try { await refreshPickerProviders(); } catch (error) { showToast(error.message); }
+  });
   byId("approval-picker-toggle").addEventListener("click", () => togglePicker("approval-picker"));
   byId("project-picker-toggle").setAttribute("aria-controls", "project-picker-popover");
   byId("routing-mode-toggle").addEventListener("click", toggleRoutingMode);
@@ -2258,9 +2420,15 @@ function bindUI() {
     if (!document.hidden) checkConversationUpdates();
   });
   document.addEventListener("click", (event) => {
+    if (!event.target.closest(".surface-switcher")) closeSurfaceSwitcher();
     if (!event.target.closest(".picker-anchor") && !event.target.closest(".project-picker")) closePickers();
   });
   document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !byId("surface-switcher-menu").classList.contains("hidden")) {
+      closeSurfaceSwitcher();
+      byId("surface-switcher-toggle").focus();
+      return;
+    }
     if (event.key === "Escape" && !byId("project-picker-popover").classList.contains("hidden")) {
       closePickers();
       byId("project-picker-toggle").focus();
@@ -2277,6 +2445,7 @@ function bindUI() {
 
 async function init() {
   bindUI();
+  renderSurfaceSwitcher();
   try {
     const [workspace] = await Promise.all([api("/workspace"), loadProviders()]);
     state.defaultWorkspace = workspace.path;

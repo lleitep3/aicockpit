@@ -69,15 +69,27 @@
         </div>
         <nav class="conversation-list" id="conversation-list" aria-label="Conversas"></nav>
         <div class="sidebar-bottom">
-          <div class="local-card">
-            <span class="local-icon">⌂</span>
-            <div><strong>Local-first</strong><small>Histórico salvo neste dispositivo</small></div>
+          <div class="surface-switcher">
+            <button id="surface-switcher-toggle" class="local-card surface-switcher-toggle" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="surface-switcher-menu">
+              <span class="local-icon" id="surface-switcher-icon" aria-hidden="true">⌂</span>
+              <span class="surface-switcher-copy"><strong id="surface-switcher-label">Personal Agent</strong><small id="surface-switcher-description">Conversas locais</small></span>
+              <span class="surface-switcher-caret" aria-hidden="true">⌄</span>
+            </button>
+            <div id="surface-switcher-menu" class="surface-switcher-menu hidden" role="menu" aria-label="Alternar área do Cockpit">
+              <button class="surface-switcher-option selected" type="button" role="menuitem" data-surface="agent">
+                <span><strong>Personal Agent</strong><small>Conversas, projetos e providers</small></span><span class="surface-switcher-check">✓</span>
+              </button>
+              <button class="surface-switcher-option" type="button" role="menuitem" data-surface="dashboard">
+                <span><strong>Cockpit Dashboard</strong><small>Visão geral do Cockpit</small></span><span class="surface-switcher-check"></span>
+              </button>
+            </div>
           </div>
           <div class="sidebar-version">AICockpit · runtime experimental</div>
         </div>
       </aside>
 
       <main class="main-panel">
+        <div id="agent-surface" class="agent-surface">
         <header class="topbar">
           <div class="topbar-left">
             <div class="workspace-label"><span class="workspace-dot"></span><span id="workspace">Carregando workspace…</span></div>
@@ -175,6 +187,23 @@
           </div>
           <div id="composer-disclaimer" class="composer-disclaimer">O agente pode ler e alterar arquivos dentro do workspace. Política de aprovação: confirmação quando solicitada. Sandbox: workspace-write.</div>
         </footer>
+        </div>
+        <section id="dashboard-view" class="dashboard-view hidden" aria-labelledby="dashboard-title">
+          <header class="dashboard-header">
+            <div>
+              <div class="dashboard-eyebrow">COCKPIT DASHBOARD</div>
+              <h1 id="dashboard-title">Visão geral</h1>
+              <p>Estado local do Cockpit em um só lugar.</p>
+            </div>
+            <button id="dashboard-refresh" class="tool-button" type="button">Atualizar</button>
+          </header>
+          <div id="dashboard-loading" class="dashboard-feedback hidden" role="status" aria-live="polite">Carregando visão geral…</div>
+          <div id="dashboard-error" class="dashboard-feedback dashboard-error hidden" role="alert">
+            <span id="dashboard-error-message"></span>
+            <button id="dashboard-retry" class="tool-button" type="button">Tentar novamente</button>
+          </div>
+          <div id="dashboard-overview-content" class="dashboard-content"></div>
+        </section>
       </main>
       <aside id="link-preview" class="link-preview hidden" aria-labelledby="link-preview-title">
         <header class="link-preview-header">

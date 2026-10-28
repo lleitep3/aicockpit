@@ -56,6 +56,7 @@ type Service struct {
 	locks     map[string]*sync.Mutex
 	active    map[string]*activeTurn
 	events    *eventHub
+	botStore  any
 }
 
 type activeTurn struct {
@@ -2612,5 +2613,98 @@ func (s *Service) selectFallbackAdapter(ctx context.Context, failedProvider stri
 		}
 		return candidate, model.ID, adapter, true
 	}
-	return "", "", nil, false
+	return " ", "", nil, false
+}
+
+// CreateConversationForBot creates a dedicated conversation for a bot, so the
+// bot's personalagent turn layer has a stable container bound to its identity.
+func CreateConversationForBot(ctx context.Context, pa *Service, conversationID, handle string) (*Conversation, error) {
+	if pa == nil {
+		return nil, errors.New("personalagent service is nil")
+	}
+	conversation := Conversation{
+		ID:            conversationID,
+		Title:         handle,
+		AssistantMode: true,
+		Workspace:     "",
+		Selection: Selection{
+			ProviderID: "",
+			ModelID:    "",
+		},
+		Messages: []Message{},
+		Turns:    []Turn{},
+	}
+	if err := pa.store.Save(conversation); err != nil {
+		return nil, fmt.Errorf("save bot conversation: %w", err)
+	}
+	return &conversation, nil
+}
+
+// ---------------------------------------------------------------------------
+// bot store adapter + bot methods
+// ---------------------------------------------------------------------------
+
+// botStore is the minimal interface the bot.Stor
+type botStore interface {
+	Save(ctx context.Context, bot any) error
+	Load(ctx context.Context, id string) (any, error)
+	List(ctx context.Context) ([]any, error)
+	Delete(ctx context.Context, id string) error
+}
+
+// SetBotStore registers the bot store adapter (e.g. a bot.Store) so the bot
+// methods below resolve against it.
+func (s *Service) SetBotStore(botStore botStore) {
+	s.botStore = botStore
+}
+
+// Bots returns every bot, most recently updated first.
+func (s *Service) Bots(ctx context.Context) ([]any, error) {
+	store, ok := s.botStore.(botStore)
+	if !ok {
+		return nil, fmt.Errorf("bot store not registered")
+	}
+	return store.List(ctx)
+}
+
+// GetBot returns one bot by id.
+func (s *Service) GetBot(ctx context.Context, id string) (any, error) {
+	store, ok := s.botStore.(botStore)
+	if !ok {
+		return nil, fmt.Errorf("bot store not registered")
+	}
+	return store.Load(ctx, id)
+}
+
+// CreateBot persists a new bot.
+func (s *Service) CreateBot(ctx context.Context, profile any) (*any, error) {
+	return nil, fmt.Errorf("unsupported: use bot.NewService to create bots")
+}
+
+// UpdateBot applies the supplied fields to a bot.
+func (s *Service) UpdateBot(ctx context.Context, id string, profile any) (any, error) {
+	return nil, fmt.Errorf("unsupported: use bot.NewService to update bots")
+}
+
+// DeleteBot removes a bot and its folder.
+func (s *Service) DeleteBot(ctx context.Context, id string) error {
+	return fmt.Errorf("unsupported: use bot.NewService to delete bots")
+}
+
+// ListObservers returns every observer for a bot.
+func (s *Service) ListObservers(ctx context.Context, botID string) ([]any, error) {
+	return nil, fmt.Errorf("unsupported: use bot.NewService to list observers")
+}
+func (s *Service) CreateObserver(ctx context.Context, botID string, kind any, cfg any) (*any, error) {
+	return nil, fmt.Errorf("unsupported: use bot.NewService to create observers")
+}
+
+// UpdateObserver applies the supplied fields to an observer.
+func (s *Service) UpdateObserver(ctx context.Context, botID, id string, status any) (*any, error) {
+	return nil, fmt.Errorf("unsupported: use bot.NewService to update observers")
+}
+
+// DeleteObserver removes an observer.
+func (s *Service) DeleteObserver(ctx context.Context, botID, id string) error {
+	return fmt.Errorf("unsupported: use bot.NewService to delete observers")
 }

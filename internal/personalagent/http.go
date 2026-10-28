@@ -20,14 +20,22 @@ var webAssets embed.FS
 const maximumRequestBodyBytes = 10 << 20
 
 type HTTPHandler struct {
-	service *Service
-	token   string
-	host    string
-	origin  string
+	service   *Service
+	token     string
+	host      string
+	origin    string
+	dashboard DashboardOverviewSource
 }
 
 func NewHTTPHandler(service *Service, token, host string) http.Handler {
-	handler := &HTTPHandler{service: service, token: token, host: host, origin: "http://" + host}
+	return NewHTTPHandlerWithDashboard(service, token, host, nil)
+}
+
+func NewHTTPHandlerWithDashboard(service *Service, token, host string, dashboard DashboardOverviewSource) http.Handler {
+	handler := &HTTPHandler{
+		service: service, token: token, host: host, origin: "http://" + host,
+		dashboard: dashboard,
+	}
 	assets, _ := fs.Sub(webAssets, "web")
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", handler.serveIndex)
@@ -64,12 +72,25 @@ func (h *HTTPHandler) handleAPI(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusUnauthorized, "unauthorized", "Local session token is missing or invalid.")
 		return
 	}
-	if isMutation(r.Method) && r.Header.Get("Origin") != h.origin {
+	if isMutation(r.Method) && !h.validMutationOrigin(r) {
 		writeError(w, http.StatusForbidden, "origin_rejected", "Request origin is not allowed.")
 		return
 	}
 	path := strings.Trim(strings.TrimPrefix(r.URL.Path, "/api/v1/"), "/")
 	parts := strings.Split(path, "/")
+	if len(parts) == 2 && parts[0] == "dashboard" && parts[1] == "overview" && r.Method == http.MethodGet {
+		if h.dashboard == nil {
+			writeError(w, http.StatusServiceUnavailable, "dashboard_unavailable", "Cockpit Dashboard bridge is unavailable.")
+			return
+		}
+		overview, err := h.dashboard.Overview(r.Context())
+		if err != nil {
+			writeError(w, http.StatusServiceUnavailable, "dashboard_unavailable", "Cockpit Dashboard overview is unavailable.")
+			return
+		}
+		writeJSON(w, http.StatusOK, overview)
+		return
+	}
 	if len(parts) == 1 && parts[0] == "providers" && r.Method == http.MethodGet {
 		writeJSON(w, http.StatusOK, map[string]any{"providers": h.service.Providers()})
 		return
@@ -122,6 +143,111 @@ func (h *HTTPHandler) handleAPI(w http.ResponseWriter, r *http.Request) {
 	}
 	if len(parts) >= 2 && parts[0] == "projects" {
 		h.project(w, r, parts[1], parts[2:])
+		return
+	}
+	if len(parts) == 1 && parts[0] == "bots" {
+		switch r.Method {
+		case http.MethodGet:
+			bots, err := h.service.Bots(r.Context())
+			if err != nil {
+				writeError(w, http.StatusBadGateway, "bots_list_failed", err.Error())
+				return
+			}
+			writeJSON(w, http.StatusOK, bots)
+		case http.MethodPost:
+			var profile any
+			if !decodeBody(w, r, &profile) {
+				return
+			}
+			bot, err := h.service.CreateBot(r.Context(), profile)
+			if err != nil {
+				writeError(w, http.StatusBadRequest, "bot_create_failed", err.Error())
+				return
+			}
+			writeJSON(w, http.StatusCreated, bot)
+		default:
+			methodNotAllowed(w)
+		}
+		return
+	}
+	if len(parts) == 2 && parts[0] == "bots" {
+		switch r.Method {
+		case http.MethodGet:
+			bot, err := h.service.GetBot(r.Context(), parts[1])
+			if err != nil {
+				writeError(w, http.StatusNotFound, "bot_not_found", err.Error())
+				return
+			}
+			writeJSON(w, http.StatusOK, bot)
+		case http.MethodPut:
+			var profile any
+			if !decodeBody(w, r, &profile) {
+				return
+			}
+			bot, err := h.service.UpdateBot(r.Context(), parts[1], profile)
+			if err != nil {
+				writeError(w, http.StatusBadRequest, "bot_update_failed", err.Error())
+				return
+			}
+			writeJSON(w, http.StatusOK, bot)
+		case http.MethodDelete:
+			if err := h.service.DeleteBot(r.Context(), parts[1]); err != nil {
+				writeError(w, http.StatusBadGateway, "bot_delete_failed", err.Error())
+				return
+			}
+			writeJSON(w, http.StatusOK, map[string]string{"ok": "true"})
+		default:
+			methodNotAllowed(w)
+		}
+		return
+	}
+	if len(parts) == 3 && parts[0] == "bots" && parts[2] == "observers" {
+		switch r.Method {
+		case http.MethodGet:
+			observers, err := h.service.ListObservers(r.Context(), parts[1])
+			if err != nil {
+				writeError(w, http.StatusBadGateway, "observers_list_failed", err.Error())
+				return
+			}
+			writeJSON(w, http.StatusOK, observers)
+		case http.MethodPost:
+			var obs any
+			if !decodeBody(w, r, &obs) {
+				return
+			}
+			created, err := h.service.CreateObserver(r.Context(), parts[1], obs, nil)
+			if err != nil {
+				writeError(w, http.StatusBadRequest, "observer_create_failed", err.Error())
+				return
+			}
+			writeJSON(w, http.StatusCreated, created)
+		default:
+			methodNotAllowed(w)
+		}
+		return
+	}
+	if len(parts) == 5 && parts[0] == "bots" && parts[2] == "observers" {
+		switch r.Method {
+		case http.MethodPut:
+			var status any
+			if !decodeBody(w, r, &status) {
+				return
+			}
+			updated, err := h.service.UpdateObserver(r.Context(), parts[1], parts[3], status)
+			if err != nil {
+				writeError(w, http.StatusBadRequest, "observer_update_failed", err.Error())
+				return
+			}
+			writeJSON(w, http.StatusOK, updated)
+		case http.MethodDelete:
+			if err := h.service.DeleteObserver(r.Context(), parts[1], parts[3]); err != nil {
+				writeError(w, http.StatusBadRequest, "observer_delete_failed", err.Error())
+				return
+			}
+			writeJSON(w, http.StatusOK, map[string]string{"ok": "true"})
+		default:
+			methodNotAllowed(w)
+		}
 		return
 	}
 	if len(parts) == 1 && parts[0] == "conversations" {
@@ -557,6 +683,14 @@ func (h *HTTPHandler) authorized(r *http.Request) bool {
 	}
 	provided := strings.TrimPrefix(value, bearer)
 	return len(provided) == len(h.token) && subtle.ConstantTimeCompare([]byte(provided), []byte(h.token)) == 1
+}
+
+func (h *HTTPHandler) validMutationOrigin(r *http.Request) bool {
+	if r.Header.Get("Origin") == h.origin {
+		return true
+	}
+	return r.Header.Get("Sec-Fetch-Site") == "same-origin" &&
+		r.Header.Get("Sec-Fetch-Mode") == "cors"
 }
 
 func (h *HTTPHandler) hostGuard(next http.Handler) http.Handler {
