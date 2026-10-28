@@ -139,6 +139,7 @@ button { color: inherit; }
 .bot-card-empty { color: #647168; font-size: 11px; text-align: center; padding: 24px 0; }
 
 .bot-thread { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; }
+.bot-thread[hidden] { display: none; }
 .bot-thread-header { flex: 0 0 auto; min-height: 63px; padding: 0 29px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #252b27; background: #111512dc; }
 .bot-thread-header .workspace-label { flex: 1 1 auto; min-width: 0; }
 .bot-thread-header .workspace-label .workspace-dot { display: none; }

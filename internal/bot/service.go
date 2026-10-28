@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -30,10 +31,15 @@ type Service struct {
 // botStoreAdapter adapts the bot Store to the personalagent botStore interface.
 type botStoreAdapter struct {
 	*Store
+	service *Service
 }
 
-func (a *botStoreAdapter) Save(ctx context.Context, bot any) error {
-	return a.Store.Save(ctx, bot.(*Bot))
+func (a *botStoreAdapter) Save(ctx context.Context, value any) error {
+	bot, ok := value.(*Bot)
+	if !ok {
+		return fmt.Errorf("unsupported bot store value %T", value)
+	}
+	return a.Store.Save(ctx, bot)
 }
 func (a *botStoreAdapter) Load(ctx context.Context, id string) (any, error) {
 	return a.Store.Load(ctx, id)
@@ -50,7 +56,103 @@ func (a *botStoreAdapter) List(ctx context.Context) ([]any, error) {
 	return out, nil
 }
 func (a *botStoreAdapter) Delete(ctx context.Context, id string) error {
+	if a.service != nil {
+		return a.service.DeleteBot(ctx, id)
+	}
 	return a.Store.Delete(ctx, id)
+}
+
+func (a *botStoreAdapter) CreateBot(ctx context.Context, value any) (any, error) {
+	profile, err := decodeBotPayload[BotProfile](value)
+	if err != nil {
+		return nil, err
+	}
+	return a.service.CreateBot(ctx, profile)
+}
+
+func (a *botStoreAdapter) UpdateBot(ctx context.Context, id string, value any) (any, error) {
+	profile, err := decodeBotPayload[BotProfile](value)
+	if err != nil {
+		return nil, err
+	}
+	return a.service.UpdateBot(ctx, id, profile)
+}
+
+func (a *botStoreAdapter) SendMessage(ctx context.Context, botID, content string, attachments []personalagent.Attachment) (string, error) {
+	if a.service == nil {
+		return "", errors.New("bot service is not registered")
+	}
+	return a.service.SendMessage(ctx, botID, content, attachments)
+}
+
+func (a *botStoreAdapter) ListObservers(ctx context.Context, botID string) ([]any, error) {
+	observers, err := a.service.ListObservers(ctx, botID)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]any, len(observers))
+	for i, observer := range observers {
+		result[i] = observer
+	}
+	return result, nil
+}
+
+func (a *botStoreAdapter) CreateObserver(ctx context.Context, botID string, kind, config any) (any, error) {
+	var request struct {
+		Kind   BotObserverKind `json:"kind"`
+		Config ObserverConfig  `json:"config"`
+	}
+	if value, ok := kind.(string); ok {
+		request.Kind = BotObserverKind(value)
+		if config != nil {
+			decoded, err := decodeBotPayload[ObserverConfig](config)
+			if err != nil {
+				return nil, err
+			}
+			request.Config = *decoded
+		}
+	} else if err := decodeBotPayloadInto(kind, &request); err != nil {
+		return nil, err
+	}
+	if request.Kind == "" {
+		return nil, errors.New("observer kind is required")
+	}
+	return a.service.CreateObserver(ctx, botID, request.Kind, request.Config)
+}
+
+func (a *botStoreAdapter) UpdateObserver(ctx context.Context, botID, id string, value any) (any, error) {
+	var request struct {
+		Status BotObserverStatus `json:"status"`
+	}
+	if status, ok := value.(string); ok {
+		request.Status = BotObserverStatus(status)
+	} else if err := decodeBotPayloadInto(value, &request); err != nil {
+		return nil, err
+	}
+	return a.service.UpdateObserver(ctx, botID, id, request.Status)
+}
+
+func (a *botStoreAdapter) DeleteObserver(ctx context.Context, botID, id string) error {
+	return a.service.DeleteObserver(ctx, botID, id)
+}
+
+func decodeBotPayload[T any](value any) (*T, error) {
+	var result T
+	if err := decodeBotPayloadInto(value, &result); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+func decodeBotPayloadInto(value any, target any) error {
+	data, err := json.Marshal(value)
+	if err != nil {
+		return fmt.Errorf("encode bot request: %w", err)
+	}
+	if err := json.Unmarshal(data, target); err != nil {
+		return fmt.Errorf("decode bot request: %w", err)
+	}
+	return nil
 }
 
 // NewService creates a bot service rooted at base (usually ~/.cockpit/bots).
@@ -61,7 +163,7 @@ func NewService(pa *personalagent.Service, store *Store, base string) *Service {
 	bs := &Service{Service: pa, botStore: store, base: base}
 	// Register the adapter so the personalagent bot methods resolve against
 	// this store.
-	pa.SetBotStore(&botStoreAdapter{Store: store})
+	pa.SetBotStore(&botStoreAdapter{Store: store, service: bs})
 	return bs
 }
 
@@ -82,6 +184,9 @@ func (s *Service) CreateBot(ctx context.Context, profile *BotProfile) (*Bot, err
 	}
 	if profile.Handle == "" {
 		return nil, errors.New("profile handle is required")
+	}
+	if !validBotID(profile.Handle) {
+		return nil, fmt.Errorf("invalid bot handle %q", profile.Handle)
 	}
 
 	s.mu.Lock()
@@ -110,18 +215,24 @@ func (s *Service) CreateBot(ctx context.Context, profile *BotProfile) (*Bot, err
 		LastError:    "",
 	}
 
-	if bot.WorkspaceDir == "" {
-		dir, err := MakeBotFolder(bot.ID, s.base)
-		if err != nil {
-			return nil, err
-		}
-		bot.WorkspaceDir = dir
+	expectedWorkspace := filepath.Clean(BotWorkspace(bot.ID, s.base))
+	if profile.WorkspaceDir != "" && filepath.Clean(profile.WorkspaceDir) != expectedWorkspace {
+		return nil, errors.New("bot workspace must be managed by Cockpit")
 	}
+	dir, err := MakeBotFolder(bot.ID, s.base)
+	if err != nil {
+		return nil, err
+	}
+	bot.WorkspaceDir = dir
 
 	if err := s.botStore.Save(ctx, bot); err != nil {
 		return nil, err
 	}
-	if err := s.SaveProfile(ctx, bot.ID, profile); err != nil {
+	savedProfile := *profile
+	savedProfile.WorkspaceDir = bot.WorkspaceDir
+	savedProfile.CreatedAt = now
+	savedProfile.UpdatedAt = now
+	if err := s.SaveProfile(ctx, bot.ID, &savedProfile); err != nil {
 		// Persist the bot without the profile so the CLI can retry.
 		return bot, err
 	}
@@ -143,9 +254,15 @@ func (s *Service) UpdateBot(ctx context.Context, id string, profile *BotProfile)
 	if profile == nil {
 		return nil, errors.New("profile is nil")
 	}
+	if profile.Handle != "" && !validBotID(profile.Handle) {
+		return nil, fmt.Errorf("invalid bot handle %q", profile.Handle)
+	}
 	existing, err := s.botStore.Load(ctx, id)
 	if err != nil {
 		return nil, err
+	}
+	if profile.WorkspaceDir != "" && filepath.Clean(profile.WorkspaceDir) != filepath.Clean(existing.WorkspaceDir) {
+		return nil, errors.New("bot workspace cannot be changed")
 	}
 
 	if profile.Name != "" {
@@ -179,9 +296,6 @@ func (s *Service) UpdateBot(ctx context.Context, id string, profile *BotProfile)
 		existing.Selection.ReasoningEffort = profile.ReasoningEffort
 	}
 
-	if profile.WorkspaceDir != "" {
-		existing.WorkspaceDir = profile.WorkspaceDir
-	}
 	existing.LastRunAt = nil
 	existing.LastError = ""
 	existing.LastResponse = nil
@@ -191,7 +305,22 @@ func (s *Service) UpdateBot(ctx context.Context, id string, profile *BotProfile)
 	if err := s.botStore.Save(ctx, existing); err != nil {
 		return nil, err
 	}
-	if err := s.SaveProfile(ctx, existing.ID, profile); err != nil {
+	updatedProfile := &BotProfile{
+		Name:            existing.Name,
+		Handle:          existing.Handle,
+		Role:            existing.Role,
+		Objective:       existing.Objective,
+		Persona:         existing.Persona,
+		Skills:          existing.Skills,
+		Instructions:    existing.Instructions,
+		ProviderID:      existing.Selection.ProviderID,
+		ModelID:         existing.Selection.ModelID,
+		ReasoningEffort: existing.Selection.ReasoningEffort,
+		WorkspaceDir:    existing.WorkspaceDir,
+		CreatedAt:       existing.CreatedAt,
+		UpdatedAt:       existing.UpdatedAt,
+	}
+	if err := s.SaveProfile(ctx, existing.ID, updatedProfile); err != nil {
 		return existing, err
 	}
 	return existing, nil
@@ -209,10 +338,76 @@ func (s *Service) DeleteBot(ctx context.Context, id string) error {
 	return nil
 }
 
+func (s *Service) SendMessage(ctx context.Context, botID, content string, attachments []personalagent.Attachment) (string, error) {
+	bot, err := s.GetBot(ctx, botID)
+	if err != nil {
+		return "", err
+	}
+	if strings.TrimSpace(content) == "" && len(attachments) == 0 {
+		return "", errors.New("message cannot be empty")
+	}
+	conversation, err := s.Service.BotConversation(botID)
+	if err != nil {
+		if !errors.Is(err, personalagent.ErrNotFound) {
+			return "", err
+		}
+		selection := personalagent.Selection{
+			ProviderID:      bot.Selection.ProviderID,
+			ModelID:         bot.Selection.ModelID,
+			ReasoningEffort: bot.Selection.ReasoningEffort,
+			ApprovalPolicy:  "on-request",
+			RoutingMode:     "manual",
+		}
+		created, err := personalagent.CreateConversationForBot(
+			ctx, s.Service, bot.ID, bot.Handle, bot.WorkspaceDir, selection,
+		)
+		if err != nil {
+			return "", fmt.Errorf("create bot conversation: %w", err)
+		}
+		conversation = *created
+	}
+	prompt := botPrompt(bot, content)
+	turnID, err := s.Service.StartTurn(conversation.ID, prompt, attachments)
+	if err != nil {
+		return "", err
+	}
+	bot.LastPrompt = prompt
+	bot.LastError = ""
+	bot.UpdatedAt = time.Now().UTC()
+	if err := s.botStore.Save(ctx, bot); err != nil {
+		return "", fmt.Errorf("save bot turn state: %w", err)
+	}
+	return turnID, nil
+}
+
+func botPrompt(bot *Bot, content string) string {
+	sections := make([]string, 0, 5)
+	if bot.Name != "" {
+		sections = append(sections, "Bot: "+bot.Name)
+	}
+	if bot.Role != "" {
+		sections = append(sections, "Role: "+bot.Role)
+	}
+	if bot.Objective != "" {
+		sections = append(sections, "Objective: "+bot.Objective)
+	}
+	if bot.Persona != "" {
+		sections = append(sections, "Persona: "+bot.Persona)
+	}
+	if bot.Instructions != "" {
+		sections = append(sections, "Instructions: "+bot.Instructions)
+	}
+	sections = append(sections, "User request:\n"+content)
+	return strings.Join(sections, "\n\n")
+}
+
 // SaveProfile persists a bot's profile to its folder, creating the folder if needed.
 func (s *Service) SaveProfile(ctx context.Context, botID string, profile *BotProfile) error {
 	if profile == nil {
 		return errors.New("profile is nil")
+	}
+	if !validBotID(botID) {
+		return fmt.Errorf("invalid bot id %q", botID)
 	}
 	if profile.Name == "" {
 		return errors.New("profile name is required")
@@ -233,6 +428,9 @@ func (s *Service) SaveProfile(ctx context.Context, botID string, profile *BotPro
 
 // LoadProfile returns a bot's persisted profile, creating an empty one if missing.
 func (s *Service) LoadProfile(ctx context.Context, botID string) (*BotProfile, error) {
+	if !validBotID(botID) {
+		return nil, fmt.Errorf("invalid bot id %q", botID)
+	}
 	path := ProfileFile(botID, s.base)
 	data, err := os.ReadFile(path)
 	if err != nil {

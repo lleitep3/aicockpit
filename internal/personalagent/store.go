@@ -172,6 +172,7 @@ func (s *Store) ListConversationSummaries() ([]ConversationSummary, error) {
 		var record struct {
 			ID                   string            `json:"id"`
 			AssistantMode        bool              `json:"assistant_mode"`
+			BotID                string            `json:"bot_id"`
 			Archived             bool              `json:"archived"`
 			ProjectID            string            `json:"project_id"`
 			ParentConversationID string            `json:"parent_conversation_id"`
@@ -188,6 +189,9 @@ func (s *Store) ListConversationSummaries() ([]ConversationSummary, error) {
 		}
 		if record.ID != id {
 			return nil, fmt.Errorf("conversation %s has invalid identity", id)
+		}
+		if record.BotID != "" {
+			continue
 		}
 		parentID := record.ParentConversationID
 		rootID := record.RootConversationID

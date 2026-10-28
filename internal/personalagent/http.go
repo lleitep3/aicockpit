@@ -218,7 +218,7 @@ func (h *HTTPHandler) handleAPI(w http.ResponseWriter, r *http.Request) {
 			if !decodeBody(w, r, &request) {
 				return
 			}
-			turnID, err := h.service.StartTurn(parts[1], request.Content, request.Attachments)
+			turnID, err := h.service.SendBotMessage(r.Context(), parts[1], request.Content, request.Attachments)
 			if err != nil {
 				writeError(w, http.StatusConflict, "assistant_turn_start_failed", err.Error())
 				return
@@ -735,7 +735,11 @@ func (h *HTTPHandler) validMutationOrigin(r *http.Request) bool {
 
 func (h *HTTPHandler) hostGuard(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Host != h.host {
+		host := h.host
+		if host == "127.0.0.1:0" {
+			host = "localhost:0"
+		}
+		if r.Host != host && r.Host != "localhost"+strings.TrimPrefix(h.host, "127.0.0.1") {
 			http.Error(w, "invalid host", http.StatusBadRequest)
 			return
 		}

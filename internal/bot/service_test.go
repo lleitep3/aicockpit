@@ -103,6 +103,46 @@ func TestListBots(t *testing.T) {
 	}
 }
 
+func TestPersonalAgentBotAdapterCreatesAndUpdatesJSONProfiles(t *testing.T) {
+	svc, _ := newTestService(t)
+	ctx := context.Background()
+	created, err := svc.Service.CreateBot(ctx, map[string]any{
+		"name":      "HTTP Bot",
+		"handle":    "http-bot",
+		"objective": "Keep objective after partial update.",
+	})
+	if err != nil {
+		t.Fatalf("CreateBot() error = %v", err)
+	}
+	bot, ok := created.(*Bot)
+	if !ok {
+		t.Fatalf("CreateBot() type = %T, want *Bot", created)
+	}
+	if bot.WorkspaceDir == "" {
+		t.Fatal("CreateBot() returned an empty workspace")
+	}
+
+	updated, err := svc.Service.UpdateBot(ctx, bot.ID, map[string]any{
+		"name":   "Updated HTTP Bot",
+		"handle": bot.Handle,
+	})
+	if err != nil {
+		t.Fatalf("UpdateBot() error = %v", err)
+	}
+	updatedBot, ok := updated.(*Bot)
+	if !ok {
+		t.Fatalf("UpdateBot() type = %T, want *Bot", updated)
+	}
+	if updatedBot.Name != "Updated HTTP Bot" || updatedBot.Objective != "Keep objective after partial update." {
+		t.Fatalf("updated bot = %+v; partial update lost existing fields", updatedBot)
+	}
+
+	bots, err := svc.Service.Bots(ctx)
+	if err != nil || len(bots) != 1 {
+		t.Fatalf("Bots() = %d, %v; want one bot", len(bots), err)
+	}
+}
+
 func TestSaveAndLoadProfile(t *testing.T) {
 	svc, _ := newTestService(t)
 	ctx := context.Background()

@@ -6,7 +6,7 @@ const state = {
   pendingParentConversationId: "",
   surface: "agent", dashboardLoading: false,
   activeTurn: null, activeTurnConversationID: "", eventIDs: new Map(), attachments: [], routing: null,
-  bots: [], botMessage: "", botTurnId: "", botLoading: false,
+  bots: [], botBot: null, botMessage: "", botTurnId: "", botLoading: false, botListLoading: false,
   unreadConversations: new Set(), conversationSyncInitialized: false, conversationSyncInProgress: false,
   conversationSyncErrorShown: false, sendingMessage: false, addingAttachments: false, dropDepth: 0, markdownWarningShown: false,
   draft: { provider_id: "antigravity", model_id: "", reasoning_effort: "", approval_policy: "on-request", routing_mode: "manual" },
@@ -18,6 +18,8 @@ const routeClasses = [
   { id: "research", label: "Pesquisa", description: "Informação atual, fontes e pesquisa externa." },
   { id: "reasoning", label: "Raciocínio", description: "Planos, arquitetura, comparação e análise." },
 ];
+const BOT_TURN_POLL_INTERVAL_MS = 2000;
+const BOT_TURN_TIMEOUT_MS = 120_000;
 
 async function refreshToken() {
   try {
@@ -55,10 +57,15 @@ function showToast(message) {
 }
 
 function renderSurfaceSwitcher() {
-  const dashboard = state.surface === "dashboard";
-  byId("surface-switcher-label").textContent = dashboard ? "Cockpit Dashboard" : "Personal Agent";
-  byId("surface-switcher-description").textContent = dashboard ? "Visão geral do Cockpit" : "Conversas locais";
-  byId("surface-switcher-icon").textContent = dashboard ? "▦" : "⌂";
+  const labels = {
+    agent: ["Personal Agent", "Conversas locais", "⌂"],
+    bot: ["Multibot", "Bots, rotinas e observadores", "◈"],
+    dashboard: ["Cockpit Dashboard", "Visão geral do Cockpit", "▦"],
+  };
+  const [label, description, icon] = labels[state.surface] || labels.agent;
+  byId("surface-switcher-label").textContent = label;
+  byId("surface-switcher-description").textContent = description;
+  byId("surface-switcher-icon").textContent = icon;
   for (const option of document.querySelectorAll("[data-surface]")) {
     const selected = option.dataset.surface === state.surface;
     option.classList.toggle("selected", selected);
@@ -79,47 +86,33 @@ function closeSurfaceSwitcher() {
 }
 
 function selectSurface(surface) {
-  if (surface === "dashboard") {
-    state.surface = "dashboard";
-    byId("agent-surface").classList.toggle("hidden", true);
-    byId("bot-surface").classList.toggle("hidden", true);
-    byId("dashboard-view").classList.toggle("hidden", false);
-    closeSurfaceSwitcher();
-    closePickers();
+  state.surface = ["bot", "dashboard"].includes(surface) ? surface : "agent";
+  const isAgent = state.surface === "agent";
+  const isBot = state.surface === "bot";
+  const isDashboard = state.surface === "dashboard";
+  byId("agent-surface").classList.toggle("hidden", !isAgent);
+  byId("bot-surface").classList.toggle("hidden", !isBot);
+  byId("bot-thread").hidden = true;
+  byId("dashboard-view").classList.toggle("hidden", !isDashboard);
+  closeSurfaceSwitcher();
+  closePickers();
+  if (isDashboard) {
     byId("link-preview-close").click();
     loadDashboardOverview();
-  } else if (surface === "bot") {
-    state.surface = "bot";
-    byId("agent-surface").classList.toggle("hidden", true);
-    byId("bot-surface").classList.toggle("hidden", false);
-    byId("dashboard-view").classList.toggle("hidden", true);
-    closeSurfaceSwitcher();
-    closePickers();
+  } else if (isBot) {
     loadBots();
-  } else {
-    state.surface = "agent";
-    byId("agent-surface").classList.toggle("hidden", false);
-    byId("bot-surface").classList.toggle("hidden", true);
-    byId("dashboard-view").classList.toggle("hidden", true);
-    closeSurfaceSwitcher();
-    closePickers();
   }
   renderSurfaceSwitcher();
 }
 
 async function loadBots() {
-  state.bots = [];
-  state.botMessage = "";
+  if (state.botListLoading) return;
+  state.botListLoading = true;
   byId("bot-loading").classList.remove("hidden");
   byId("bot-grid").classList.add("hidden");
   byId("bot-welcome").classList.add("hidden");
   try {
-    const response = await fetch("/api/v1/bots");
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error(text || `HTTP ${response.status}`);
-    }
-    state.bots = await response.json();
+    state.bots = await api("/bots");
     if (state.bots.length === 0) {
       byId("bot-welcome").classList.remove("hidden");
       byId("bot-grid").classList.add("hidden");
@@ -127,17 +120,13 @@ async function loadBots() {
       byId("bot-welcome").classList.add("hidden");
       renderBotGrid();
       byId("bot-grid").classList.remove("hidden");
-      if (state.bots.length === 1 && !state.botMessage) {
-        const bot = state.bots[0];
-        state.botMessage = `Bem-vindo ao bot ${bot.name} (handle: ${bot.handle}). Que tarefa você quer que ele faça?`;
-        byId("bot-message-input").value = state.botMessage;
-        byId("bot-message-input").focus();
-      }
     }
   } catch (err) {
     showToast(`Não foi possível carregar bots: ${err.message}`);
-    byId("bot-loading").classList.add("hidden");
     byId("bot-welcome").classList.remove("hidden");
+  } finally {
+    state.botListLoading = false;
+    byId("bot-loading").classList.add("hidden");
   }
 }
 
@@ -196,8 +185,8 @@ async function selectBot(bot) {
   state.botBot = bot;
   state.botMessage = "";
   state.botTurnId = "";
+  byId("bot-surface").classList.add("hidden");
   byId("bot-thread").hidden = false;
-  byId("bot-message-input").value = "";
   byId("bot-thread-name").textContent = bot.name;
   await loadBotMessageList(bot);
 }
@@ -208,13 +197,11 @@ async function editBot(bot) {
   const handle = prompt("Handle (identificador):", bot.handle);
   if (!handle) return;
   try {
-    const response = await fetch(`/api/v1/bots/${bot.id}`, {
+    await api(`/bots/${encodeURIComponent(bot.id)}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, handle }),
     });
-    if (!response.ok) throw new Error("update failed");
-    loadBots();
+    await loadBots();
     showToast("Bot atualizado");
   } catch (err) {
     showToast(`Falha ao atualizar: ${err.message}`);
@@ -222,21 +209,19 @@ async function editBot(bot) {
 }
 
 async function loadBotMessageList(bot) {
-  byId("bot-loading").classList.remove("hidden");
   byId("bot-message-list").innerHTML = "";
   try {
-    const response = await fetch(`/api/v1/bots/${bot.id}/messages`);
-    if (!response.ok) throw new Error("messages fetch failed");
-    const data = await response.json();
-    for (const msg of data.messages || []) {
+    const data = await api(`/bots/${encodeURIComponent(bot.id)}/messages`);
+    const messages = data.messages || [];
+    for (const msg of messages) {
       const row = messageRow(msg.role, msg.content, msg.id);
       byId("bot-message-list").appendChild(row);
     }
     scrollToBottom();
-    byId("bot-loading").classList.add("hidden");
+    return messages;
   } catch (err) {
-    byId("bot-loading").classList.add("hidden");
     showToast(`Não foi possível carregar histórico: ${err.message}`);
+    return [];
   }
 }
 
@@ -2568,6 +2553,7 @@ function bindUI() {
 
   // Bot surface event listeners
   byId("bot-create-btn").addEventListener("click", createBot);
+  byId("bot-create-welcome").addEventListener("click", createBot);
   byId("bot-refresh-btn").addEventListener("click", loadBots);
   byId("bot-thread-back").addEventListener("click", closeBotThread);
   byId("send-bot-message").addEventListener("click", sendBotMessage);
@@ -2630,33 +2616,24 @@ async function sendBotMessage() {
   if (!content) return;
   state.botLoading = true;
   byId("bot-message-input").disabled = true;
-  state.botMessage = content;
-
-  const userRow = messageRow("user", content);
-  byId("bot-message-list").appendChild(userRow);
-
-  const botId = bot.id;
   try {
-    const response = await fetch("/api/v1/bots/" + encodeURIComponent(botId) + "/messages", {
+    const path = `/bots/${encodeURIComponent(bot.id)}/messages`;
+    const current = await api(path);
+    const previousMessageCount = current.messages?.length || 0;
+    const result = await api(path, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ content }),
     });
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error(text || `HTTP ${response.status}`);
-    }
-    state.botTurnId = "";
-    state.botLoading = false;
-    byId("bot-message-input").disabled = false;
+    state.botTurnId = result.turn_id || "";
     byId("bot-message-input").value = "";
     showToast("Mensagem enviada ao bot");
-    loadBotMessageList(bot);
-    await pollBotResponse(botId);
+    await pollBotResponse(bot, previousMessageCount);
+    byId("bot-message-input").focus();
   } catch (err) {
+    showToast(`Falha ao enviar: ${err.message}`);
+  } finally {
     state.botLoading = false;
     byId("bot-message-input").disabled = false;
-    showToast(`Falha ao enviar: ${err.message}`);
   }
 }
 
@@ -2665,46 +2642,20 @@ async function closeBotThread() {
   state.botMessage = "";
   state.botTurnId = "";
   byId("bot-thread").hidden = true;
+  if (state.surface === "bot") byId("bot-surface").classList.remove("hidden");
   byId("bot-message-input").value = "";
   byId("bot-message-list").innerHTML = "";
 }
 
-async function loadBotMessageList(bot) {
-  byId("bot-loading").classList.remove("hidden");
-  byId("bot-message-list").innerHTML = "";
-  try {
-    const response = await fetch("/api/v1/bots/" + encodeURIComponent(bot.id) + "/messages");
-    if (!response.ok) throw new Error("messages fetch failed");
-    const data = await response.json();
-    for (const msg of data.messages || []) {
-      const row = messageRow(msg.role, msg.content, msg.id);
-      byId("bot-message-list").appendChild(row);
-    }
-    scrollToBottom();
-    byId("bot-loading").classList.add("hidden");
-  } catch (err) {
-    byId("bot-loading").classList.add("hidden");
-    showToast(`Não foi possível carregar histórico: ${err.message}`);
-  }
-}
-
-async function pollBotResponse(botId) {
-  const deadline = Date.now() + 120_000;
+async function pollBotResponse(bot, previousMessageCount) {
+  const deadline = Date.now() + BOT_TURN_TIMEOUT_MS;
   while (Date.now() < deadline) {
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    try {
-      const response = await fetch("/api/v1/bots/" + encodeURIComponent(botId) + "/messages");
-      if (!response.ok) continue;
-      const data = await response.json();
-      for (const msg of data.messages || []) {
-        if (msg.id !== state.botTurnId) continue;
-        const row = messageRow(msg.role, msg.content, msg.id);
-        byId("bot-message-list").appendChild(row);
-        scrollToBottom();
-      }
-      if (data.messages && data.messages.some((m) => m.id === state.botTurnId)) return;
-    } catch (err) { /* retry */ }
+    await new Promise((resolve) => setTimeout(resolve, BOT_TURN_POLL_INTERVAL_MS));
+    const messages = await loadBotMessageList(bot);
+    if (messages.slice(previousMessageCount).some((message) => message.role === "assistant")) return true;
   }
+  showToast("O bot ainda está processando. O histórico será atualizado ao reabrir a conversa.");
+  return false;
 }
 
 async function createBot() {
@@ -2714,16 +2665,22 @@ async function createBot() {
   if (!handle) return;
   const objective = prompt("Objetivo do bot:", "");
   const persona = prompt("Persona:", "");
-  const providerId = prompt("Provider:", state.providers[0]?.id || "");
-  const modelId = prompt("Modelo:", state.providers[0]?.models?.[0]?.id || "");
+  const providerId = prompt("Provider:", "codex");
+  if (!providerId) return;
+  let modelId = "";
   try {
-    const response = await fetch("/api/v1/bots", {
+    const catalog = await loadModels(providerId);
+    modelId = prompt("Modelo (vazio usa o padrão):", catalog.models.find((model) => model.default)?.id || "") || "";
+  } catch (err) {
+    showToast(`Não foi possível carregar modelos: ${err.message}`);
+    return;
+  }
+  try {
+    await api("/bots", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, handle, objective, persona, provider_id: providerId, model_id: modelId }),
     });
-    if (!response.ok) throw new Error("create failed");
-    loadBots();
+    await loadBots();
     showToast("Bot criado");
   } catch (err) {
     showToast(`Falha ao criar: ${err.message}`);

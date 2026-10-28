@@ -131,28 +131,33 @@ func (s *Session) ProcessMessage(ctx context.Context, content string, attachment
 
 	// Confirm the conversation exists on the personalagent side before
 	// starting a turn; this keeps the bot aligned with the shared store.
-	_, err = s.pa.Conversation(bot.ID)
+	conversation, err := s.pa.BotConversation(bot.ID)
 	if err != nil {
-		if errors.Is(err, personalagent.ErrNotFound) {
-			// No conversation yet for this bot; create a dedicated one.
-			_, err = personalagent.CreateConversationForBot(ctx, s.pa, bot.ID, bot.Handle)
-			if err != nil {
-				return "", fmt.Errorf("create bot conversation: %w", err)
-			}
-			bot.LastPrompt = content
-			if err := s.svc.botStore.Save(ctx, bot); err != nil {
-				return "", err
-			}
-		} else {
+		if !errors.Is(err, personalagent.ErrNotFound) && !errors.Is(err, os.ErrNotExist) {
 			return "", err
 		}
+		selection := personalagent.Selection{
+			ProviderID:      bot.Selection.ProviderID,
+			ModelID:         bot.Selection.ModelID,
+			ReasoningEffort: bot.Selection.ReasoningEffort,
+			ApprovalPolicy:  "on-request",
+			RoutingMode:     personalagent.RoutingModeManual,
+		}
+		created, err := personalagent.CreateConversationForBot(
+			ctx, s.pa, bot.ID, bot.Handle, bot.WorkspaceDir, selection,
+		)
+		if err != nil {
+			return "", fmt.Errorf("create bot conversation: %w", err)
+		}
+		conversation = *created
 	}
 
+	prompt := botPrompt(bot, content)
 	s.mu.Lock()
-	s.bot.LastPrompt = content
+	s.bot.LastPrompt = prompt
 	s.mu.Unlock()
 
-	turnID, err = s.pa.StartTurn(bot.ID, content, attachments)
+	turnID, err = s.pa.StartTurn(conversation.ID, prompt, attachments)
 	if err != nil {
 		s.mu.Lock()
 		s.bot.LastError = err.Error()

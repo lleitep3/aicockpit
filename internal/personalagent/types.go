@@ -166,6 +166,7 @@ type Conversation struct {
 	SchemaVersion        int                   `json:"schema_version"`
 	ID                   string                `json:"id"`
 	AssistantMode        bool                  `json:"assistant_mode,omitempty"`
+	BotID                string                `json:"bot_id,omitempty"`
 	Archived             bool                  `json:"archived,omitempty"`
 	ProjectID            string                `json:"project_id,omitempty"`
 	ParentConversationID string                `json:"parent_conversation_id,omitempty"`

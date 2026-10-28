@@ -286,6 +286,38 @@ func TestRoutingHTTPChangesProviderThroughSameOriginPreviewProxy(t *testing.T) {
 	}
 }
 
+func TestCreateConversationForBotKeepsDedicatedWorkspaceAndHidesSummary(t *testing.T) {
+	service, _ := newRoutingTestService(t)
+	workspace := t.TempDir()
+	conversation, err := CreateConversationForBot(
+		context.Background(),
+		service,
+		"bot-one",
+		"Bot One",
+		workspace,
+		Selection{
+			ProviderID:     "codex",
+			ModelID:        "model-fast",
+			ApprovalPolicy: "on-request",
+			RoutingMode:    RoutingModeManual,
+		},
+	)
+	if err != nil {
+		t.Fatalf("CreateConversationForBot() error = %v", err)
+	}
+	if !conversation.AssistantMode || conversation.BotID != "bot-one" ||
+		conversation.Workspace != workspace || conversation.Selection.ModelID != "model-fast" {
+		t.Fatalf("bot conversation = %+v", conversation)
+	}
+	summaries, err := service.ConversationSummaries()
+	if err != nil {
+		t.Fatalf("ConversationSummaries() error = %v", err)
+	}
+	if len(summaries) != 0 {
+		t.Fatalf("ConversationSummaries() = %+v, want bot session hidden", summaries)
+	}
+}
+
 func TestHTTPServesSandboxedLinkPreview(t *testing.T) {
 	service, _ := newRoutingTestService(t)
 	const host = "127.0.0.1:4321"

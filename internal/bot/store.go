@@ -21,6 +21,22 @@ type Store struct {
 	mu        sync.RWMutex
 }
 
+func validBotID(id string) bool {
+	if id == "" || len(id) > 64 {
+		return false
+	}
+	for _, char := range id {
+		if (char >= 'a' && char <= 'z') ||
+			(char >= 'A' && char <= 'Z') ||
+			(char >= '0' && char <= '9') ||
+			char == '-' || char == '_' {
+			continue
+		}
+		return false
+	}
+	return true
+}
+
 // NewStore creates a bot store under directory (created if missing).
 func NewStore(directory string) (*Store, error) {
 	if err := os.MkdirAll(directory, 0o700); err != nil {
@@ -44,6 +60,9 @@ func (s *Store) Save(ctx context.Context, bot *Bot) error {
 	if bot.ID == "" {
 		return errors.New("bot id is empty")
 	}
+	if !validBotID(bot.ID) {
+		return fmt.Errorf("invalid bot id %q", bot.ID)
+	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -63,6 +82,9 @@ func (s *Store) Save(ctx context.Context, bot *Bot) error {
 
 // Load returns a bot by id, or ErrNotFound when it does not exist.
 func (s *Store) Load(ctx context.Context, id string) (*Bot, error) {
+	if !validBotID(id) {
+		return nil, fmt.Errorf("invalid bot id %q", id)
+	}
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	bot, err := s.loadInternal(id)
@@ -111,7 +133,7 @@ func (s *Store) List(ctx context.Context) ([]*Bot, error) {
 			continue
 		}
 		id := strings.TrimSuffix(entry.Name(), ".json")
-		if id == "" {
+		if !validBotID(id) {
 			continue
 		}
 		bot, err := s.loadInternal(id)
@@ -128,6 +150,9 @@ func (s *Store) List(ctx context.Context) ([]*Bot, error) {
 
 // Delete removes a bot file and returns errors as ErrNotFound when missing.
 func (s *Store) Delete(ctx context.Context, id string) error {
+	if !validBotID(id) {
+		return fmt.Errorf("invalid bot id %q", id)
+	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	path := s.filePath(id)
@@ -152,6 +177,9 @@ func BotWorkspace(id string, baseDir string) string {
 // MakeBotFolder creates the per-bot directory (profile, state, logs) and returns
 // the path. It is safe to call repeatedly.
 func MakeBotFolder(id, baseDir string) (string, error) {
+	if !validBotID(id) {
+		return "", fmt.Errorf("invalid bot id %q", id)
+	}
 	dir := BotWorkspace(id, baseDir)
 	if err := os.MkdirAll(dir, 0o700); err != nil {
 		return "", fmt.Errorf("create bot folder %s: %w", dir, err)
