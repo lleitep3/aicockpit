@@ -1,0 +1,2056 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="AI Harness Engineering Platform">
+      
+      
+      
+        <link rel="canonical" href="https://lleitep3.github.io/aicockpit/plans/FLOW-002-UC-002-assistente-operacional-cockpit/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
+    
+    
+      
+        <title>FLOW-002 — Assistente operacional do Cockpit - AICockpit</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#flow-002-assistente-operacional-do-cockpit" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="AICockpit" class="md-header__button md-logo" aria-label="AICockpit" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AICockpit
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              FLOW-002 — Assistente operacional do Cockpit
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/lleitep3/aicockpit" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lleitep3/aicockpit
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../QUICK_START/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Quick Start
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../FEATURES/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Features
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../PRODUCT_VISION/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Visão de produto
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../architecture/01-overview/" class="md-tabs__link">
+          
+  
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../vault/" class="md-tabs__link">
+          
+  
+  
+  Vault
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../LOGGING_AND_METRICS/" class="md-tabs__link">
+          
+  
+  
+  Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../INSTALLATION.md" class="md-tabs__link">
+          
+  
+  
+  Installation
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../CONTRIBUTING/" class="md-tabs__link">
+          
+  
+  
+  Contributing
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="AICockpit" class="md-nav__button md-logo" aria-label="AICockpit" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    AICockpit
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/lleitep3/aicockpit" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lleitep3/aicockpit
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../QUICK_START/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quick Start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../FEATURES/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Features
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../PRODUCT_VISION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Visão de produto
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/01-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/07-project-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/canonical-compiler.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Canonical Compiler
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/04-package-registries/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Registries
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/05-vault-system/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Vault System
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/06-knowledge-base/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Knowledge Base
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Vault
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Vault
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vault/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Índice
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vault/vault-state-v2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Estado de lock v2
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vault/vault-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guia
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vault/vault-lock-unlock-implementation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lock e unlock
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vault/vault-package-usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Uso por pacotes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vault/vault-usage-examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exemplos
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_7" id="__nav_6_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Histórico
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Histórico
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vault/vault-comparison/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Comparação
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vault/vault-master-pass-solution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Master pass
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vault/vault-production-solution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Produção
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vault/vault-real-security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Segurança real
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vault/vault-security-analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Análise
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vault/vault-security-answer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resposta
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vault/vault-security-evolution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evolução
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vault/vault-three-points-answer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Três pontos
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../LOGGING_AND_METRICS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logging & Metrics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tracking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tracking de Pacotes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../COMMAND_DOCUMENTATION_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Command Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Installation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../INSTALLATION.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../INSTALLATION_SCRIPTS.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scripts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../INSTALLATION_OPTIONS.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Options
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Contributing
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CONTRIBUTING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../AGENTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AI Agents Directives
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="flow-002-assistente-operacional-do-cockpit">FLOW-002 — Assistente operacional do Cockpit<a class="headerlink" href="#flow-002-assistente-operacional-do-cockpit" title="Permanent link">&para;</a></h1>
+<p><strong>Caso de uso:</strong> UC-002 — Consultar conversas e agir em um chat com autorização<br />
+<strong>Status:</strong> implemented_initial_slice<br />
+<strong>Escopo:</strong> app_and_api</p>
+<h2 id="1-ator-e-objetivo">1. Ator e objetivo<a class="headerlink" href="#1-ator-e-objetivo" title="Permanent link">&para;</a></h2>
+<p>O usuário local quer conversar com um assistente dentro do Cockpit e pedir que
+a IA compatível consulte informações do próprio Cockpit ou
+prepare uma ação em uma conversa existente. O assistente pode resumir
+conversas e preparar uma mensagem para outro chat, mas não pode executar uma
+escrita sem autorização explícita do usuário.</p>
+<p><strong>Resultado observável:</strong> uma conversa dedicada ao assistente registra a
+solicitação, resposta, consultas a ferramentas e decisões de autorização. Uma
+mensagem só chega ao chat de destino depois de o usuário aprovar o texto exato
+e o destino.</p>
+<h2 id="2-evidencias-e-limites-existentes">2. Evidências e limites existentes<a class="headerlink" href="#2-evidencias-e-limites-existentes" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>FLOW-001-UC-001-cockpit-personal-agent.md</code> define conversas locais, adapters
+  de provider, seleção de modelo, streaming, aprovação de ações solicitadas
+  pelo CLI e histórico canônico.</li>
+<li>O runtime já expõe leitura de providers/modelos, projetos e conversas, além
+  de criação de conversa, atualização de seleção, envio de mensagem,
+  cancelamento e decisão de aprovações.</li>
+<li>O Personal Agent agora oferece uma sessão dedicada “Assistente Cockpit” e
+  endpoints locais autenticados para ferramentas e decisões.</li>
+<li>Os adapters atuais apresentam respostas em texto; não se deve pressupor que
+  todos suportem tool calling nem interpretar texto livre como autorização.</li>
+<li>O serviço local usa loopback, token de sessão e validação de origem. O
+  usuário do desktop é a autoridade local; não há modelo multiusuário definido
+  para este fluxo.</li>
+</ul>
+<h2 id="3-pre-condicoes">3. Pré-condições<a class="headerlink" href="#3-pre-condicoes" title="Permanent link">&para;</a></h2>
+<ol>
+<li>O serviço local do Personal Agent está iniciado e autenticado para a sessão
+   local do Cockpit.</li>
+<li>Codex está instalado/autenticado e seu adapter declara suporte a ferramentas
+   estruturadas.</li>
+<li>O assistente está em uma conversa/sessão própria, distinta dos chats que ele
+   consulta ou altera.</li>
+<li>Conversas de destino são identificadas por IDs obtidos do próprio runtime;
+   o modelo não recebe ferramentas de filesystem/shell do Cockpit. O Codex
+   roda em workspace separado e somente leitura; pedidos de aprovação de
+   comandos/alterações são sempre recusados.</li>
+<li>A interface mostra qual provider/modelo está conduzindo o assistente.</li>
+</ol>
+<h2 id="4-fluxo-principal">4. Fluxo principal<a class="headerlink" href="#4-fluxo-principal" title="Permanent link">&para;</a></h2>
+<ol>
+<li>O usuário abre “Assistente Cockpit”. A primeira versão seleciona Codex e um
+   modelo selecionável; outros providers continuam indisponíveis para este modo.</li>
+<li>O usuário pede, por exemplo: “Resuma a conversa sobre o desktop e prepare
+   uma resposta no mesmo chat”.</li>
+<li>O runtime envia a solicitação ao provider com a lista de ferramentas
+   permitidas e valida cada chamada recebida contra um registro tipado.</li>
+<li>O assistente pode pesquisar títulos/IDs de projeto em até 50 conversas e
+   ler as últimas 20 mensagens, limitadas a 8.000 bytes por mensagem. Anexos
+   não são transferidos; o resultado da ferramenta e o transcript são dados
+   não confiáveis.</li>
+<li>O assistente apresenta o resumo e uma prévia da ação proposta: conversa de
+   destino, provider/modelo do próximo turno e texto integral da mensagem.</li>
+<li>O usuário aprova ou rejeita essa ação na UI. A aprovação vale apenas para o
+   payload exibido e não é inferida de texto como “sim” emitido pelo modelo.</li>
+<li>Após aprovação, o runtime revalida destino, seleção e estado da conversa,
+   inicia exatamente um turno no chat escolhido e mostra seu progresso.</li>
+<li>A conversa do assistente registra o resultado da ferramenta e uma referência
+   ao turno do chat de destino, sem duplicar ou substituir o transcript desse
+   chat.</li>
+</ol>
+<h2 id="5-alternativas-e-excecoes">5. Alternativas e exceções<a class="headerlink" href="#5-alternativas-e-excecoes" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Provider sem suporte ao protocolo de ferramentas:</strong> bloquear o modo
+  operacional e explicar quais providers estão aptos; oferecer conversa
+  normal, sem ferramentas.</li>
+<li><strong>Provider retorna chamada inválida/desconhecida:</strong> rejeitar a chamada,
+  registrar erro sanitizado e não executar fallback por shell/texto livre.</li>
+<li><strong>Conversa inexistente ou removida:</strong> não criar um novo destino
+  implicitamente; pedir que o usuário escolha uma conversa existente.</li>
+<li><strong>Chat de destino com turno ativo:</strong> não enfileirar nem interromper
+  silenciosamente; informar o estado e deixar o usuário decidir o próximo
+  passo.</li>
+<li><strong>Ação rejeitada ou autorização expirada:</strong> registrar a decisão, não chamar a
+  API mutável e preservar a conversa do assistente.</li>
+<li><strong>Payload ou seleção alterados depois da prévia:</strong> invalidar a autorização e
+  exigir nova proposta.</li>
+<li><strong>Falha do provider ou da ferramenta:</strong> manter o estado e o diagnóstico
+  sanitizado; não declarar que a ação foi realizada.</li>
+<li><strong>Instruções maliciosas dentro de chats consultados:</strong> tratá-las como dados
+  não confiáveis; não podem alterar ferramentas, escopos ou decisões de
+  autorização.</li>
+<li><strong>Contexto grande demais:</strong> a primeira fatia limita mensagens e marca
+  explicitamente cada mensagem truncada; anexos são omitidos.</li>
+</ul>
+<h2 id="6-estados-e-transicoes">6. Estados e transições<a class="headerlink" href="#6-estados-e-transicoes" title="Permanent link">&para;</a></h2>
+<p>Turno do assistente:</p>
+<p><code>created -&gt; reasoning -&gt; awaiting_approval -&gt; executing -&gt; completed</code></p>
+<p>Leituras sem escrita podem transitar diretamente de <code>reasoning</code> para
+<code>completed</code>. <code>reasoning</code>, <code>awaiting_approval</code> e <code>executing</code> também podem
+terminar em <code>failed</code> ou <code>cancelled</code>. Uma autorização rejeitada termina a ação
+como <code>rejected</code>, sem criar turno no chat de destino.</p>
+<p>A autorização é de uso único, associada a um <code>action_id</code>, à conversa de
+destino, à seleção efetiva e a um SHA-256 do payload exibido. Ela expira após
+10 minutos; ações pendentes ou aprovadas sem resultado são invalidadas se a
+sessão do assistente for interrompida. Repetir a confirmação não pode iniciar
+um segundo turno.</p>
+<h2 id="7-autorizacao-e-limites">7. Autorização e limites<a class="headerlink" href="#7-autorizacao-e-limites" title="Permanent link">&para;</a></h2>
+<ul>
+<li>O assistente herda a identidade e os limites da sessão local; não ganha
+  privilégios adicionais por ser IA.</li>
+<li>A UI consulta providers/modelos por endpoints existentes e escolhe Codex.
+  Ferramentas disponíveis ao modelo: <code>list_conversations</code>,
+  <code>read_conversation</code> e <code>propose_send_message</code>.</li>
+<li>A única mutação permitida na primeira fatia é enviar uma mensagem em uma
+  conversa existente, após aprovação explícita da prévia.</li>
+<li>Criar/excluir projetos ou conversas, mudar configuração global, mudar
+  permissões, decidir aprovações de ferramentas do provider, cancelar turnos
+  de destino e executar shell ficam fora da primeira fatia. O usuário pode
+  cancelar apenas o próprio turno do assistente.</li>
+<li>Chamadas de ferramenta usam schemas estritos, limites de resultado, timeout
+  de aprovação e cancelamento. O backend valida novamente cada ID, estado e
+  payload.</li>
+<li>Nenhum endpoint de ferramenta aceita path, shell, URL arbitrária, expressão
+  de busca executável ou política de aprovação fornecida pelo modelo.</li>
+<li>A seleção efetiva de provider/modelo, sandbox e política de aprovação do chat
+  de destino permanecem sob as regras do FLOW-001; o assistente não pode
+  sobrescrevê-las silenciosamente.</li>
+<li>Resultado de ferramenta, texto de chat e saída de provider são conteúdo não
+  confiável. Não entram em logs como instruções nem podem emitir autorização.</li>
+</ul>
+<h2 id="8-eventos-de-auditoria">8. Eventos de auditoria<a class="headerlink" href="#8-eventos-de-auditoria" title="Permanent link">&para;</a></h2>
+<p>Cada turno do assistente deve registrar, com horário UTC e sem credenciais:</p>
+<ul>
+<li>provider/modelo, IDs do turno do assistente e da sessão local;</li>
+<li>nome/versionamento da ferramenta, operação de leitura ou escrita e IDs de
+  recursos consultados/alterados;</li>
+<li>estado da execução, duração e erro sanitizado quando houver;</li>
+<li>para escrita, <code>action_id</code>, hash do payload confirmado, decisão do usuário,
+  horário da decisão e ID do turno criado no destino;</li>
+<li>referências às mensagens consultadas, sem duplicar transcript em logs de
+  execução.</li>
+</ul>
+<p>O transcript do assistente é a trilha local de revisão desta primeira fatia.
+Política de retenção, exportação e exclusão precisa acompanhar a política do
+histórico de conversas do FLOW-001.</p>
+<h2 id="9-contrato-implementado">9. Contrato implementado<a class="headerlink" href="#9-contrato-implementado" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>GET /api/v1/assistant/providers</code>: providers com suporte declarado a
+  ferramentas estruturadas.</li>
+<li><code>GET /api/v1/assistant/sessions</code>: lista sessões dedicadas.</li>
+<li><code>POST /api/v1/assistant/sessions</code>: inicia sessão dedicada com <code>model_id</code> e
+  esforço opcional; a primeira versão usa Codex.</li>
+<li><code>POST /api/v1/assistant/sessions/{id}/messages</code>: envia pedido do usuário e
+  retorna <code>turn_id</code>.</li>
+<li><code>GET /api/v1/assistant/sessions/{id}/turns/{turn_id}/events</code>: transmite
+  texto, estado, consultas de ferramenta e ações pendentes por SSE.</li>
+<li><code>POST /api/v1/assistant/sessions/{id}/actions/{action_id}/decision</code> recebe
+  <code>{ "decision": "approve" | "reject" }</code>. Aprovação só vale para a prévia
+  persistida e o payload validado pelo backend.</li>
+<li><code>GET /api/v1/assistant/sessions/{id}</code>: retorna transcript, estado e auditoria
+  sem credenciais. O cancelamento usa o endpoint existente de turnos em
+  <code>/api/v1/conversations/{id}/turns/{turn_id}/cancel</code>.</li>
+</ul>
+<p>O adapter Codex usa chamadas estruturadas do Codex App Server (<code>dynamicTools</code>
+e <code>item/tool/call</code>). Cada turno do assistente inicia uma thread com ferramentas
+configuradas e transfere o histórico canônico da sessão, sem depender de
+ferramentas restauradas implicitamente em threads nativas. JSON em texto livre
+nunca é executado como ferramenta.</p>
+<h2 id="10-dados-ficticios-reprodutiveis">10. Dados fictícios reprodutíveis<a class="headerlink" href="#10-dados-ficticios-reprodutiveis" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Workspace: <code>ws-demo</code>, diretório temporário.</li>
+<li>Provider falso: <code>codex</code>/<code>model-fast</code> com adapter estruturado em memória; os
+  testes não iniciam CLI real nem usam rede.</li>
+<li>Sessão do assistente: <code>assistant-001</code>; turnos <code>assistant-turn-001</code> e
+  <code>assistant-turn-002</code>.</li>
+<li>Conversas: <code>conv-desktop</code> (concluída, duas mensagens) e <code>conv-active</code>
+  (turno <code>turn-active</code> em execução).</li>
+<li>Mensagem consultada: <code>Como abro a versão atualizada do Personal Agent?</code></li>
+<li>Ação prévia: enviar <code>A versão atual está pronta para teste.</code> para <code>conv-desktop</code>.</li>
+<li>Decisões: aprovação em <code>2026-10-27T12:00:00-03:00</code>; rejeição em
+  <code>2026-10-27T12:05:00-03:00</code>.</li>
+<li>Relógio de teste congelado; timezone <code>America/Sao_Paulo</code>; IDs e ordenação
+  estáveis; nenhum CLI real iniciado.</li>
+</ul>
+<h2 id="11-criterios-de-aceite-verificaveis">11. Critérios de aceite verificáveis<a class="headerlink" href="#11-criterios-de-aceite-verificaveis" title="Permanent link">&para;</a></h2>
+<ol>
+<li>O assistente só fica disponível com provider/modelo cujo adapter declare
+   suporte explícito a ferramentas estruturadas.</li>
+<li>O assistente lista e lê conversas por ID autorizado, sem alterar seus
+   transcripts.</li>
+<li>Tentativa de enviar mensagem apresenta destino, texto exato e seleção do
+   próximo turno antes de qualquer mutação.</li>
+<li>Sem aprovação explícita do usuário, nenhum turno é criado no chat de destino.</li>
+<li>Aprovação de uma prévia não autoriza payload diferente, segundo envio nem
+   conversa diferente.</li>
+<li>Rejeição, expiração, destino removido e conversa ocupada não causam
+   mutações e são mostrados com estado explícito.</li>
+<li>Chamadas inválidas, provider sem suporte, prompt injection em conteúdo lido
+   e tool desconhecida falham fechadas e deixam evento auditável.</li>
+<li>Histórico do assistente referencia consultas e resultado do destino sem
+   sobrescrever histórico/proveniência do chat alvo.</li>
+<li>O usuário consegue cancelar um turno do assistente; cancelar não cancela
+   automaticamente uma ação já aprovada nem um turno de destino sem nova
+   confirmação.</li>
+<li>Testes usam providers, ferramentas, relógio e conversas falsos; não
+    dependem de credenciais ou rede.</li>
+</ol>
+<h2 id="12-telas-e-estados">12. Telas e estados<a class="headerlink" href="#12-telas-e-estados" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Tela</th>
+<th>Estado/resultado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Assistente Cockpit</td>
+<td>conversa dedicada, seleção de provider/modelo compatível</td>
+</tr>
+<tr>
+<td>Seleção de provider</td>
+<td>capacidade de ferramentas e indisponibilidade visíveis</td>
+</tr>
+<tr>
+<td>Linha do tempo do assistente</td>
+<td>mensagens, consultas, plano, execução e referências</td>
+</tr>
+<tr>
+<td>Prévia de ação</td>
+<td>conversa de destino, provider/modelo, texto exato, aprovar/rejeitar</td>
+</tr>
+<tr>
+<td>Resultado da ação</td>
+<td>sucesso/falha e link para turno do chat de destino</td>
+</tr>
+<tr>
+<td>Chat de destino</td>
+<td>turno normal, com proveniência e controles já definidos no FLOW-001</td>
+</tr>
+</tbody>
+</table>
+<h2 id="decisoes-aceitas">Decisões aceitas<a class="headerlink" href="#decisoes-aceitas" title="Permanent link">&para;</a></h2>
+<ul>
+<li>O usuário local é a única autoridade para aprovar mutações em chats.</li>
+<li>O assistente usa uma sessão dedicada, não transforma uma conversa normal em
+  agente executor implicitamente.</li>
+<li>Ferramentas do Cockpit são tipadas e limitadas; não há shell arbitrário.</li>
+<li>Ler chats é separado de enviar mensagens; mensagens só são enviadas depois de
+  aprovação da prévia exata.</li>
+<li>O protocolo de ferramentas precisa ser estruturado no adapter; saída em texto
+  livre nunca é executada como comando.</li>
+<li>A primeira integração é Codex App Server, com aprovação por ação obrigatória.</li>
+</ul>
+<h2 id="implementado-na-primeira-fatia">Implementado na primeira fatia<a class="headerlink" href="#implementado-na-primeira-fatia" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Pesquisar títulos/IDs de projeto em até 50 conversas e ler as últimas 20
+  mensagens de um chat, limitadas a 8.000 bytes por mensagem, com IDs auditados.</li>
+<li>Preparar uma mensagem, exibir texto/destino/modelo e enviar somente após uma
+  aprovação única, válida por 10 minutos.</li>
+<li>Codex recebe ferramentas via <code>dynamicTools</code>; chamadas inválidas ou
+  desconhecidas falham fechadas e são auditadas.</li>
+</ul>
+<h2 id="perguntas-abertas-e-proximo-passo">Perguntas abertas e próximo passo<a class="headerlink" href="#perguntas-abertas-e-proximo-passo" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Pergunta</th>
+<th>Responsável</th>
+<th>Próximo passo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Qual política de retenção para sessões, planos, payloads e auditoria do assistente?</td>
+<td>Produto</td>
+<td>Alinhar com exportação/exclusão do FLOW-001</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Limite desta entrega:</strong> o assistente atua somente em conversas existentes e
+só pode enviar mensagens após aprovação. Criar/editar projetos, executar
+comandos e operar outros chats ficam fora deste caso de uso e exigem novos
+critérios de autorização e testes.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "toc.integrate", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c21346df.min.js"></script>
+      
+    
+  </body>
+</html>

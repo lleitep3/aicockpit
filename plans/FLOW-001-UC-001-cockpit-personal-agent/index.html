@@ -1,0 +1,2239 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="AI Harness Engineering Platform">
+      
+      
+      
+        <link rel="canonical" href="https://lleitep3.github.io/aicockpit/plans/FLOW-001-UC-001-cockpit-personal-agent/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
+    
+    
+      
+        <title>FLOW-001 — Conversar com um agente CLI local - AICockpit</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#flow-001-conversar-com-um-agente-cli-local" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="AICockpit" class="md-header__button md-logo" aria-label="AICockpit" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AICockpit
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              FLOW-001 — Conversar com um agente CLI local
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/lleitep3/aicockpit" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lleitep3/aicockpit
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../QUICK_START/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Quick Start
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../FEATURES/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Features
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../PRODUCT_VISION/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Visão de produto
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../architecture/01-overview/" class="md-tabs__link">
+          
+  
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../vault/" class="md-tabs__link">
+          
+  
+  
+  Vault
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../LOGGING_AND_METRICS/" class="md-tabs__link">
+          
+  
+  
+  Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../INSTALLATION.md" class="md-tabs__link">
+          
+  
+  
+  Installation
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../CONTRIBUTING/" class="md-tabs__link">
+          
+  
+  
+  Contributing
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="AICockpit" class="md-nav__button md-logo" aria-label="AICockpit" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    AICockpit
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/lleitep3/aicockpit" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lleitep3/aicockpit
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../QUICK_START/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quick Start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../FEATURES/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Features
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../PRODUCT_VISION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Visão de produto
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/01-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/07-project-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/canonical-compiler.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Canonical Compiler
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/04-package-registries/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Registries
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/05-vault-system/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Vault System
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/06-knowledge-base/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Knowledge Base
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Vault
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Vault
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vault/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Índice
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vault/vault-state-v2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Estado de lock v2
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vault/vault-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guia
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vault/vault-lock-unlock-implementation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lock e unlock
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vault/vault-package-usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Uso por pacotes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vault/vault-usage-examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exemplos
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_7" id="__nav_6_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Histórico
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Histórico
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vault/vault-comparison/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Comparação
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vault/vault-master-pass-solution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Master pass
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vault/vault-production-solution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Produção
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vault/vault-real-security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Segurança real
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vault/vault-security-analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Análise
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vault/vault-security-answer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resposta
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vault/vault-security-evolution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evolução
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../vault/vault-three-points-answer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Três pontos
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../LOGGING_AND_METRICS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logging & Metrics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tracking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tracking de Pacotes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../COMMAND_DOCUMENTATION_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Command Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Installation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../INSTALLATION.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../INSTALLATION_SCRIPTS.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scripts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../INSTALLATION_OPTIONS.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Options
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Contributing
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CONTRIBUTING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../AGENTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AI Agents Directives
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="flow-001-conversar-com-um-agente-cli-local">FLOW-001 — Conversar com um agente CLI local<a class="headerlink" href="#flow-001-conversar-com-um-agente-cli-local" title="Permanent link">&para;</a></h1>
+<p><strong>Caso de uso:</strong> UC-001 — Iniciar conversa com um CLI instalado<br />
+<strong>Status:</strong> ready_for_review<br />
+<strong>Escopo:</strong> app_and_api</p>
+<h2 id="1-ator-e-objetivo">1. Ator e objetivo<a class="headerlink" href="#1-ator-e-objetivo" title="Permanent link">&para;</a></h2>
+<p>O usuário do Cockpit quer abrir uma conversa no navegador, ver providers e
+modelos disponíveis, escolher um deles, enviar mensagens e acompanhar as
+respostas. Durante a mesma conversa, pode trocar provider ou modelo sem perder
+o histórico anterior.</p>
+<p><strong>Resultado observável:</strong> uma linha do tempo persistida mostra mensagens,
+respostas e qual provider/modelo processou cada turno. Trocar a seleção afeta os
+próximos turnos e mantém os anteriores para revisão.</p>
+<h2 id="2-evidencias-e-limites-atuais">2. Evidências e limites atuais<a class="headerlink" href="#2-evidencias-e-limites-atuais" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>internal/providers/manager.go</code> compila e publica instruções, skills,
+  permissões e agentes nos formatos de cada provider. Não gerencia processos de
+  conversa.</li>
+<li><code>internal/providers/providers.go</code> detecta executáveis e diretórios; detecção
+  não prova suporte a uma interface de execução não interativa.</li>
+<li><code>docs/architecture/02-provider-compilers.md</code> descreve a fronteira atual como
+  compilador canônico.</li>
+<li>Nesta máquina, <code>codex</code>, <code>devin</code>, <code>claude</code>, <code>copilot</code>, <code>goose</code> e <code>antigravity</code>
+  aparecem no PATH. Codex foi escolhido para a primeira fatia por fornecer
+  <code>app-server</code> com catálogo de modelos, threads, eventos, retomada e interrupção.
+  Codex, Antigravity, GitHub Copilot CLI e Devin têm adapters de conversa; Claude
+  e Goose ainda são apenas detectados. O adapter Devin consulta
+  <code>devin models list --format json</code> e executa turnos via <code>devin --print</code>, sem
+  streaming nem ID de sessão nativa; o histórico canônico é transferido a cada
+  turno.</li>
+<li>O comando instalado <code>cockpit providers detect</code> respondeu <code>unknown command
+  "providers"</code>; confirmar comandos disponíveis no binário deste checkout antes
+  de escolher o ponto de entrada.</li>
+</ul>
+<h2 id="3-pre-condicoes">3. Pré-condições<a class="headerlink" href="#3-pre-condicoes" title="Permanent link">&para;</a></h2>
+<ol>
+<li>O Cockpit local inicia um serviço para a interface web.</li>
+<li>Há ao menos um adapter de runtime compatível com um CLI instalado e
+   autenticado pelo próprio CLI.</li>
+<li>O adapter informa catálogo de modelos e se consegue selecionar cada modelo.
+   A origem do catálogo pode ser introspecção do CLI, configuração local ou
+   lista administrada; Cockpit não deve inventar modelos como se estivessem
+   disponíveis.</li>
+<li>O usuário escolheu ou autorizou uma pasta de trabalho para a sessão.</li>
+<li>O serviço e a interface rodam na mesma máquina e sob a conta local do
+   usuário.</li>
+</ol>
+<h2 id="4-fluxo-principal-proposto">4. Fluxo principal proposto<a class="headerlink" href="#4-fluxo-principal-proposto" title="Permanent link">&para;</a></h2>
+<ol>
+<li>Usuário inicia a interface Cockpit local.</li>
+<li>Cockpit mostra providers e modelos, com disponibilidade, suporte à seleção e
+   origem/horário do catálogo.</li>
+<li>Usuário cria conversa e escolhe provider, modelo e pasta de trabalho.</li>
+<li>Usuário envia uma mensagem.</li>
+<li>O runtime valida provider, modelo, pasta, estado de autorização e tamanho da
+   mensagem.</li>
+<li>O adapter inicia ou retoma a sessão nativa do CLI com argumentos fixos e sem
+   shell intermediário. Ao trocar de provider, cria sessão nativa nova e prepara
+   o contexto a partir da conversa canônica.</li>
+<li>Eventos do CLI são normalizados e enviados à interface em streaming.</li>
+<li>Cockpit persiste mensagem, resposta e metadados do turno na conversa
+   canônica.</li>
+<li>Usuário pode trocar provider/modelo. A linha do tempo não é apagada; o
+   próximo turno registra a nova seleção e a forma de contexto transferido.</li>
+<li>Usuário revê a conversa e os metadados de cada turno.</li>
+</ol>
+<h2 id="5-alternativas-e-excecoes">5. Alternativas e exceções<a class="headerlink" href="#5-alternativas-e-excecoes" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>CLI ausente:</strong> não iniciar processo; mostrar instalação/configuração
+  necessária.</li>
+<li><strong>CLI interativo ou protocolo incompatível:</strong> marcar provider como
+  incompatível; não tentar automatizar entrada de terminal.</li>
+<li><strong>CLI sem autenticação:</strong> informar que a autenticação deve ser concluída no
+  próprio CLI.</li>
+<li><strong>Catálogo não fornecido pelo CLI:</strong> apresentar apenas modelos configurados,
+  marcados como catálogo local/configurado, ou informar que não há modelos
+  detectáveis. Não declarar modelo selecionável sem confirmação do adapter.</li>
+<li><strong>Modelo removido ou indisponível:</strong> preservar conversa e turnos anteriores;
+  negar somente o novo turno e atualizar o estado do catálogo.</li>
+<li><strong>Troca provider/modelo sem retomada nativa:</strong> preservar transcript canônico;
+  criar novo contexto nativo a partir do transcript dentro dos limites do
+  modelo. Se precisar resumir ou não puder transferir contexto, registrar as
+  mensagens de origem e informar o usuário antes de continuar sem contexto.</li>
+<li><strong>Pasta não permitida:</strong> negar a sessão e pedir seleção de pasta autorizada.</li>
+<li><strong>Falha ao iniciar ou erro do processo:</strong> marcar sessão <code>failed</code>, preservar
+  diagnóstico sem incluir credenciais.</li>
+<li><strong>Cancelamento:</strong> encerrar processo e descendentes; marcar sessão
+  <code>cancelled</code>.</li>
+<li><strong>Desconexão da página:</strong> sessão mantém estado no runtime; interface pode
+  reconectar e buscar eventos recentes.</li>
+</ul>
+<h2 id="6-estados">6. Estados<a class="headerlink" href="#6-estados" title="Permanent link">&para;</a></h2>
+<p>Runtime: <code>stopped -&gt; starting -&gt; ready</code>; falha de startup vai para <code>failed</code>.</p>
+<p>Sessão: <code>created -&gt; starting -&gt; streaming -&gt; completed</code>. De <code>starting</code> ou
+<code>streaming</code>, pode ir para <code>failed</code>; de <code>streaming</code>, pode ir para
+<code>cancelling -&gt; cancelled</code>.</p>
+<p>Não permitir novo envio enquanto a sessão estiver <code>starting</code> ou <code>streaming</code>, até
+o adapter declarar suporte a turnos concorrentes.</p>
+<h2 id="7-autorizacao-e-fronteiras-de-execucao-propostas">7. Autorização e fronteiras de execução — propostas<a class="headerlink" href="#7-autorizacao-e-fronteiras-de-execucao-propostas" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Serviço web escuta apenas em <code>127.0.0.1</code>; a porta zero escolhe uma porta livre.</li>
+<li>A página recebe um token aleatório da sessão; a API exige Bearer token e
+  valida o host e <code>Origin</code>. CORS não é habilitado.</li>
+<li>O workspace padrão é <code>~/.cockpit/workspace</code>; <code>cockpit agent --workspace &lt;diretório&gt;</code>
+  permite escolher outro root. Cada thread Codex recebe somente esse root,
+  sandbox <code>workspace-write</code> e política <code>on-request</code>.</li>
+<li>Adapter monta argumentos como array de processo; nunca aceitar comando ou
+  shell arbitrário enviado pela interface.</li>
+<li>Reutilizar a autenticação e o modo de permissão configurados no CLI. Cockpit
+  não deve conceder permissões mais amplas nem expor tokens do CLI ao navegador.</li>
+<li>Registrar metadados de início, provider, pasta, conclusão, falha e
+  cancelamento. Não gravar conteúdo integral da conversa em logs de auditoria.</li>
+<li>Persistir transcript e metadados em armazenamento local para revisão. Não
+  persistir tokens, secrets, ambiente completo ou conteúdo sensível de comandos
+  sem política explícita.</li>
+<li>Separar transcript canônico dos IDs de sessão nativos do provider. Um ID
+  nativo pode ser associado a um ou mais trechos de execução, nunca ser a única
+  cópia do histórico.</li>
+</ul>
+<h3 id="metadados-de-proveniencia-por-turno">Metadados de proveniência por turno<a class="headerlink" href="#metadados-de-proveniencia-por-turno" title="Permanent link">&para;</a></h3>
+<p>Cada turno deve preservar, quando fornecido pelo provider:</p>
+<ul>
+<li>IDs da conversa, mensagem e turno; papel, sequência e horário UTC.</li>
+<li>Provider e ID/nome exato do modelo; origem e horário do catálogo usado na
+  seleção.</li>
+<li>Versões do CLI, adapter e runtime Cockpit; ID opaco da sessão nativa, se
+  houver.</li>
+<li>Workspace/projeto e diretório de execução autorizado.</li>
+<li>Início, fim, duração, estado, exit code e código/resumo de erro sanitizado.</li>
+<li>Perfil de permissões usado; modo de transferência de contexto (por exemplo,
+  <code>provider_native_session</code>, <code>full</code>, <code>summary</code>, <code>none</code>) e IDs das mensagens
+  incluídas.</li>
+<li>Eventos normalizados de ferramentas/ações e aprovações, sem secrets nem
+  transcript bruto de depuração.</li>
+<li>Uso/custo somente quando o CLI informar; valor ausente fica <code>null</code>, nunca
+  estimado.</li>
+</ul>
+<p>O transcript visível fica associado à conversa. A tela de revisão deve mostrar
+proveniência e limitações por turno; os campos não disponíveis no provider
+aparecem como indisponíveis. A política de exportação e exclusão permanece
+aberta.</p>
+<h2 id="8-contrato-inicial-proposta">8. Contrato inicial — proposta<a class="headerlink" href="#8-contrato-inicial-proposta" title="Permanent link">&para;</a></h2>
+<p>API local orientada a conversas e turnos, sem acoplar o contrato principal a uma API de
+modelo:</p>
+<ul>
+<li><code>GET /api/v1/providers</code>: lista providers, capacidades e estado de detecção.</li>
+<li><code>GET /api/v1/providers/{id}/models</code>: lista modelos, origem, instante da
+  descoberta, disponibilidade e suporte à seleção.</li>
+<li><code>GET /api/v1/workspace</code>: informa o único workspace permitido nesta sessão.</li>
+<li><code>POST /api/v1/conversations</code>: cria conversa com seleção inicial de provider,
+  modelo e workspace.</li>
+<li><code>POST /api/v1/conversations/{id}/messages</code>: inicia um turno e retorna seu ID.</li>
+<li><code>GET /api/v1/conversations/{id}/turns/{turn_id}/events</code>: transmite eventos
+  normalizados via SSE; cada turno salva provider/modelo efetivamente usados.</li>
+<li><code>PATCH /api/v1/conversations/{id}/selection</code>: muda provider/modelo padrão
+  para os próximos turnos, sem reescrever a linha do tempo.</li>
+<li><code>POST /api/v1/conversations/{id}/turns/{turn_id}/cancel</code>: solicita
+  cancelamento do turno ativo.</li>
+<li><code>GET /api/v1/conversations/{id}</code>: lê transcript, estado e metadados dos
+  turnos.</li>
+</ul>
+<p>O comando <code>agent</code> não registra os argumentos do workspace nos logs genéricos de
+execução. Transcript, eventos normalizados e metadados ficam no armazenamento
+da conversa; credenciais e ambiente do processo não são persistidos.</p>
+<p>O runtime usa JSON sobre HTTP para comandos e SSE para eventos de turno. O
+histórico canônico fica em um arquivo JSON versionado por conversa, sob
+<code>~/.cockpit/conversations</code>, com escrita atômica e permissões <code>0600</code>; o diretório
+é criado com <code>0700</code>. Os adapters mantêm IDs nativos separados do transcript.
+Para uma prova com Open WebUI, pode existir um gateway temporário compatível
+com OpenAI Chat Completions. Ele não substitui o contrato de runtime próprio
+do Cockpit. A documentação do Open WebUI lista Chat Completions ou Open
+Responses como protocolos de conexão; portanto, CLIs precisam de um
+adapter/gateway para essa prova:
+<a href="https://docs.openwebui.com/getting-started/quick-start/connect-a-provider/starting-with-openai-compatible/">Open WebUI — OpenAI-Compatible</a>.</p>
+<h2 id="9-dados-fixos-para-cenarios">9. Dados fixos para cenários<a class="headerlink" href="#9-dados-fixos-para-cenarios" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Provider A: <code>fixture-codex</code>, modelo <code>model-alpha</code>, executável falso.</li>
+<li>Provider B: <code>fixture-claude</code>, modelo <code>model-beta</code>, executável falso.</li>
+<li>Os dois executáveis emitem eventos conhecidos e não executam comandos do
+  usuário.</li>
+<li>Workspace: <code>ws-demo</code>, diretório temporário criado pelo teste.</li>
+<li>Conversa: <code>conv-001</code>; turnos <code>turn-001</code> e <code>turn-002</code>.</li>
+<li>Mensagens: <code>Resuma o README deste projeto.</code> e <code>Agora explique o ponto 2.</code></li>
+<li>Saídas: Provider A responde <code>Resumo.</code>; Provider B responde <code>Ponto 2.</code>.</li>
+<li>Metadados esperados: provider/modelo, versão do CLI e adapter, timestamps,
+  workspace, estado/exit code, modo de transferência de contexto e referência à
+  sessão nativa, quando disponível.</li>
+<li>Relógio: congelado em <code>2026-10-25T12:00:00-03:00</code>, timezone
+  <code>America/Sao_Paulo</code>.</li>
+</ul>
+<h2 id="10-cenarios-e-criterios-de-aceite">10. Cenários e critérios de aceite<a class="headerlink" href="#10-cenarios-e-criterios-de-aceite" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">Scenario:</span><span class="nf"> listar catálogo de modelos</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="k">  Given </span><span class="nf">fixture-codex retorna model-alpha como selecionável</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nf">  </span><span class="k">When </span><span class="nf">o usuário abre a lista de providers</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="nf">  </span><span class="k">Then </span><span class="nf">Cockpit mostra model-alpha com origem e horário da descoberta</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="k">Scenario:</span><span class="nf"> conversa concluída com provider/modelo selecionado</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="k">  Given </span><span class="nf">fixture-codex, model-alpha e ws-demo autorizados</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="nf">  </span><span class="k">When </span><span class="nf">o usuário envia a primeira mensagem da fixture</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="nf">  </span><span class="k">Then </span><span class="nf">a resposta é exibida e persistida como turno de conv-</span><span class="s">001</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="nf">  </span><span class="k">And </span><span class="nf">os metadados registram fixture-codex e model-alpha</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="k">Scenario:</span><span class="nf"> trocar provider sem perder histórico</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="k">  Given </span><span class="nf">conv-</span><span class="s">001</span><span class="nf"> tem turn-</span><span class="s">001</span><span class="nf"> respondido por fixture-codex/model-alpha</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="nf">  </span><span class="k">When </span><span class="nf">o usuário escolhe fixture-claude/model-beta e envia a segunda mensagem</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="nf">  </span><span class="k">Then </span><span class="nf">turn-</span><span class="s">001</span><span class="nf"> continua visível e inalterado</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="nf">  </span><span class="k">And </span><span class="nf">turn-</span><span class="s">002</span><span class="nf"> registra fixture-claude/model-beta e modo de contexto transferido</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="nf">  </span><span class="k">And </span><span class="nf">o adapter registra quais mensagens anteriores forneceu ao provider</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="k">Scenario:</span><span class="nf"> revisar proveniência de turno</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="k">  Given </span><span class="nf">conv-</span><span class="s">001</span><span class="nf"> tem turnos de providers diferentes</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="nf">  </span><span class="k">When </span><span class="nf">o usuário abre detalhes de turn-</span><span class="s">002</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="nf">  </span><span class="k">Then </span><span class="nf">a interface mostra metadados disponíveis e marca campos indisponíveis</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="nf">  </span><span class="k">And </span><span class="nf">não inventa versão, usage ou identificadores que o CLI não forneceu</span>
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="k">Scenario:</span><span class="nf"> provider indisponível</span>
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="k">  Given </span><span class="nf">o executável do provider não existe</span>
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="nf">  </span><span class="k">When </span><span class="nf">o usuário tenta criar uma sessão</span>
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="nf">  </span><span class="k">Then </span><span class="nf">nenhum processo é iniciado e a interface mostra estado indisponível</span>
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a><span class="nf">  </span><span class="k">And </span><span class="nf">o histórico existente permanece acessível</span>
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>
+<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a><span class="k">Scenario:</span><span class="nf"> pasta fora do escopo</span>
+<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a><span class="k">  Given </span><span class="nf">ws-forbidden não está na lista autorizada</span>
+<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a><span class="nf">  </span><span class="k">When </span><span class="nf">o usuário tenta criar uma sessão com ws-forbidden</span>
+<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a><span class="nf">  </span><span class="k">Then </span><span class="nf">o runtime nega a operação e não inicia o provider</span>
+<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>
+<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a><span class="k">Scenario:</span><span class="nf"> cancelar execução</span>
+<a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a><span class="k">  Given </span><span class="nf">fixture-codex está em streaming</span>
+<a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a><span class="nf">  </span><span class="k">When </span><span class="nf">o usuário solicita cancelamento</span>
+<a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a><span class="nf">  </span><span class="k">Then </span><span class="nf">o processo e seus descendentes são encerrados e o estado vira cancelled</span>
+<a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>
+<a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a><span class="k">Scenario:</span><span class="nf"> origem web não autorizada</span>
+<a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a><span class="k">  Given </span><span class="nf">uma página envia uma mutação com Origin não permitido</span>
+<a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a><span class="nf">  </span><span class="k">When </span><span class="nf">o runtime recebe a requisição</span>
+<a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a><span class="nf">  </span><span class="k">Then </span><span class="nf">a requisição é negada e nenhuma sessão é criada</span>
+</code></pre></div>
+<h3 id="composer-inspirado-no-codex-incremento">Composer inspirado no Codex — incremento<a class="headerlink" href="#composer-inspirado-no-codex-incremento" title="Permanent link">&para;</a></h3>
+<h4 id="decisoes">Decisões<a class="headerlink" href="#decisoes" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Provider e modelo ficam em botões do composer; menus mostram catálogo, origem e
+  disponibilidade. Apenas providers com adapter de conversa podem ser
+  selecionados.</li>
+<li>Esforço de raciocínio é opcional, validado contra o catálogo do modelo e
+  registrado na seleção e no turno. Sem valor explícito, vale o padrão do
+  provider.</li>
+<li>Política de aprovação pertence à seleção da conversa e é copiada para cada
+  turno. <code>on-request</code> é o padrão; <code>never</code> exige escolha explícita. O sandbox
+  permanece <code>workspace-write</code> em ambos os casos.</li>
+<li>Anexos aceitos nesta fatia são arquivos de texto pequenos, persistidos no
+  histórico local e apresentados ao modelo como conteúdo de usuário, marcados
+  como dados não confiáveis. Imagens e arquivos binários não entram no contrato.</li>
+<li>Ditado por voz usa a API de reconhecimento do navegador, somente após clique
+  no microfone. O texto transcrito permanece no campo até ser enviado.</li>
+<li>O roteamento automático usa regras locais determinísticas, sem gastar um
+  turno extra com classificador de IA. A ordem de prioridade é código, pesquisa,
+  raciocínio e, por fim, pedido rápido. Cada regra procura sinais em português
+  e inglês; anexo de código vai para <code>coding</code>. O motivo e o sinal encontrado
+  ficam registrados no turno para revisão.</li>
+<li>A tabela global de rotas configura provider, modelo e esforço por classe. A
+  configuração inicial aponta as quatro classes ao modelo padrão disponível;
+  o usuário pode personalizar cada destino. O modo automático/manual é salvo
+  por conversa. No modo manual, os botões do composer selecionam provider,
+  modelo e esforço sem alterar turnos anteriores.</li>
+<li>O roteador valida o destino contra o catálogo e adapter no momento da
+  execução. Não promete menor custo ou menor latência, pois os CLIs não
+  fornecem esses dados de forma uniforme.</li>
+<li>Conversas nos schemas v1 e v2 ganham defaults (<code>on-request</code>, modo manual,
+  sem esforço e sem anexos) por migração compatível; a próxima gravação salva o
+  schema atual.</li>
+</ul>
+<h4 id="cenarios-para-validacao">Cenários para validação<a class="headerlink" href="#cenarios-para-validacao" title="Permanent link">&para;</a></h4>
+<ol>
+<li>Trocar modelo, esforço ou política altera apenas a seleção dos próximos
+   turnos; mensagens e metadados anteriores continuam idênticos.</li>
+<li>Um provider sem adapter aparece com motivo de indisponibilidade e não pode
+   ser selecionado nem executar turnos.</li>
+<li>Anexo fora da lista de tipos, acima do limite, inválido em UTF-8 ou acima da
+   quantidade permitida é recusado antes de persistir a mensagem.</li>
+<li>Anexos de texto selecionados são guardados no registro da mensagem e
+   enviados ao adapter como dados, sem substituir o texto escrito pelo usuário.</li>
+<li><code>on-request</code> continua exibindo solicitações de aprovação; <code>never</code> é gravado
+   no turno e aplicado pelo app-server Codex sem ampliar o sandbox.</li>
+<li>Sem suporte a reconhecimento de voz, o controle de microfone informa a
+   limitação e não quebra o envio de texto.</li>
+<li>O modo automático classifica a mensagem com a regra e o sinal visíveis,
+   aplica a rota da classe e guarda provider/modelo/esforço efetivamente usados
+   nos metadados do turno. O modo manual segue a seleção do composer.</li>
+<li>Alterar uma regra global só afeta novas mensagens; históricos e decisões de
+   rota anteriores permanecem revisáveis.</li>
+<li>Ao trocar para provider sem sessão nativa, o Cockpit transfere o transcript
+   canônico e registra os IDs de origem. Acima de 1 MiB, bloqueia o turno com
+   mensagem explícita em vez de iniciar sem contexto. Ao voltar a uma sessão
+   nativa anterior depois de usar outro provider, envia também o transcript para
+   incluir os turnos que essa sessão não viu.</li>
+</ol>
+<p>Critérios verificáveis: listar providers/modelos com a origem do catálogo;
+enviar mensagem; mudar provider/modelo mantendo o mesmo transcript; mostrar
+proveniência por turno; mostrar streaming, falha e cancelamento; negar workspace
+não autorizado; recuperar histórico após recarga; rejeitar origem/token
+inválidos. Metadados não fornecidos pelo CLI ficam explicitamente ausentes. Os
+testes usam providers falsos, nunca iniciam CLIs reais.</p>
+<h2 id="11-telas-e-estados">11. Telas e estados<a class="headerlink" href="#11-telas-e-estados" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Tela</th>
+<th>Conteúdo mínimo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Início/conversas</td>
+<td>sessões recentes, criar conversa</td>
+</tr>
+<tr>
+<td>Nova conversa</td>
+<td>provider/modelo detectados, origem do catálogo, capacidades, workspace permitido</td>
+</tr>
+<tr>
+<td>Conversa</td>
+<td>linha do tempo, seleção provider/modelo para próximo turno, streaming, cancelar</td>
+</tr>
+<tr>
+<td>Detalhes do turno</td>
+<td>provider/modelo, versões, timestamps, workspace, estado, eventos e limitações da proveniência</td>
+</tr>
+<tr>
+<td>Providers</td>
+<td>detectado, catálogo, modelos selecionáveis, autenticação pendente, capacidades</td>
+</tr>
+</tbody>
+</table>
+<h2 id="decisoes-aceitas">Decisões aceitas<a class="headerlink" href="#decisoes-aceitas" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Conversa e histórico pertencem ao Cockpit e persistem independentemente da
+  sessão nativa de um CLI.</li>
+<li>A interface lista providers/modelos e permite mudar a seleção dentro da
+  conversa.</li>
+<li>A troca afeta turnos futuros; mensagens e metadados dos turnos anteriores
+  permanecem preservados para revisão.</li>
+<li>Ao trocar provider, Cockpit prepara o contexto do próximo turno a partir do
+  transcript canônico. Se usar resumo ou não transferir mensagens, a interface
+  informa esse limite e os metadados registram a origem do contexto.</li>
+<li>Transcript e metadados de execução devem ser salvos localmente. Nunca salvar
+  credenciais nos metadados.</li>
+<li>Cada turno deve indicar provider/modelo reais usados; campos que o CLI não
+  expõe devem ficar ausentes, não estimados.</li>
+</ul>
+<h2 id="decisoes-adotadas-para-a-primeira-fatia">Decisões adotadas para a primeira fatia<a class="headerlink" href="#decisoes-adotadas-para-a-primeira-fatia" title="Permanent link">&para;</a></h2>
+<ul>
+<li>UI própria do Cockpit, sem gateway Open WebUI.</li>
+<li>Primeiro adapter de runtime: Codex via <code>codex app-server</code>.</li>
+<li>Catálogo de modelos obtido no <code>model/list</code>, com origem e instante da
+  descoberta guardados na seleção e em cada turno.</li>
+<li>O catálogo descreve modelos conhecidos pelo app-server; não comprova
+  entitlement/acesso à conta. A seleção pode falhar ao iniciar o turno, e o
+  estado real é registrado na conclusão da inferência.</li>
+<li>A troca de modelo do Codex vale para o próximo turno e mantém a thread nativa
+  e o transcript canônico. Providers sem adapter aparecem como instalados ou
+  ausentes, mas indisponíveis para execução.</li>
+<li>Persistência inicial em JSON por conversa, com <code>schema_version</code>, IDs de
+  mensagem/turno e gravação atômica; não requer serviço ou dependência de banco.</li>
+<li>API local usa HTTP e SSE. A página mostra proveniência por turno e retoma
+  eventos enquanto o processo estiver ativo.</li>
+<li>O runtime pede sandbox <code>workspace-write</code> e aprovação <code>on-request</code>. Pedidos
+  de comando e alteração de arquivo aguardam escolha explícita na UI; tipos de
+  aprovação ainda não tratados pelo adapter são recusados.</li>
+<li>Integração Hindsight fica para uma etapa posterior, atrás de uma porta de
+  memória separada do runtime e do transcript.</li>
+</ul>
+<h2 id="implementacao-experimental-nesta-branch">Implementação experimental nesta branch<a class="headerlink" href="#implementacao-experimental-nesta-branch" title="Permanent link">&para;</a></h2>
+<p>O comando <code>cockpit agent --workspace &lt;diretório&gt;</code> inicia a interface no
+loopback. O histórico é criado em <code>~/.cockpit/conversations</code>; o runtime lista
+modelos dos adapters disponíveis, cria conversas, envia turnos, troca provider
+ou modelo com transferência do transcript canônico, transmite respostas,
+permite cancelar e pede aprovação para comandos/alterações quando o Codex envia
+essas solicitações. Providers sem adapter de conversa aparecem com estado
+<code>adapter pendente</code>.</p>
+<p>Exportação, exclusão, busca full-text e transferência do conteúdo visual para
+outro provider ainda não fazem parte dessa fatia. O composer aceita arquivos
+de texto e imagens coladas pelo clipboard ou selecionadas do disco; imagens
+são encaminhadas ao Codex, único adapter multimodal nesta implementação. Se
+uma conversa crescer além do contexto, o comportamento de resumo ainda precisa
+ser decidido; o primeiro adapter mantém uma thread Codex e não fabrica um
+resumo.</p>
+<p>O desktop fica em <code>internal/personalagent/desktop</code>: Electron inicia o mesmo
+binário Go, carrega apenas a URL loopback anunciada pelo serviço e encerra o
+processo ao fechar a janela. O empacotamento Linux gera AppImage e <code>.deb</code>; o
+histórico e o roteamento continuam em <code>~/.cockpit/conversations</code>, enquanto o
+workspace padrão permanece em <code>~/.cockpit/workspace</code>.
+As respostas do agente são renderizadas como Markdown (incluindo código,
+listas e tabelas) sem interpretar HTML arbitrário. O histórico mantém os
+conteúdos originais das mensagens.</p>
+<p>O composer também recebe arquivos por arrastar e soltar ou Ctrl+V para
+capturas de tela. A lista de conversas consulta resumos leves periodicamente,
+destaca chats atualizados até serem abertos e permite notificações do sistema
+por opt-in; estados de carregamento ficam visíveis durante operações de chat e
+anexos.</p>
+<p>O caso de uso <code>FLOW-002-UC-002</code> adiciona a sessão separada <strong>Assistente
+Cockpit</strong>, inicialmente apenas com Codex e ferramentas estruturadas para
+pesquisar/ler conversas e propor envio de mensagem. A UI mostra o destino, a
+seleção e o texto exatos; cada envio exige aprovação explícita e única.</p>
+<h2 id="propostas">Propostas<a class="headerlink" href="#propostas" title="Permanent link">&para;</a></h2>
+<ol>
+<li>Fazer o runtime local em Go, separado do compilador de providers existente.</li>
+<li>Criar adapters um a um; cada adapter declara <code>ListModels</code>, <code>SelectModel</code>,
+   streaming, cancelamento, retomada e transferência de contexto como
+   capacidades independentes.</li>
+<li>Fazer UI própria com identidade Cockpit como produto final. Usar Open WebUI
+   apenas como prova descartável do gateway, se isso acelerar a validação.</li>
+<li>Guardar catálogo com origem e <code>discovered_at</code>; atualizar sem apagar a última
+   conversa nem assumir que nomes de modelo são portáveis entre providers.</li>
+<li>Tratar memória pessoal como uma porta separada (<code>MemoryPort</code>). Validar
+   primeiro conversa/sessões; avaliar integração Hindsight depois para
+   <code>retain</code>, <code>recall</code> e <code>reflect</code>, sem misturar memória com execução de CLI.</li>
+<li>Evoluir o armazenamento JSON versionado para SQLite quando busca,
+   concorrência e migrações locais justificarem a dependência; preservar uma
+   migração explícita do schema e os arquivos originais durante a transição.</li>
+</ol>
+<h2 id="perguntas-abertas-e-proximo-passo">Perguntas abertas e próximo passo<a class="headerlink" href="#perguntas-abertas-e-proximo-passo" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Pergunta</th>
+<th>Responsável</th>
+<th>Próximo passo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Quais adapters seguem Codex?</td>
+<td>Engenharia</td>
+<td>Claude Code, Copilot e Goose precisam contratos independentes e fixtures</td>
+</tr>
+<tr>
+<td>Qual política para exportar/apagar histórico e anexos?</td>
+<td>Produto</td>
+<td>Definir antes de implementar gestão de dados</td>
+</tr>
+<tr>
+<td>Como transferir histórico ao trocar provider?</td>
+<td>Engenharia</td>
+<td>Preparar contexto canônico e registrar IDs/origem e modo usado</td>
+</tr>
+<tr>
+<td>Como resumir conversas que excedem o contexto do modelo?</td>
+<td>Engenharia</td>
+<td>Preservar original e registrar IDs de origem do resumo</td>
+</tr>
+<tr>
+<td>Como obter catálogo quando CLI não lista modelos?</td>
+<td>Engenharia</td>
+<td>Usar configuração explícita e mostrar origem/limite</td>
+</tr>
+<tr>
+<td>SQLite ou outro armazenamento local?</td>
+<td>Engenharia</td>
+<td>Reavaliar após requisitos de busca, backup e multi-device</td>
+</tr>
+</tbody>
+</table>
+<p>Próxima ação: executar o protótipo com Codex, revisar o fluxo de aprovação e
+conversar com turnos em modelos diferentes. Antes de adicionar cada novo CLI,
+documentar seu protocolo de modelos, execução, streaming, retomada e aprovação.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "toc.integrate", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c21346df.min.js"></script>
+      
+    
+  </body>
+</html>

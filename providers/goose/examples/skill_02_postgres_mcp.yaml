@@ -1,0 +1,8 @@
+# config.yaml (Goose extensions block)
+extensions:
+  postgres:
+    cmd: npx
+    args:
+      - "-y"
+      - "@modelcontextprotocol/server-postgres"
+      - "postgresql://user:pass@localhost:5432/mydb"
