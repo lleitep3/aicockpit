@@ -29,8 +29,9 @@ cmd/.gemini/
 !internal/providers/testdata/hindsight/**/.agents/
 !internal/providers/testdata/hindsight/**/.agents/**
 !internal/providers/testdata/hindsight/**/.gemini/
-!internal/providers/testdata/hindsight/**/.gemini/**
+!internal/providers/testdata/hindsight/**/.gemini/
 !internal/providers/testdata/hindsight/**/.goosehints
+.playwright-mcp/
 
 # Local .cockpit configuration file
 .cockpit/

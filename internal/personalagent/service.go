@@ -56,6 +56,7 @@ type Service struct {
 	locks     map[string]*sync.Mutex
 	active    map[string]*activeTurn
 	events    *eventHub
+	botStore  any
 }
 
 type activeTurn struct {
@@ -122,7 +123,11 @@ func (s *Service) assistantWorkspace() (string, error) {
 }
 
 func (s *Service) Providers() []Provider {
-	return s.providers.List()
+	providers := s.providers.List()
+	for i := range providers {
+		providers[i].Quota = s.providers.QuotaSnapshot(providers[i].ID)
+	}
+	return providers
 }
 
 func (s *Service) Models(ctx context.Context, providerID string) (Catalog, error) {
@@ -250,6 +255,24 @@ func (s *Service) Conversations() ([]Conversation, error) {
 	return conversations, nil
 }
 
+// AssistantMessages returns the message history for an assistant session.
+func (s *Service) AssistantMessages(sessionID string) (any, error) {
+	convo, err := s.Conversation(sessionID)
+	if err != nil {
+		return nil, err
+	}
+	messages := make([]any, 0, len(convo.Messages))
+	for _, m := range convo.Messages {
+		messages = append(messages, map[string]any{
+			"id":      m.ID,
+			"role":    m.Role,
+			"content": m.Content,
+			"at":      m.CreatedAt,
+		})
+	}
+	return map[string]any{"session_id": sessionID, "messages": messages}, nil
+}
+
 func (s *Service) ConversationSummaries() ([]ConversationSummary, error) {
 	summaries, err := s.store.ListConversationSummaries()
 	if err != nil {
@@ -265,8 +288,42 @@ func (s *Service) Conversation(id string) (Conversation, error) {
 	return s.store.Load(id)
 }
 
+// BotMessages returns the message history for a bot's conversation.
+func (s *Service) BotMessages(botID string) (any, error) {
+	convo, err := s.BotConversation(botID)
+	if err != nil {
+		if errors.Is(err, ErrNotFound) || errors.Is(err, os.ErrNotExist) {
+			return map[string]any{"bot_id": botID, "messages": []any{}}, nil
+		}
+		return nil, err
+	}
+	messages := make([]any, 0, len(convo.Messages))
+	for _, m := range convo.Messages {
+		messages = append(messages, map[string]any{
+			"id":      m.ID,
+			"role":    m.Role,
+			"content": m.Content,
+			"at":      m.CreatedAt,
+		})
+	}
+	return map[string]any{"bot_id": botID, "messages": messages}, nil
+}
+
+func (s *Service) BotConversation(botID string) (Conversation, error) {
+	conversations, err := s.store.List()
+	if err != nil {
+		return Conversation{}, err
+	}
+	for _, conversation := range conversations {
+		if conversation.BotID == botID {
+			return conversation, nil
+		}
+	}
+	return Conversation{}, fmt.Errorf("%w: bot conversation %s", ErrNotFound, botID)
+}
+
 func (s *Service) AssistantProviders() []Provider {
-	providers := s.providers.List()
+	providers := s.Providers()
 	available := make([]Provider, 0, len(providers))
 	for _, provider := range providers {
 		if !provider.Supported || !containsString(provider.Capabilities, "tools") {
@@ -1024,7 +1081,11 @@ func (s *Service) startTurn(
 	}
 	var project *Project
 	sandbox := "workspace-write"
-	if conversation.AssistantMode {
+	if conversation.AssistantMode && conversation.BotID != "" {
+		if conversation.Workspace == "" {
+			return "", errors.New("bot workspace is missing")
+		}
+	} else if conversation.AssistantMode {
 		conversation.Workspace, err = s.assistantWorkspace()
 		if err != nil {
 			return "", err
@@ -1056,11 +1117,14 @@ func (s *Service) startTurn(
 	if approvedAction != nil && conversation.Selection != approvedAction.DestinationConfig {
 		return "", errors.New("destination selection changed after approval")
 	}
+	if err := s.providers.requireQuota(selection.ProviderID); err != nil {
+		return "", err
+	}
 	adapter, ok := s.providers.Adapter(selection.ProviderID)
 	if !ok {
 		return "", fmt.Errorf("provider %q has no conversation adapter", selection.ProviderID)
 	}
-	if conversation.AssistantMode && selection.ProviderID != "codex" {
+	if conversation.AssistantMode && conversation.BotID == "" && selection.ProviderID != "codex" {
 		return "", errors.New("Cockpit assistant sessions require a provider with structured tool support")
 	}
 	if approvedAction != nil && !sameEffectiveSelection(selection, approvedAction.DestinationSelection) {
@@ -2605,5 +2669,188 @@ func (s *Service) selectFallbackAdapter(ctx context.Context, failedProvider stri
 		}
 		return candidate, model.ID, adapter, true
 	}
-	return "", "", nil, false
+	return " ", "", nil, false
+}
+
+// CreateConversationForBot creates a dedicated conversation for a bot, so the
+// bot's personalagent turn layer has a stable container bound to its identity.
+func CreateConversationForBot(
+	ctx context.Context,
+	pa *Service,
+	botID, handle, workspace string,
+	selection Selection,
+) (*Conversation, error) {
+	if pa == nil {
+		return nil, errors.New("personalagent service is nil")
+	}
+	if botID == "" {
+		return nil, errors.New("bot id is required")
+	}
+	lock := pa.conversationLock("bot-conversation:" + botID)
+	lock.Lock()
+	defer lock.Unlock()
+	if existing, err := pa.BotConversation(botID); err == nil {
+		return &existing, nil
+	} else if !errors.Is(err, ErrNotFound) {
+		return nil, err
+	}
+	conversationID, err := NewID("conv_")
+	if err != nil {
+		return nil, err
+	}
+	if selection.ProviderID == "" {
+		providerID, model, _, err := pa.defaultRoute(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("select default bot provider: %w", err)
+		}
+		selection.ProviderID = providerID
+		if selection.ModelID == "" {
+			selection.ModelID = model.ID
+		}
+	} else if selection.ModelID == "" {
+		catalog, err := pa.Models(ctx, selection.ProviderID)
+		if err != nil {
+			return nil, fmt.Errorf("load bot model catalog: %w", err)
+		}
+		model, err := findModel(catalog, "")
+		if err != nil {
+			return nil, fmt.Errorf("select default bot model: %w", err)
+		}
+		selection.ModelID = model.ID
+	}
+	if workspace == "" {
+		workspace = pa.Workspace()
+	}
+	if selection.ApprovalPolicy == "" {
+		selection.ApprovalPolicy = "on-request"
+	}
+	if selection.RoutingMode == "" {
+		selection.RoutingMode = RoutingModeManual
+	}
+	conversation := Conversation{
+		SchemaVersion: CurrentSchemaVersion,
+		ID:            conversationID,
+		Title:         handle,
+		AssistantMode: true,
+		BotID:         botID,
+		Workspace:     workspace,
+		Selection:     selection,
+		Messages:      []Message{},
+		Turns:         []Turn{},
+	}
+	if err := pa.store.Save(conversation); err != nil {
+		return nil, fmt.Errorf("save bot conversation: %w", err)
+	}
+	return &conversation, nil
+}
+
+// ---------------------------------------------------------------------------
+// bot store adapter + bot methods
+// ---------------------------------------------------------------------------
+
+// botStore is the minimal interface the bot.Stor
+type botStore interface {
+	Save(ctx context.Context, bot any) error
+	Load(ctx context.Context, id string) (any, error)
+	List(ctx context.Context) ([]any, error)
+	Delete(ctx context.Context, id string) error
+}
+
+type botManager interface {
+	CreateBot(context.Context, any) (any, error)
+	UpdateBot(context.Context, string, any) (any, error)
+	SendMessage(context.Context, string, string, []Attachment) (string, error)
+	ListObservers(context.Context, string) ([]any, error)
+	CreateObserver(context.Context, string, any, any) (any, error)
+	UpdateObserver(context.Context, string, string, any) (any, error)
+	DeleteObserver(context.Context, string, string) error
+}
+
+func (s *Service) SendBotMessage(ctx context.Context, botID, content string, attachments []Attachment) (string, error) {
+	manager, ok := s.botStore.(botManager)
+	if !ok {
+		return "", fmt.Errorf("bot manager not registered")
+	}
+	return manager.SendMessage(ctx, botID, content, attachments)
+}
+
+// SetBotStore registers the bot store adapter (e.g. a bot.Store) so the bot
+// methods below resolve against it.
+func (s *Service) SetBotStore(botStore botStore) {
+	s.botStore = botStore
+}
+
+// Bots returns every bot, most recently updated first.
+func (s *Service) Bots(ctx context.Context) ([]any, error) {
+	store, ok := s.botStore.(botStore)
+	if !ok {
+		return nil, fmt.Errorf("bot store not registered")
+	}
+	return store.List(ctx)
+}
+
+// GetBot returns one bot by id.
+func (s *Service) GetBot(ctx context.Context, id string) (any, error) {
+	store, ok := s.botStore.(botStore)
+	if !ok {
+		return nil, fmt.Errorf("bot store not registered")
+	}
+	return store.Load(ctx, id)
+}
+
+// CreateBot persists a new bot.
+func (s *Service) CreateBot(ctx context.Context, profile any) (any, error) {
+	manager, ok := s.botStore.(botManager)
+	if !ok {
+		return nil, fmt.Errorf("bot manager not registered")
+	}
+	return manager.CreateBot(ctx, profile)
+}
+
+// UpdateBot applies the supplied fields to a bot.
+func (s *Service) UpdateBot(ctx context.Context, id string, profile any) (any, error) {
+	manager, ok := s.botStore.(botManager)
+	if !ok {
+		return nil, fmt.Errorf("bot manager not registered")
+	}
+	return manager.UpdateBot(ctx, id, profile)
+}
+
+// DeleteBot removes a bot and its folder.
+func (s *Service) DeleteBot(ctx context.Context, id string) error {
+	store, ok := s.botStore.(botStore)
+	if !ok {
+		return fmt.Errorf("bot store not registered")
+	}
+	return store.Delete(ctx, id)
+}
+
+// ListObservers returns every observer for a bot.
+func (s *Service) ListObservers(ctx context.Context, botID string) ([]any, error) {
+	manager, ok := s.botStore.(botManager)
+	if !ok {
+		return nil, fmt.Errorf("bot manager not registered")
+	}
+	return manager.ListObservers(ctx, botID)
+}
+func (s *Service) CreateObserver(ctx context.Context, botID string, kind any, cfg any) (any, error) {
+	manager, ok := s.botStore.(botManager)
+	if !ok {
+		return nil, fmt.Errorf("bot manager not registered")
+	}
+	return manager.CreateObserver(ctx, botID, kind, cfg)
+}
+func (s *Service) UpdateObserver(ctx context.Context, botID, id string, status any) (any, error) {
+	manager, ok := s.botStore.(botManager)
+	if !ok {
+		return nil, fmt.Errorf("bot manager not registered")
+	}
+	return manager.UpdateObserver(ctx, botID, id, status)
+}
+func (s *Service) DeleteObserver(ctx context.Context, botID, id string) error {
+	manager, ok := s.botStore.(botManager)
+	if !ok {
+		return fmt.Errorf("bot manager not registered")
+	}
+	return manager.DeleteObserver(ctx, botID, id)
 }
