@@ -84,11 +84,17 @@ func (a *personalAgentAdapter) ArchiveSession(ctx context.Context, convID string
 }
 
 func (a *personalAgentAdapter) Ask(ctx context.Context, prompt string) (string, error) {
+	// Extract pure user request line if formatted with system prompt
+	rawRequest := prompt
+	if idx := strings.LastIndex(prompt, "PEDIDO DO USUÁRIO:\n"); idx != -1 {
+		rawRequest = strings.TrimSpace(prompt[idx+len("PEDIDO DO USUÁRIO:\n"):])
+	}
+
 	// First check: can we answer deterministically via SQLite without spending tokens?
-	lower := strings.ToLower(prompt)
-	if strings.Contains(lower, "quantas conversas") || strings.Contains(lower, "quais conversas") || strings.Contains(lower, "falam da") || strings.Contains(lower, "falam sobre") {
+	lower := strings.ToLower(rawRequest)
+	if strings.Contains(lower, "quantas conversas") || strings.Contains(lower, "quais conversas") || strings.Contains(lower, "falam da") || strings.Contains(lower, "falam sobre") || strings.Contains(lower, "conversas") {
 		// Extract topic keywords
-		words := strings.Fields(prompt)
+		words := strings.Fields(rawRequest)
 		var keyword string
 		for i, w := range words {
 			if (strings.EqualFold(w, "da") || strings.EqualFold(w, "sobre") || strings.EqualFold(w, "do") || strings.EqualFold(w, "de")) && i+1 < len(words) {
