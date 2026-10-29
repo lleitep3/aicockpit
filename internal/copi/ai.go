@@ -21,20 +21,20 @@ func (e *Engine) AskCopi(ctx context.Context, userRequest string) (string, error
 	return e.source.Ask(ctx, prompt)
 }
 
-// CleanIdleEmptySessions identifies all idle sessions with 0 messages and archives them (0 tokens).
+// CleanIdleEmptySessions identifies all idle sessions with 0 messages and archives/removes them (0 tokens).
 func (e *Engine) CleanIdleEmptySessions(ctx context.Context) (int, error) {
 	if e.source == nil {
 		return 0, fmt.Errorf("nenhum serviço de conversação configurado")
 	}
 
-	summaries, err := e.source.List(ctx, false)
+	// Read all summaries including archived ones so dead files can be cleaned up
+	summaries, err := e.source.List(ctx, true)
 	if err != nil {
 		return 0, fmt.Errorf("listar conversas: %w", err)
 	}
 
 	archivedCount := 0
 	for _, summary := range summaries {
-		// A session is idle/empty if it has 0 messages or default title "Nova conversa" with no turns
 		conv, err := e.source.Get(ctx, summary.ID)
 		if err != nil || conv == nil {
 			continue
@@ -47,7 +47,7 @@ func (e *Engine) CleanIdleEmptySessions(ctx context.Context) (int, error) {
 		}
 	}
 
-	// Rescan updates to update memory state
+	// Rescan updates to refresh memory state
 	_, _ = e.ScanUpdates(ctx)
 	return archivedCount, nil
 }
