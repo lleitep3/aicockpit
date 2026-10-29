@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"os/signal"
@@ -17,6 +16,7 @@ import (
 	"github.com/lleitep3/aicockpit/internal/copi/llm"
 	"github.com/lleitep3/aicockpit/internal/copi/router"
 	"github.com/lleitep3/aicockpit/internal/copi/storage"
+	"github.com/lleitep3/aicockpit/internal/copi/tools"
 	copitui "github.com/lleitep3/aicockpit/internal/copi/tui"
 	"github.com/lleitep3/aicockpit/internal/personalagent"
 	"github.com/spf13/cobra"
@@ -29,6 +29,7 @@ type personalAgentAdapter struct {
 	meta      llm.SystemMeta
 	router    *router.Router
 	intentMgr *intent.Manager
+	toolsExec *tools.Executor
 }
 
 func (a *personalAgentAdapter) List(ctx context.Context, includeArchived bool) ([]personalagent.ConversationSummary, error) {
@@ -170,38 +171,31 @@ func (a *personalAgentAdapter) Ask(ctx context.Context, prompt string) (string, 
 			return fmt.Sprintf("⚠️ Erro na chamada da API LLM direta: %v", err), nil
 		}
 		if resp != "" {
-			if a.intentMgr != nil {
-				a.intentMgr.RecordTurn(rawRequest, resp)
+			// Check if model invoked tool calls (search_kb, search_conversations, run_command)
+			toolCalls := tools.ParseToolCalls(resp)
+			if len(toolCalls) > 0 && a.toolsExec != nil {
+				var toolResults strings.Builder
+				toolResults.WriteString(resp)
+				toolResults.WriteString("\n\n🛠️ [Execução Real de Ferramentas]:\n")
+
+				for _, tc := range toolCalls {
+					out, execErr := a.toolsExec.Execute(ctx, tc.Name, tc.Args)
+					if execErr != nil {
+						toolResults.WriteString(fmt.Sprintf("• [%s] Erro: %v\n", tc.Name, execErr))
+					} else {
+						toolResults.WriteString(fmt.Sprintf("• [%s]:\n%s\n", tc.Name, out))
+					}
+				}
+
+				finalResp := strings.TrimSpace(toolResults.String())
+				if a.intentMgr != nil {
+					a.intentMgr.RecordTurn(rawRequest, finalResp)
+				}
+				return finalResp, nil
 			}
 
-			// Handle potential Tool Call for searching history
-			if strings.Contains(resp, "TOOL_CALL: search_history") && a.db != nil {
-				start := strings.Index(resp, "TOOL_CALL: search_history")
-				callPart := resp[start:]
-				var queryPayload struct {
-					Query string `json:"query"`
-				}
-				if jsonStart := strings.Index(callPart, "{"); jsonStart != -1 {
-					if jsonEnd := strings.Index(callPart[jsonStart:], "}"); jsonEnd != -1 {
-						rawJSON := callPart[jsonStart : jsonStart+jsonEnd+1]
-						_ = json.Unmarshal([]byte(rawJSON), &queryPayload)
-					}
-				}
-				if queryPayload.Query != "" {
-					matches, _ := a.db.SearchConversations(ctx, queryPayload.Query)
-					if len(matches) > 0 {
-						var toolReply strings.Builder
-						toolReply.WriteString(fmt.Sprintf("\n\n🔍 [Resultados da Busca no Banco para %q]:\n", queryPayload.Query))
-						for _, m := range matches {
-							toolReply.WriteString(fmt.Sprintf("  • [%s] \"%s\"\n", m.ID, m.Title))
-						}
-						finalResp := resp + toolReply.String()
-						if a.intentMgr != nil {
-							a.intentMgr.RecordTurn(rawRequest, finalResp)
-						}
-						return finalResp, nil
-					}
-				}
+			if a.intentMgr != nil {
+				a.intentMgr.RecordTurn(rawRequest, resp)
 			}
 
 			return resp, nil
@@ -369,6 +363,7 @@ avisa sobre ações pendentes de aprovação e despacha instruções.`,
 			}
 			localRouter := router.NewRouter(ollamaURL, ollamaModel)
 			intentMgr := intent.NewManager(sandboxDir)
+			toolsExec := tools.NewExecutor(sqliteDB)
 
 			adapter := &personalAgentAdapter{
 				svc:       paSvc,
@@ -377,6 +372,7 @@ avisa sobre ações pendentes de aprovação e despacha instruções.`,
 				meta:      meta,
 				router:    localRouter,
 				intentMgr: intentMgr,
+				toolsExec: toolsExec,
 			}
 			cfg := copi.DefaultConfig(sandboxDir)
 

@@ -88,21 +88,14 @@ func TestTUIRunAndMenuOptions(t *testing.T) {
 	assert.True(t, src.decisions["act_1"])
 }
 
-func TestTUIIdleTimerTrigger(t *testing.T) {
-	tempDir := filepath.Join(os.TempDir(), "copi_tui_idle_test")
+func TestTUIContextCancellation(t *testing.T) {
+	tempDir := filepath.Join(os.TempDir(), "copi_tui_cancel_test")
 	defer os.RemoveAll(tempDir)
 
-	src := &mockSource{
-		summaries: []personalagent.ConversationSummary{{ID: "c1", Title: "Task 1"}},
-		convs: map[string]*personalagent.Conversation{
-			"c1": {ID: "c1", Title: "Task 1"},
-		},
-	}
-
+	src := &mockSource{}
 	engine, err := copi.NewEngine(copi.DefaultConfig(tempDir), src)
 	require.NoError(t, err)
 
-	// In test, pipe blocks without input so timer fires
 	inPipeR, inPipeW, err := os.Pipe()
 	require.NoError(t, err)
 	defer inPipeR.Close()
@@ -111,10 +104,13 @@ func TestTUIIdleTimerTrigger(t *testing.T) {
 	output := &bytes.Buffer{}
 	ui := tui.NewUI(engine, inPipeR, output)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 25*time.Millisecond)
-	defer cancel()
+	ctx, cancel := context.WithCancel(context.Background())
+	go func() {
+		time.Sleep(20 * time.Millisecond)
+		cancel()
+	}()
 
-	// Run with very short context
-	_ = ui.Run(ctx)
-	assert.Contains(t, output.String(), "🤖 Copi — Cockpit Bot Assistant")
+	err = ui.Run(ctx)
+	assert.NoError(t, err)
+	assert.Contains(t, output.String(), "Encerrando Copi. Até logo!")
 }

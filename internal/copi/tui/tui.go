@@ -6,26 +6,23 @@ import (
 	"fmt"
 	"io"
 	"strings"
-	"time"
 
 	"github.com/lleitep3/aicockpit/internal/copi"
 )
 
 // UI handles the interactive terminal session for Copi.
 type UI struct {
-	engine    *copi.Engine
-	in        io.Reader
-	out       io.Writer
-	idleTimer time.Duration
+	engine *copi.Engine
+	in     io.Reader
+	out    io.Writer
 }
 
 // NewUI creates a new TUI instance.
 func NewUI(engine *copi.Engine, in io.Reader, out io.Writer) *UI {
 	return &UI{
-		engine:    engine,
-		in:        in,
-		out:       out,
-		idleTimer: 10 * time.Second,
+		engine: engine,
+		in:     in,
+		out:    out,
 	}
 }
 
@@ -49,10 +46,6 @@ func (u *UI) Run(ctx context.Context) error {
 		}
 	}()
 
-	// 10-second idle timer for automatic scan
-	timer := time.NewTimer(u.idleTimer)
-	defer timer.Stop()
-
 	for {
 		u.printPrompt()
 
@@ -61,10 +54,6 @@ func (u *UI) Run(ctx context.Context) error {
 			fmt.Fprintln(u.out, "\nEncerrando Copi. Até logo!")
 			return nil
 
-		case <-timer.C:
-			fmt.Fprintln(u.out, "\n⏱️ [Automação - 10s]: Verificando atualizações silenciosamente...")
-			u.handleUpdates(ctx)
-
 		case err := <-errChan:
 			if err == io.EOF {
 				return nil
@@ -72,8 +61,6 @@ func (u *UI) Run(ctx context.Context) error {
 			return err
 
 		case input := <-inputChan:
-			timer.Stop() // User interacted, stop idle countdown
-
 			if strings.EqualFold(input, "exit") || strings.EqualFold(input, "quit") || strings.EqualFold(input, "sair") {
 				fmt.Fprintln(u.out, "Até logo!")
 				return nil
@@ -99,7 +86,6 @@ func (u *UI) printMenu() {
 	fmt.Fprintln(u.out, "  [4] Enviar mensagem para uma sessão")
 	fmt.Fprintln(u.out, "  [5] Relatório Consolidado")
 	fmt.Fprintln(u.out, "  [6] Limpar sessões vazias (idle)")
-	fmt.Fprintln(u.out, "\n(Se nada for digitado em 10s, [1] roda automaticamente)")
 }
 
 func (u *UI) printPrompt() {
