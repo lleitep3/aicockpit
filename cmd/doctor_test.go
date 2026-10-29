@@ -314,6 +314,10 @@ func TestRunDoctor_AgentCLIsOptional(t *testing.T) {
 func TestRunDoctor_APITokensOptional(t *testing.T) {
 	prepareDoctorHome(t)
 	log, cfg, tr := newTestDeps(t)
+	if cfg.Agents.APIs == nil {
+		cfg.Agents.APIs = make(map[string]agents.APISettings)
+	}
+	cfg.Agents.APIs["openai"] = agents.APISettings{Provider: "openai"}
 	cfg.Agents.API.Provider = "openai"
 	previous := probeAPITokens
 	t.Cleanup(func() { probeAPITokens = previous })

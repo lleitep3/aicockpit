@@ -12,6 +12,7 @@ import (
 
 	"github.com/lleitep3/aicockpit/internal/config"
 	"github.com/lleitep3/aicockpit/internal/copi"
+	"github.com/lleitep3/aicockpit/internal/copi/llm"
 	"github.com/lleitep3/aicockpit/internal/copi/storage"
 	copitui "github.com/lleitep3/aicockpit/internal/copi/tui"
 	"github.com/lleitep3/aicockpit/internal/personalagent"
@@ -19,8 +20,9 @@ import (
 )
 
 type personalAgentAdapter struct {
-	svc *personalagent.Service
-	db  *storage.DB
+	svc       *personalagent.Service
+	db        *storage.DB
+	llmClient *llm.Client
 }
 
 func (a *personalAgentAdapter) List(ctx context.Context, includeArchived bool) ([]personalagent.ConversationSummary, error) {
@@ -117,6 +119,15 @@ func (a *personalAgentAdapter) Ask(ctx context.Context, prompt string) (string, 
 				}
 				return b.String(), nil
 			}
+		}
+	}
+
+	// If LLM direct client is available, execute via direct API (OpenRouter/OpenAI/Anthropic)
+	if a.llmClient != nil {
+		sysPrompt := "Você é o Copi, o bot mascote e orquestrador autônomo do Cockpit. Seja direto, prático, objetivo e focado em automações."
+		resp, err := a.llmClient.Complete(ctx, sysPrompt, rawRequest)
+		if err == nil && resp != "" {
+			return resp, nil
 		}
 	}
 
@@ -251,7 +262,18 @@ avisa sobre ações pendentes de aprovação e despacha instruções.`,
 				return fmt.Errorf("init personal agent service: %w", err)
 			}
 
-			adapter := &personalAgentAdapter{svc: paSvc, db: sqliteDB}
+			// Initialize direct LLM client (OpenRouter priority)
+			llmCfg := llm.Config{
+				OpenRouterKey:   llm.ResolveAPIKey("OPENROUTER_API_KEY", "openrouter_api_key"),
+				OpenRouterModel: os.Getenv("OPENROUTER_MODEL"),
+				OpenAIKey:       llm.ResolveAPIKey("OPENAI_API_KEY", "openai_api_key"),
+				OpenAIModel:     os.Getenv("OPENAI_MODEL"),
+				AnthropicKey:    llm.ResolveAPIKey("ANTHROPIC_API_KEY", "anthropic_api_key"),
+				AnthropicModel:  os.Getenv("ANTHROPIC_MODEL"),
+			}
+			llmClient := llm.NewClient(llmCfg)
+
+			adapter := &personalAgentAdapter{svc: paSvc, db: sqliteDB, llmClient: llmClient}
 			cfg := copi.DefaultConfig(sandboxDir)
 
 			engine, err := copi.NewEngine(cfg, adapter)
