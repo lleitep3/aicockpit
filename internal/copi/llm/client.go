@@ -130,6 +130,7 @@ type openAIChatRequest struct {
 	Model       string              `json:"model"`
 	Messages    []openAIChatMessage `json:"messages"`
 	Temperature float64             `json:"temperature"`
+	MaxTokens   int                 `json:"max_tokens,omitempty"`
 }
 
 type openAIChatResponse struct {
@@ -151,6 +152,7 @@ func (o *OpenRouter) Complete(ctx context.Context, systemPrompt, userMessage str
 			{Role: "user", Content: userMessage},
 		},
 		Temperature: 0.2,
+		MaxTokens:   2048,
 	}
 
 	bodyBytes, _ := json.Marshal(reqBody)

@@ -126,7 +126,10 @@ func (a *personalAgentAdapter) Ask(ctx context.Context, prompt string) (string, 
 	if a.llmClient != nil {
 		sysPrompt := "Você é o Copi, o bot mascote e orquestrador autônomo do Cockpit. Seja direto, prático, objetivo e focado em automações."
 		resp, err := a.llmClient.Complete(ctx, sysPrompt, rawRequest)
-		if err == nil && resp != "" {
+		if err != nil {
+			return fmt.Sprintf("⚠️ Erro na chamada da API LLM direta: %v", err), nil
+		}
+		if resp != "" {
 			return resp, nil
 		}
 	}
@@ -263,12 +266,20 @@ avisa sobre ações pendentes de aprovação e despacha instruções.`,
 			}
 
 			// Initialize direct LLM client (OpenRouter priority)
+			openRouterKey := os.Getenv("OPENROUTER_API_KEY")
+			if openRouterKey == "" {
+				openRouterKey = llm.ResolveAPIKey("OPENROUTER_API_KEY", "openrouter:api_key")
+			}
+			if openRouterKey == "" {
+				openRouterKey = llm.ResolveAPIKey("OPENROUTER_API_KEY", "openrouter_api_key")
+			}
+
 			llmCfg := llm.Config{
-				OpenRouterKey:   llm.ResolveAPIKey("OPENROUTER_API_KEY", "openrouter_api_key"),
+				OpenRouterKey:   openRouterKey,
 				OpenRouterModel: os.Getenv("OPENROUTER_MODEL"),
-				OpenAIKey:       llm.ResolveAPIKey("OPENAI_API_KEY", "openai_api_key"),
+				OpenAIKey:       llm.ResolveAPIKey("OPENAI_API_KEY", "openai:api_key"),
 				OpenAIModel:     os.Getenv("OPENAI_MODEL"),
-				AnthropicKey:    llm.ResolveAPIKey("ANTHROPIC_API_KEY", "anthropic_api_key"),
+				AnthropicKey:    llm.ResolveAPIKey("ANTHROPIC_API_KEY", "anthropic:api_key"),
 				AnthropicModel:  os.Getenv("ANTHROPIC_MODEL"),
 			}
 			llmClient := llm.NewClient(llmCfg)
