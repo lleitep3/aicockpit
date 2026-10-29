@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/signal"
@@ -23,6 +24,8 @@ type personalAgentAdapter struct {
 	svc       *personalagent.Service
 	db        *storage.DB
 	llmClient *llm.Client
+	meta      llm.SystemMeta
+	history   []llm.ChatTurn
 }
 
 func (a *personalAgentAdapter) List(ctx context.Context, includeArchived bool) ([]personalagent.ConversationSummary, error) {
@@ -124,12 +127,49 @@ func (a *personalAgentAdapter) Ask(ctx context.Context, prompt string) (string, 
 
 	// If LLM direct client is available, execute via direct API (OpenRouter/OpenAI/Anthropic)
 	if a.llmClient != nil {
-		sysPrompt := "Você é o Copi, o bot mascote e orquestrador autônomo do Cockpit. Seja direto, prático, objetivo e focado em automações."
-		resp, err := a.llmClient.Complete(ctx, sysPrompt, rawRequest)
+		sysPrompt := llm.BuildCopiSystemPrompt(a.meta)
+		messages := llm.PrepareChatMessages(sysPrompt, a.history, rawRequest)
+
+		resp, err := a.llmClient.Chat(ctx, messages)
 		if err != nil {
 			return fmt.Sprintf("⚠️ Erro na chamada da API LLM direta: %v", err), nil
 		}
 		if resp != "" {
+			// Append current turn to local history (keeping last 2-4 turns)
+			a.history = append(a.history,
+				llm.ChatTurn{Role: "user", Content: rawRequest},
+				llm.ChatTurn{Role: "assistant", Content: resp},
+			)
+			if len(a.history) > 4 {
+				a.history = a.history[len(a.history)-4:]
+			}
+
+			// Handle potential Tool Call for searching history
+			if strings.Contains(resp, "TOOL_CALL: search_history") && a.db != nil {
+				start := strings.Index(resp, "TOOL_CALL: search_history")
+				callPart := resp[start:]
+				var queryPayload struct {
+					Query string `json:"query"`
+				}
+				if jsonStart := strings.Index(callPart, "{"); jsonStart != -1 {
+					if jsonEnd := strings.Index(callPart[jsonStart:], "}"); jsonEnd != -1 {
+						rawJSON := callPart[jsonStart : jsonStart+jsonEnd+1]
+						_ = json.Unmarshal([]byte(rawJSON), &queryPayload)
+					}
+				}
+				if queryPayload.Query != "" {
+					matches, _ := a.db.SearchConversations(ctx, queryPayload.Query)
+					if len(matches) > 0 {
+						var toolReply strings.Builder
+						toolReply.WriteString(fmt.Sprintf("\n\n🔍 [Resultados da Busca no Banco para %q]:\n", queryPayload.Query))
+						for _, m := range matches {
+							toolReply.WriteString(fmt.Sprintf("  • [%s] \"%s\"\n", m.ID, m.Title))
+						}
+						return resp + toolReply.String(), nil
+					}
+				}
+			}
+
 			return resp, nil
 		}
 	}
@@ -283,8 +323,14 @@ avisa sobre ações pendentes de aprovação e despacha instruções.`,
 				AnthropicModel:  os.Getenv("ANTHROPIC_MODEL"),
 			}
 			llmClient := llm.NewClient(llmCfg)
+			meta := llm.DefaultSystemMeta(sandboxDir)
 
-			adapter := &personalAgentAdapter{svc: paSvc, db: sqliteDB, llmClient: llmClient}
+			adapter := &personalAgentAdapter{
+				svc:       paSvc,
+				db:        sqliteDB,
+				llmClient: llmClient,
+				meta:      meta,
+			}
 			cfg := copi.DefaultConfig(sandboxDir)
 
 			engine, err := copi.NewEngine(cfg, adapter)

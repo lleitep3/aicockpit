@@ -18,6 +18,7 @@ import (
 type Provider interface {
 	Name() string
 	Complete(ctx context.Context, systemPrompt, userMessage string) (string, error)
+	Chat(ctx context.Context, messages []OpenAIChatMessage) (string, error)
 }
 
 // Client manages direct LLM API providers with fallback.
@@ -87,15 +88,15 @@ func ResolveAPIKey(envVar, vaultKey string) string {
 	return ""
 }
 
-// Complete executes prompt against the first functional provider with fallback.
-func (c *Client) Complete(ctx context.Context, systemPrompt, userMessage string) (string, error) {
+// Chat executes conversation turns against the first functional provider with fallback.
+func (c *Client) Chat(ctx context.Context, messages []OpenAIChatMessage) (string, error) {
 	if len(c.providers) == 0 {
-		return "", fmt.Errorf("nenhuma chave de API configurada (defina OPENROUTER_API_KEY ou use 'cockpit vault set openrouter_api_key <key>')")
+		return "", fmt.Errorf("nenhuma chave de API configurada (defina OPENROUTER_API_KEY ou use 'cockpit vault set openrouter:api_key <key>')")
 	}
 
 	var lastErr error
 	for _, p := range c.providers {
-		resp, err := p.Complete(ctx, systemPrompt, userMessage)
+		resp, err := p.Chat(ctx, messages)
 		if err == nil && strings.TrimSpace(resp) != "" {
 			return resp, nil
 		}
@@ -103,6 +104,15 @@ func (c *Client) Complete(ctx context.Context, systemPrompt, userMessage string)
 	}
 
 	return "", lastErr
+}
+
+// Complete executes prompt against the first functional provider with fallback.
+func (c *Client) Complete(ctx context.Context, systemPrompt, userMessage string) (string, error) {
+	messages := []OpenAIChatMessage{
+		{Role: "system", Content: systemPrompt},
+		{Role: "user", Content: userMessage},
+	}
+	return c.Chat(ctx, messages)
 }
 
 // --- OpenRouter Provider ---
@@ -128,7 +138,7 @@ type openAIChatMessage struct {
 
 type openAIChatRequest struct {
 	Model       string              `json:"model"`
-	Messages    []openAIChatMessage `json:"messages"`
+	Messages    []OpenAIChatMessage `json:"messages"`
 	Temperature float64             `json:"temperature"`
 	MaxTokens   int                 `json:"max_tokens,omitempty"`
 }
@@ -144,13 +154,10 @@ type openAIChatResponse struct {
 	} `json:"error,omitempty"`
 }
 
-func (o *OpenRouter) Complete(ctx context.Context, systemPrompt, userMessage string) (string, error) {
+func (o *OpenRouter) Chat(ctx context.Context, messages []OpenAIChatMessage) (string, error) {
 	reqBody := openAIChatRequest{
-		Model: o.model,
-		Messages: []openAIChatMessage{
-			{Role: "system", Content: systemPrompt},
-			{Role: "user", Content: userMessage},
-		},
+		Model:       o.model,
+		Messages:    messages,
 		Temperature: 0.2,
 		MaxTokens:   2048,
 	}
@@ -193,6 +200,14 @@ func (o *OpenRouter) Complete(ctx context.Context, systemPrompt, userMessage str
 	return strings.TrimSpace(parsed.Choices[0].Message.Content), nil
 }
 
+func (o *OpenRouter) Complete(ctx context.Context, systemPrompt, userMessage string) (string, error) {
+	messages := []OpenAIChatMessage{
+		{Role: "system", Content: systemPrompt},
+		{Role: "user", Content: userMessage},
+	}
+	return o.Chat(ctx, messages)
+}
+
 // --- OpenAI Provider ---
 
 type OpenAI struct {
@@ -213,14 +228,12 @@ func (oa *OpenAI) Name() string {
 	return "OpenAI (" + oa.model + ")"
 }
 
-func (oa *OpenAI) Complete(ctx context.Context, systemPrompt, userMessage string) (string, error) {
+func (oa *OpenAI) Chat(ctx context.Context, messages []OpenAIChatMessage) (string, error) {
 	reqBody := openAIChatRequest{
-		Model: oa.model,
-		Messages: []openAIChatMessage{
-			{Role: "system", Content: systemPrompt},
-			{Role: "user", Content: userMessage},
-		},
+		Model:       oa.model,
+		Messages:    messages,
 		Temperature: 0.2,
+		MaxTokens:   2048,
 	}
 
 	bodyBytes, _ := json.Marshal(reqBody)
@@ -260,6 +273,14 @@ func (oa *OpenAI) Complete(ctx context.Context, systemPrompt, userMessage string
 	return strings.TrimSpace(parsed.Choices[0].Message.Content), nil
 }
 
+func (oa *OpenAI) Complete(ctx context.Context, systemPrompt, userMessage string) (string, error) {
+	messages := []OpenAIChatMessage{
+		{Role: "system", Content: systemPrompt},
+		{Role: "user", Content: userMessage},
+	}
+	return oa.Chat(ctx, messages)
+}
+
 // --- Anthropic Provider ---
 
 type Anthropic struct {
@@ -276,14 +297,26 @@ func (a *Anthropic) Name() string {
 	return "Anthropic (" + a.model + ")"
 }
 
-func (a *Anthropic) Complete(ctx context.Context, systemPrompt, userMessage string) (string, error) {
+func (a *Anthropic) Chat(ctx context.Context, messages []OpenAIChatMessage) (string, error) {
+	var systemPrompt string
+	var anthropicMessages []map[string]string
+
+	for _, m := range messages {
+		if m.Role == "system" {
+			systemPrompt = m.Content
+		} else {
+			anthropicMessages = append(anthropicMessages, map[string]string{
+				"role":    m.Role,
+				"content": m.Content,
+			})
+		}
+	}
+
 	reqMap := map[string]any{
 		"model":      a.model,
 		"max_tokens": 2048,
 		"system":     systemPrompt,
-		"messages": []map[string]string{
-			{"role": "user", "content": userMessage},
-		},
+		"messages":   anthropicMessages,
 	}
 
 	bodyBytes, _ := json.Marshal(reqMap)
@@ -329,4 +362,12 @@ func (a *Anthropic) Complete(ctx context.Context, systemPrompt, userMessage stri
 	}
 
 	return strings.TrimSpace(parsed.Content[0].Text), nil
+}
+
+func (a *Anthropic) Complete(ctx context.Context, systemPrompt, userMessage string) (string, error) {
+	messages := []OpenAIChatMessage{
+		{Role: "system", Content: systemPrompt},
+		{Role: "user", Content: userMessage},
+	}
+	return a.Chat(ctx, messages)
 }
