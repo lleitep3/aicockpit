@@ -40,6 +40,8 @@ type ConversationSource interface {
 	Get(ctx context.Context, id string) (*personalagent.Conversation, error)
 	SendMessage(ctx context.Context, convID string, message string) error
 	DecideAction(ctx context.Context, convID string, actionID string, approved bool) error
+	ArchiveSession(ctx context.Context, convID string) error
+	Ask(ctx context.Context, prompt string) (string, error)
 }
 
 // Engine is the isolated core service powering Copi (both for TUI and headless daemon).

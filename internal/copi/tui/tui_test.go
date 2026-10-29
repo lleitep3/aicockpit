@@ -42,6 +42,14 @@ func (m *mockSource) DecideAction(ctx context.Context, convID string, actionID s
 	return nil
 }
 
+func (m *mockSource) ArchiveSession(ctx context.Context, convID string) error {
+	return nil
+}
+
+func (m *mockSource) Ask(ctx context.Context, prompt string) (string, error) {
+	return "Entendido e executado com sucesso.", nil
+}
+
 func TestTUIRunAndMenuOptions(t *testing.T) {
 	tempDir := filepath.Join(os.TempDir(), "copi_tui_test")
 	defer os.RemoveAll(tempDir)
@@ -62,7 +70,7 @@ func TestTUIRunAndMenuOptions(t *testing.T) {
 	engine, err := copi.NewEngine(copi.DefaultConfig(tempDir), src)
 	require.NoError(t, err)
 
-	input := strings.NewReader("1\n2\n3\n4\n5\nhello copi\nsair\n")
+	input := strings.NewReader("1\n2\n3\n4\n5\n6\nhello copi\nsair\n")
 	output := &bytes.Buffer{}
 
 	ui := tui.NewUI(engine, input, output)

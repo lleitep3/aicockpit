@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"syscall"
+	"time"
 
 	"github.com/lleitep3/aicockpit/internal/config"
 	"github.com/lleitep3/aicockpit/internal/copi"
@@ -42,6 +43,62 @@ func (a *personalAgentAdapter) DecideAction(ctx context.Context, convID string, 
 		decision = "rejected"
 	}
 	return a.svc.DecideAssistantAction(convID, actionID, decision)
+}
+
+func (a *personalAgentAdapter) ArchiveSession(ctx context.Context, convID string) error {
+	_, err := a.svc.ArchiveConversation(convID, true)
+	return err
+}
+
+func (a *personalAgentAdapter) Ask(ctx context.Context, prompt string) (string, error) {
+	// Look up available providers for the assistant
+	providers := a.svc.AssistantProviders()
+	if len(providers) == 0 {
+		return "", fmt.Errorf("nenhum provider de IA disponível no momento")
+	}
+
+	// Create or reuse an assistant session
+	assistant, err := a.svc.CreateAssistantSession(ctx, "", "")
+	if err != nil {
+		return "", fmt.Errorf("criar sessão do copiloto: %w", err)
+	}
+
+	turnID, err := a.svc.StartTurn(assistant.ID, prompt, nil)
+	if err != nil {
+		return "", fmt.Errorf("iniciar processamento do copiloto: %w", err)
+	}
+
+	// Await turn completion
+	_, eventsChan, cancel := a.svc.Subscribe(turnID, 0)
+	defer cancel()
+
+	timeout := time.After(45 * time.Second)
+	for {
+		select {
+		case <-ctx.Done():
+			return "", ctx.Err()
+		case <-timeout:
+			return "Tempo limite esgotado aguardando resposta da IA.", nil
+		case ev, ok := <-eventsChan:
+			if !ok {
+				conv, _ := a.svc.Conversation(assistant.ID)
+				if len(conv.Messages) > 0 {
+					return conv.Messages[len(conv.Messages)-1].Content, nil
+				}
+				return "Processamento finalizado.", nil
+			}
+			if ev.Type == "turn_completed" {
+				conv, _ := a.svc.Conversation(assistant.ID)
+				if len(conv.Messages) > 0 {
+					return conv.Messages[len(conv.Messages)-1].Content, nil
+				}
+				return "Tarefa concluída com sucesso.", nil
+			}
+			if ev.Type == "turn_failed" {
+				return "Ocorreu uma falha durante o processamento da tarefa.", nil
+			}
+		}
+	}
 }
 
 // NewCopiCommand creates the 'cockpit copi' CLI command.

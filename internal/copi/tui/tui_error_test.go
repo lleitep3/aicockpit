@@ -32,6 +32,12 @@ func (e *errorSource) SendMessage(ctx context.Context, convID string, message st
 func (e *errorSource) DecideAction(ctx context.Context, convID string, actionID string, approved bool) error {
 	return errors.New("decide failed")
 }
+func (e *errorSource) ArchiveSession(ctx context.Context, convID string) error {
+	return errors.New("archive failed")
+}
+func (e *errorSource) Ask(ctx context.Context, prompt string) (string, error) {
+	return "", errors.New("ask failed")
+}
 
 func TestTUIErrorBranchesAndEmptyState(t *testing.T) {
 	tempDir := filepath.Join(os.TempDir(), "copi_tui_err_test")

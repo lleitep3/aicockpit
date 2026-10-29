@@ -98,6 +98,7 @@ func (u *UI) printMenu() {
 	fmt.Fprintln(u.out, "  [3] Aprovar ação pendente")
 	fmt.Fprintln(u.out, "  [4] Enviar mensagem para uma sessão")
 	fmt.Fprintln(u.out, "  [5] Relatório Consolidado")
+	fmt.Fprintln(u.out, "  [6] Limpar sessões vazias (idle)")
 	fmt.Fprintln(u.out, "\n(Se nada for digitado em 10s, [1] roda automaticamente)")
 }
 
@@ -117,12 +118,30 @@ func (u *UI) dispatchInput(ctx context.Context, input string) {
 		u.handleSendMessage(ctx)
 	case "5":
 		u.handleReport(ctx)
+	case "6":
+		u.handleCleanEmpty(ctx)
 	case "":
 		// empty line
 	default:
-		// Free conversation fallback
-		fmt.Fprintf(u.out, "[Copi]: Entendi: \"%s\". Atuando sob diretriz de economia de tokens.\n", input)
+		// Send prompt to Copi AI
+		fmt.Fprintf(u.out, "[Copi pensando...]:\n")
+		resp, err := u.engine.AskCopi(ctx, input)
+		if err != nil {
+			fmt.Fprintf(u.out, "Erro ao processar: %v\n", err)
+		} else {
+			fmt.Fprintf(u.out, "%s\n", resp)
+		}
 	}
+}
+
+func (u *UI) handleCleanEmpty(ctx context.Context) {
+	fmt.Fprintln(u.out, "🧹 Limpando sessões vazias em idle (0 tokens)...")
+	count, err := u.engine.CleanIdleEmptySessions(ctx)
+	if err != nil {
+		fmt.Fprintf(u.out, "Erro ao limpar sessões: %v\n", err)
+		return
+	}
+	fmt.Fprintf(u.out, "✅ %d sessões vazias arquivadas com sucesso!\n", count)
 }
 
 func (u *UI) handleUpdates(ctx context.Context) {

@@ -63,6 +63,14 @@ func (m *mockConversationSource) DecideAction(ctx context.Context, convID string
 	return nil
 }
 
+func (m *mockConversationSource) ArchiveSession(ctx context.Context, convID string) error {
+	return nil
+}
+
+func (m *mockConversationSource) Ask(ctx context.Context, prompt string) (string, error) {
+	return "ok", nil
+}
+
 func TestEngineConfigAndSandbox(t *testing.T) {
 	tempDir := filepath.Join(os.TempDir(), "copi_test_sandbox")
 	defer os.RemoveAll(tempDir)
