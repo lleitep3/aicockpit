@@ -71,28 +71,45 @@ func (a *personalAgentAdapter) ArchiveSession(ctx context.Context, convID string
 }
 
 func (a *personalAgentAdapter) Ask(ctx context.Context, prompt string) (string, error) {
-	// Look up available providers for the assistant
-	providers := a.svc.AssistantProviders()
-	if len(providers) == 0 {
-		return "", fmt.Errorf("nenhum provider de IA disponível no momento")
+	// Discover available providers that have quota or are supported
+	candidates := []string{"antigravity", "copilot", "devin", "codex"}
+	var selectedProvider string
+	var selectedModel string
+
+	for _, candidate := range candidates {
+		catalog, err := a.svc.Models(ctx, candidate)
+		if err != nil || len(catalog.Models) == 0 {
+			continue
+		}
+		model, err := catalogDefaultOrFirstModel(catalog)
+		if err != nil {
+			continue
+		}
+		selectedProvider = candidate
+		selectedModel = model.ID
+		break
 	}
 
-	// Create or reuse an assistant session
-	assistant, err := a.svc.CreateAssistantSession(ctx, "", "")
+	if selectedProvider == "" {
+		return "", fmt.Errorf("nenhum provider de IA funcional encontrado no sistema (antigravity/copilot/devin/codex)")
+	}
+
+	// Create conversation with the active provider that has quota/availability
+	conversation, err := a.svc.CreateConversation(ctx, selectedProvider, selectedModel, "", "never", personalagent.RoutingModeManual)
 	if err != nil {
-		return "", fmt.Errorf("criar sessão do copiloto: %w", err)
+		return "", fmt.Errorf("criar sessão do Copi no provider %s: %w", selectedProvider, err)
 	}
 
-	turnID, err := a.svc.StartTurn(assistant.ID, prompt, nil)
+	turnID, err := a.svc.StartTurn(conversation.ID, prompt, nil)
 	if err != nil {
-		return "", fmt.Errorf("iniciar processamento do copiloto: %w", err)
+		return "", fmt.Errorf("iniciar processamento do Copi (%s): %w", selectedProvider, err)
 	}
 
-	// Await turn completion
+	// Stream progress and await turn completion
 	_, eventsChan, cancel := a.svc.Subscribe(turnID, 0)
 	defer cancel()
 
-	timeout := time.After(45 * time.Second)
+	timeout := time.After(60 * time.Second)
 	for {
 		select {
 		case <-ctx.Done():
@@ -101,24 +118,40 @@ func (a *personalAgentAdapter) Ask(ctx context.Context, prompt string) (string, 
 			return "Tempo limite esgotado aguardando resposta da IA.", nil
 		case ev, ok := <-eventsChan:
 			if !ok {
-				conv, _ := a.svc.Conversation(assistant.ID)
+				conv, _ := a.svc.Conversation(conversation.ID)
 				if len(conv.Messages) > 0 {
 					return conv.Messages[len(conv.Messages)-1].Content, nil
 				}
 				return "Processamento finalizado.", nil
 			}
 			if ev.Type == "turn_completed" {
-				conv, _ := a.svc.Conversation(assistant.ID)
+				conv, _ := a.svc.Conversation(conversation.ID)
 				if len(conv.Messages) > 0 {
 					return conv.Messages[len(conv.Messages)-1].Content, nil
 				}
 				return "Tarefa concluída com sucesso.", nil
 			}
 			if ev.Type == "turn_failed" {
-				return "Ocorreu uma falha durante o processamento da tarefa.", nil
+				errMsg, _ := ev.Data["error"].(string)
+				if errMsg != "" {
+					return fmt.Sprintf("Falha ao executar via %s: %s", selectedProvider, errMsg), nil
+				}
+				return fmt.Sprintf("Falha durante o processamento da tarefa no provider %s.", selectedProvider), nil
 			}
 		}
 	}
+}
+
+func catalogDefaultOrFirstModel(catalog personalagent.Catalog) (personalagent.Model, error) {
+	for _, m := range catalog.Models {
+		if m.Default {
+			return m, nil
+		}
+	}
+	if len(catalog.Models) > 0 {
+		return catalog.Models[0], nil
+	}
+	return personalagent.Model{}, fmt.Errorf("nenhum modelo encontrado")
 }
 
 // NewCopiCommand creates the 'cockpit copi' CLI command.
