@@ -13,7 +13,9 @@ import (
 
 	"github.com/lleitep3/aicockpit/internal/config"
 	"github.com/lleitep3/aicockpit/internal/copi"
+	"github.com/lleitep3/aicockpit/internal/copi/intent"
 	"github.com/lleitep3/aicockpit/internal/copi/llm"
+	"github.com/lleitep3/aicockpit/internal/copi/router"
 	"github.com/lleitep3/aicockpit/internal/copi/storage"
 	copitui "github.com/lleitep3/aicockpit/internal/copi/tui"
 	"github.com/lleitep3/aicockpit/internal/personalagent"
@@ -25,7 +27,8 @@ type personalAgentAdapter struct {
 	db        *storage.DB
 	llmClient *llm.Client
 	meta      llm.SystemMeta
-	history   []llm.ChatTurn
+	router    *router.Router
+	intentMgr *intent.Manager
 }
 
 func (a *personalAgentAdapter) List(ctx context.Context, includeArchived bool) ([]personalagent.ConversationSummary, error) {
@@ -95,10 +98,22 @@ func (a *personalAgentAdapter) Ask(ctx context.Context, prompt string) (string, 
 		rawRequest = strings.TrimSpace(prompt[idx+len("PEDIDO DO USUÁRIO:\n"):])
 	}
 
-	// First check: can we answer deterministically via SQLite without spending tokens?
-	lower := strings.ToLower(rawRequest)
-	if strings.Contains(lower, "quantas conversas") || strings.Contains(lower, "quais conversas") || strings.Contains(lower, "falam da") || strings.Contains(lower, "falam sobre") || strings.Contains(lower, "conversas") {
-		// Extract topic keywords
+	// 1. Semantic Router: classify query via local Ollama or heuristics (0 tokens)
+	var decision router.RouteDecision
+	if a.router != nil {
+		decision = a.router.Route(ctx, rawRequest)
+	} else {
+		decision = router.RouteDecision{Intent: router.IntentComplexChat}
+	}
+
+	// Update intent session
+	if a.intentMgr != nil && decision.Intent != "" {
+		a.intentMgr.SetOrUpdate(decision.Intent, rawRequest, decision.Target)
+	}
+
+	// 2. Handle deterministic database queries
+	if decision.Intent == router.IntentDatabaseQuery {
+		lower := strings.ToLower(rawRequest)
 		words := strings.Fields(rawRequest)
 		var keyword string
 		for i, w := range words {
@@ -120,28 +135,43 @@ func (a *personalAgentAdapter) Ask(ctx context.Context, prompt string) (string, 
 				for _, m := range matches {
 					b.WriteString(fmt.Sprintf("  • [%s] \"%s\"\n", m.ID, m.Title))
 				}
-				return b.String(), nil
+				resp := b.String()
+				if a.intentMgr != nil {
+					a.intentMgr.RecordTurn(rawRequest, resp)
+				}
+				return resp, nil
+			}
+		}
+
+		if strings.Contains(lower, "quantas conversas") && a.db != nil {
+			summaries, err := a.db.ListSummaries(ctx, false)
+			if err == nil {
+				resp := fmt.Sprintf("📊 Temos atualmente %d sessões ativas registradas no SQLite.", len(summaries))
+				if a.intentMgr != nil {
+					a.intentMgr.RecordTurn(rawRequest, resp)
+				}
+				return resp, nil
 			}
 		}
 	}
 
-	// If LLM direct client is available, execute via direct API (OpenRouter/OpenAI/Anthropic)
+	// 3. If LLM direct client is available, execute via direct API with bounded intent history
 	if a.llmClient != nil {
 		sysPrompt := llm.BuildCopiSystemPrompt(a.meta)
-		messages := llm.PrepareChatMessages(sysPrompt, a.history, rawRequest)
+		var history []llm.ChatTurn
+		if a.intentMgr != nil {
+			history = a.intentMgr.History()
+		}
+
+		messages := llm.PrepareChatMessages(sysPrompt, history, rawRequest)
 
 		resp, err := a.llmClient.Chat(ctx, messages)
 		if err != nil {
 			return fmt.Sprintf("⚠️ Erro na chamada da API LLM direta: %v", err), nil
 		}
 		if resp != "" {
-			// Append current turn to local history (keeping last 2-4 turns)
-			a.history = append(a.history,
-				llm.ChatTurn{Role: "user", Content: rawRequest},
-				llm.ChatTurn{Role: "assistant", Content: resp},
-			)
-			if len(a.history) > 4 {
-				a.history = a.history[len(a.history)-4:]
+			if a.intentMgr != nil {
+				a.intentMgr.RecordTurn(rawRequest, resp)
 			}
 
 			// Handle potential Tool Call for searching history
@@ -165,7 +195,11 @@ func (a *personalAgentAdapter) Ask(ctx context.Context, prompt string) (string, 
 						for _, m := range matches {
 							toolReply.WriteString(fmt.Sprintf("  • [%s] \"%s\"\n", m.ID, m.Title))
 						}
-						return resp + toolReply.String(), nil
+						finalResp := resp + toolReply.String()
+						if a.intentMgr != nil {
+							a.intentMgr.RecordTurn(rawRequest, finalResp)
+						}
+						return finalResp, nil
 					}
 				}
 			}
@@ -325,11 +359,24 @@ avisa sobre ações pendentes de aprovação e despacha instruções.`,
 			llmClient := llm.NewClient(llmCfg)
 			meta := llm.DefaultSystemMeta(sandboxDir)
 
+			ollamaURL := os.Getenv("OLLAMA_BASE_URL")
+			if ollamaURL == "" {
+				ollamaURL = "http://localhost:11434"
+			}
+			ollamaModel := os.Getenv("OLLAMA_ROUTER_MODEL")
+			if ollamaModel == "" {
+				ollamaModel = "llama3.2:1b"
+			}
+			localRouter := router.NewRouter(ollamaURL, ollamaModel)
+			intentMgr := intent.NewManager(sandboxDir)
+
 			adapter := &personalAgentAdapter{
 				svc:       paSvc,
 				db:        sqliteDB,
 				llmClient: llmClient,
 				meta:      meta,
+				router:    localRouter,
+				intentMgr: intentMgr,
 			}
 			cfg := copi.DefaultConfig(sandboxDir)
 
