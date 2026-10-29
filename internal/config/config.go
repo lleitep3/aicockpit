@@ -44,13 +44,8 @@ type AgentsConfig struct {
 	// Backend is the default worker for cockpit ask: claude, codex, api, or
 	// api:<provider>. Empty picks the first available worker.
 	Backend string `yaml:"backend,omitempty"`
-	// API is the single/default api settings for backwards compatibility
-	API agents.APISettings `yaml:"-"`
-	// APIs holds one named API settings block per HTTP provider. The active
-	// provider is selected by Backend (api:<name>). An empty Backend falls
-	// back to the first available worker (claude, codex, then the configured
-	// APIs).
-	APIs map[string]agents.APISettings `yaml:"api,omitempty"`
+	// API selects the HTTP provider used by APIBackend.
+	API agents.APISettings `yaml:"api,omitempty"`
 }
 
 var defaultConfig = Config{
