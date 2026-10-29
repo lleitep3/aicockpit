@@ -21,7 +21,20 @@ type personalAgentAdapter struct {
 }
 
 func (a *personalAgentAdapter) List(ctx context.Context, includeArchived bool) ([]personalagent.ConversationSummary, error) {
-	return a.svc.ConversationSummaries()
+	summaries, err := a.svc.ConversationSummaries()
+	if err != nil {
+		return nil, err
+	}
+	if includeArchived {
+		return summaries, nil
+	}
+	filtered := make([]personalagent.ConversationSummary, 0, len(summaries))
+	for _, s := range summaries {
+		if !s.Archived {
+			filtered = append(filtered, s)
+		}
+	}
+	return filtered, nil
 }
 
 func (a *personalAgentAdapter) Get(ctx context.Context, id string) (*personalagent.Conversation, error) {
@@ -46,8 +59,15 @@ func (a *personalAgentAdapter) DecideAction(ctx context.Context, convID string, 
 }
 
 func (a *personalAgentAdapter) ArchiveSession(ctx context.Context, convID string) error {
-	_, err := a.svc.ArchiveConversation(convID, true)
-	return err
+	// First mark as archived in service
+	_, _ = a.svc.ArchiveConversation(convID, true)
+
+	// If empty/idle, remove the file completely from disk so it doesn't pollute
+	convFile := filepath.Join(config.GetCockpitDir(), "conversations", convID+".json")
+	if err := os.Remove(convFile); err != nil && !os.IsNotExist(err) {
+		return err
+	}
+	return nil
 }
 
 func (a *personalAgentAdapter) Ask(ctx context.Context, prompt string) (string, error) {
