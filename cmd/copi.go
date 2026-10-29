@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"syscall"
 	"time"
 
@@ -83,6 +84,36 @@ func (a *personalAgentAdapter) ArchiveSession(ctx context.Context, convID string
 }
 
 func (a *personalAgentAdapter) Ask(ctx context.Context, prompt string) (string, error) {
+	// First check: can we answer deterministically via SQLite without spending tokens?
+	lower := strings.ToLower(prompt)
+	if strings.Contains(lower, "quantas conversas") || strings.Contains(lower, "quais conversas") || strings.Contains(lower, "falam da") || strings.Contains(lower, "falam sobre") {
+		// Extract topic keywords
+		words := strings.Fields(prompt)
+		var keyword string
+		for i, w := range words {
+			if (strings.EqualFold(w, "da") || strings.EqualFold(w, "sobre") || strings.EqualFold(w, "do") || strings.EqualFold(w, "de")) && i+1 < len(words) {
+				keyword = strings.Join(words[i+1:], " ")
+				keyword = strings.Trim(keyword, "?.,!")
+				break
+			}
+		}
+
+		if keyword != "" && a.db != nil {
+			matches, err := a.db.SearchConversations(ctx, keyword)
+			if err == nil {
+				if len(matches) == 0 {
+					return fmt.Sprintf("🔍 Não encontrei nenhuma conversa ativa falando sobre %q no banco de dados.", keyword), nil
+				}
+				var b strings.Builder
+				b.WriteString(fmt.Sprintf("🔍 Encontrei %d conversa(s) falando sobre %q (0 tokens gastos):\n", len(matches), keyword))
+				for _, m := range matches {
+					b.WriteString(fmt.Sprintf("  • [%s] \"%s\"\n", m.ID, m.Title))
+				}
+				return b.String(), nil
+			}
+		}
+	}
+
 	// Discover available providers that have quota or are supported
 	candidates := []string{"antigravity", "copilot", "devin", "codex"}
 	var selectedProvider string
@@ -136,19 +167,24 @@ func (a *personalAgentAdapter) Ask(ctx context.Context, prompt string) (string, 
 				}
 				return "Processamento finalizado.", nil
 			}
-			if ev.Type == "turn_completed" {
+			if ev.Type == "complete" {
+				status, _ := ev.Data["status"].(string)
+				if status == "failed" {
+					errMsg, _ := ev.Data["error"].(string)
+					if errMsg != "" {
+						return fmt.Sprintf("Falha ao executar via %s: %s", selectedProvider, errMsg), nil
+					}
+					return fmt.Sprintf("Falha durante o processamento no provider %s.", selectedProvider), nil
+				}
 				conv, _ := a.svc.Conversation(conversation.ID)
 				if len(conv.Messages) > 0 {
 					return conv.Messages[len(conv.Messages)-1].Content, nil
 				}
 				return "Tarefa concluída com sucesso.", nil
 			}
-			if ev.Type == "turn_failed" {
-				errMsg, _ := ev.Data["error"].(string)
-				if errMsg != "" {
-					return fmt.Sprintf("Falha ao executar via %s: %s", selectedProvider, errMsg), nil
-				}
-				return fmt.Sprintf("Falha durante o processamento da tarefa no provider %s.", selectedProvider), nil
+			if ev.Type == "error" {
+				errMsg, _ := ev.Data["message"].(string)
+				return fmt.Sprintf("Erro (%s): %s", selectedProvider, errMsg), nil
 			}
 		}
 	}
