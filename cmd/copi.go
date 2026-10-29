@@ -11,6 +11,7 @@ import (
 
 	"github.com/lleitep3/aicockpit/internal/config"
 	"github.com/lleitep3/aicockpit/internal/copi"
+	"github.com/lleitep3/aicockpit/internal/copi/storage"
 	copitui "github.com/lleitep3/aicockpit/internal/copi/tui"
 	"github.com/lleitep3/aicockpit/internal/personalagent"
 	"github.com/spf13/cobra"
@@ -18,9 +19,13 @@ import (
 
 type personalAgentAdapter struct {
 	svc *personalagent.Service
+	db  *storage.DB
 }
 
 func (a *personalAgentAdapter) List(ctx context.Context, includeArchived bool) ([]personalagent.ConversationSummary, error) {
+	if a.db != nil {
+		return a.db.ListSummaries(ctx, includeArchived)
+	}
 	summaries, err := a.svc.ConversationSummaries()
 	if err != nil {
 		return nil, err
@@ -38,6 +43,9 @@ func (a *personalAgentAdapter) List(ctx context.Context, includeArchived bool) (
 }
 
 func (a *personalAgentAdapter) Get(ctx context.Context, id string) (*personalagent.Conversation, error) {
+	if a.db != nil {
+		return a.db.GetConversation(ctx, id)
+	}
 	conv, err := a.svc.Conversation(id)
 	if err != nil {
 		return nil, err
@@ -59,6 +67,10 @@ func (a *personalAgentAdapter) DecideAction(ctx context.Context, convID string, 
 }
 
 func (a *personalAgentAdapter) ArchiveSession(ctx context.Context, convID string) error {
+	if a.db != nil {
+		_ = a.db.DeleteConversation(ctx, convID)
+	}
+
 	// First mark as archived in service
 	_, _ = a.svc.ArchiveConversation(convID, true)
 
@@ -171,7 +183,23 @@ avisa sobre ações pendentes de aprovação e despacha instruções.`,
 				sandboxDir = config.GetCockpitDir()
 			}
 
-			store, err := personalagent.NewStore(filepath.Join(sandboxDir, "conversations"))
+			// Initialize SQLite embedded database
+			dbPath := filepath.Join(sandboxDir, "conversations.db")
+			sqliteDB, err := storage.Open(dbPath)
+			if err != nil {
+				return fmt.Errorf("open conversations sqlite db: %w", err)
+			}
+			defer sqliteDB.Close()
+
+			ctx, stop := signal.NotifyContext(cmd.Context(), os.Interrupt, syscall.SIGTERM)
+			defer stop()
+
+			jsonDir := filepath.Join(sandboxDir, "conversations")
+			if imported, err := sqliteDB.ImportFromJSONDir(ctx, jsonDir); err == nil && imported > 0 {
+				fmt.Fprintf(cmd.OutOrStdout(), "📦 Importadas %d conversas para o SQLite (conversations.db)\n", imported)
+			}
+
+			store, err := personalagent.NewStore(jsonDir)
 			if err != nil {
 				return fmt.Errorf("init conversation store: %w", err)
 			}
@@ -181,16 +209,13 @@ avisa sobre ações pendentes de aprovação e despacha instruções.`,
 				return fmt.Errorf("init personal agent service: %w", err)
 			}
 
-			adapter := &personalAgentAdapter{svc: paSvc}
+			adapter := &personalAgentAdapter{svc: paSvc, db: sqliteDB}
 			cfg := copi.DefaultConfig(sandboxDir)
 
 			engine, err := copi.NewEngine(cfg, adapter)
 			if err != nil {
 				return fmt.Errorf("init copi engine: %w", err)
 			}
-
-			ctx, stop := signal.NotifyContext(cmd.Context(), os.Interrupt, syscall.SIGTERM)
-			defer stop()
 
 			if daemonMode {
 				fmt.Fprintf(cmd.OutOrStdout(), "🤖 Copi rodando em modo daemon headless (Sandbox: %s)\n", sandboxDir)
