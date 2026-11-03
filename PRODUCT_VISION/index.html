@@ -1,0 +1,2427 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="AI Harness Engineering Platform">
+      
+      
+      
+        <link rel="canonical" href="https://lleitep3.github.io/aicockpit/PRODUCT_VISION/">
+      
+      
+        <link rel="prev" href="../FEATURES/">
+      
+      
+        <link rel="next" href="../architecture/01-overview/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
+    
+    
+      
+        <title>Visão de produto - AICockpit</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#visao-de-produto-do-aicockpit" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="AICockpit" class="md-header__button md-logo" aria-label="AICockpit" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AICockpit
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Visão de produto
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/lleitep3/aicockpit" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lleitep3/aicockpit
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../QUICK_START/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Quick Start
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../FEATURES/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Features
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Visão de produto
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../architecture/01-overview/" class="md-tabs__link">
+          
+  
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../vault/" class="md-tabs__link">
+          
+  
+  
+  Vault
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../LOGGING_AND_METRICS/" class="md-tabs__link">
+          
+  
+  
+  Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../INSTALLATION.md" class="md-tabs__link">
+          
+  
+  
+  Installation
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../CONTRIBUTING/" class="md-tabs__link">
+          
+  
+  
+  Contributing
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="AICockpit" class="md-nav__button md-logo" aria-label="AICockpit" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    AICockpit
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/lleitep3/aicockpit" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lleitep3/aicockpit
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../QUICK_START/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quick Start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../FEATURES/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Features
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Visão de produto
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Visão de produto
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#papel-atual" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Papel atual
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#direcao-acordada" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Direção acordada
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#memoria" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Memória
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Memória">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hindsight-como-servico-opcional" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hindsight como serviço opcional
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#roteiro-por-fases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Roteiro por fases
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Roteiro por fases">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fase-1-interface-de-memoria" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fase 1 — Interface de memória
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fase-2-ciclo-de-vida-e-doctor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fase 2 — Ciclo de vida e doctor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fase-3-integracao-memory-hindsight" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fase 3 — Integração memory-hindsight
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fase-4-mcp-nos-compiladores" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fase 4 — MCP nos compiladores
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fase-5-backend-de-cli" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fase 5 — Backend de CLI
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fase-6-backend-de-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fase 6 — Backend de API
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fase-7-cockpit-ask" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fase 7 — cockpit ask
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fase-8-laco-de-ferramentas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fase 8 — Laço de ferramentas
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fase-9-router" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fase 9 — Router
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fase-10-daemon-rotinas-e-canais" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fase 10 — Daemon, rotinas e canais
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#leitura-relacionada" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Leitura relacionada
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/01-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/07-project-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/canonical-compiler.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Canonical Compiler
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/04-package-registries/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Registries
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/05-vault-system/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Vault System
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/06-knowledge-base/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Knowledge Base
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Vault
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Vault
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../vault/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Índice
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../vault/vault-state-v2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Estado de lock v2
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../vault/vault-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guia
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../vault/vault-lock-unlock-implementation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lock e unlock
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../vault/vault-package-usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Uso por pacotes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../vault/vault-usage-examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exemplos
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_7" id="__nav_6_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Histórico
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Histórico
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../vault/vault-comparison/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Comparação
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../vault/vault-master-pass-solution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Master pass
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../vault/vault-production-solution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Produção
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../vault/vault-real-security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Segurança real
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../vault/vault-security-analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Análise
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../vault/vault-security-answer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resposta
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../vault/vault-security-evolution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evolução
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../vault/vault-three-points-answer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Três pontos
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../LOGGING_AND_METRICS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logging & Metrics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tracking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tracking de Pacotes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../COMMAND_DOCUMENTATION_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Command Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Installation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../INSTALLATION.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../INSTALLATION_SCRIPTS.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scripts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../INSTALLATION_OPTIONS.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Options
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Contributing
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CONTRIBUTING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../AGENTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AI Agents Directives
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="visao-de-produto-do-aicockpit">Visão de produto do AICockpit<a class="headerlink" href="#visao-de-produto-do-aicockpit" title="Permanent link">&para;</a></h1>
+<p>Estado: direção acordada com o dono do projeto. As fases 1 a 4 estão
+implementadas em <code>internal/memory</code>, <code>internal/hindsight</code>,
+<code>internal/memoryhindsight</code> e <code>internal/providers</code>. As fases 5 e 6 estão
+implementadas em <code>internal/agents</code> (<code>CLIBackend</code> e <code>APIBackend</code>). A fase 7
+está no comando <code>cockpit ask</code>. As fases 8 em diante deste roteiro ainda não
+estão implementadas. A seção
+<a href="#papel-atual">Papel atual</a> descreve o que o código faz hoje.</p>
+<p>Planos como o <a href="../plans/p0-02-vault-state-implementation-plan/">P0-02</a> apontam
+para este documento. O arquivo <code>docs/plans/user-harness-roadmap.md</code> não está
+no repositório; o roteiro por fases abaixo é a referência.</p>
+<h2 id="papel-atual">Papel atual<a class="headerlink" href="#papel-atual" title="Permanent link">&para;</a></h2>
+<p>O AICockpit é infraestrutura compartilhada de harness para agentes de IA na
+máquina local. O binário <code>cockpit</code> (Cobra, Go 1.26+) concentra quatro peças
+que os provedores reutilizam, em vez de cada agente reinventar o seu próprio
+conjunto de regras, segredos e documentos.</p>
+<pre class="mermaid"><code>graph LR
+    subgraph Hoje
+        Canon["Assets canônicos\n.cockpit/"] --&gt; Comp["Compiladores\npor provedor"]
+        Comp --&gt; Prov["Pastas nativas\ndos provedores"]
+        Pkg["cockpit pkg\nregistries"] --&gt; Canon
+        Vault["cockpit vault\nkeyring + lock v2"] --&gt; Pkg
+        KB["cockpit kb\nmarkdown local"] --&gt; Canon
+    end</code></pre>
+<ul>
+<li><strong>Compiladores por provedor</strong> (<code>internal/providers</code>). Regras, skills,
+  workflows, permissões e agentes canônicos são escritos uma vez e compilados
+  para o formato de cada provedor. Os compiladores no código hoje são
+  <code>antigravity</code>, <code>devin</code>, <code>goose</code>, <code>codex</code>, <code>github-copilot</code> e o compilador
+  YAML genérico. <code>cockpit deploy</code> publica esses assets. A política canônica
+  mora em <code>permissions.yaml</code> (<code>allowed_commands</code>, <code>denied_commands</code>,
+  <code>allowed_dirs</code>, e os campos <code>allow</code> / <code>deny</code> / <code>ask</code>).</li>
+<li><strong>Pacotes e registries</strong> (<code>internal/packages</code>, <code>cockpit pkg</code>). Instalação,
+  busca, upgrade e registries Git com <code>package-index.yaml</code>. Pacotes podem
+  registrar extensões de KB em <code>extensions.kb.search</code> e <code>extensions.kb.index</code>,
+  executadas por <code>internal/kb</code>.</li>
+<li><strong>Vault</strong> (<code>internal/vault</code>, <code>cockpit vault</code>). Credenciais no keyring do
+  sistema operacional e estado de bloqueio v2 (AES-GCM, chave aleatória no
+  serviço interno <code>aicockpit-internal</code>, migração explícita, falha fechada).
+  O índice está em <a href="../vault/">docs/vault/README.md</a>. Perfis de pacote
+  (<code>cockpit config</code>) guardam valores públicos em disco e referências a
+  segredos no vault. Namespace é prefixo de armazenamento e fronteira da CLI,
+  não sandbox do sistema operacional.</li>
+<li><strong>Knowledge base local</strong> (<code>internal/kb</code>, <code>cockpit kb</code>). Markdown com
+  frontmatter, índice, busca e grafo, em uma ou mais raízes. É a memória de
+  longo prazo disponível hoje: documentos que o operador e os agentes
+  consultam, não um serviço de memória com retenção própria.</li>
+<li><strong>Memória</strong> (<code>internal/memory</code>, <code>internal/hindsight</code>,
+  <code>internal/memoryhindsight</code>). Contrato <code>Retain</code>, <code>Recall</code> e <code>Reflect</code>.
+  O backend padrão continua no KB local. <code>cockpit memory up</code>, <code>down</code> e
+  <code>status</code> administram um Hindsight local opcional (imagem Docker oficial,
+  pg0, portas 8888 e 9999). Segredos saem do vault só como ambiente do
+  container. Com <code>memory.hindsight.enabled</code>, o cliente Go oficial entra
+  pelos pontos de extensão do KB: <code>kb search</code> acrescenta o recall e
+  <code>kb index</code> retém documentos. Há um bank por projeto e um por usuário.
+  Serviço desligado ou inacessível deixa a busca no KB local. Com o mesmo
+  flag, <code>cockpit deploy</code> declara o MCP HTTP de cada bank para Claude Code,
+  Codex, Gemini CLI e GitHub Copilot CLI.</li>
+</ul>
+<p><code>cockpit doctor</code> verifica a existência de diretórios e arquivos locais
+(configuração, vault, logs, pacotes, cache), reporta o Hindsight e informa
+se as CLIs <code>claude</code> e <code>codex</code> estão instaladas e em qual versão. Sem
+<code>memory.hindsight.enabled</code>, o check do Hindsight é informativo. CLI ausente
+também não reprova o doctor. <code>internal/agents</code> executa uma tarefa em
+<code>claude -p</code>, <code>codex exec</code> ou na API do provedor. <code>cockpit ask "&lt;task&gt;"</code>
+faz um turno: recall na memória, prompt, execução num <code>Backend</code> e retain
+de um registro curto. O backend vem de <code>--backend</code> (<code>claude</code>, <code>codex</code> ou
+<code>api:&lt;provider&gt;</code>), de <code>agents.backend</code> na configuração, ou do primeiro
+disponível. <code>--no-memory</code> pula o recall e o retain. Não há laço de
+ferramentas nem router.</p>
+<p>Assets como <code>cockpit-builder</code> são instruções compiladas para os provedores.
+Não existe comando <code>cockpit agent</code>. O assistente é <code>cockpit ask</code>. Comandos
+antigos de instalação (<code>cockpit agent install</code> e similares) continuam sem
+implementação. O índice de comandos em
+<a href="../commands/">docs/commands/README.md</a> registra <code>cockpit ask</code>.</p>
+<h2 id="direcao-acordada">Direção acordada<a class="headerlink" href="#direcao-acordada" title="Permanent link">&para;</a></h2>
+<p>O cockpit passa a ser um agente assistente. Ele conduz o trabalho e delega a
+execução a workers, com dois modos sob a mesma interface:</p>
+<ol>
+<li><strong>CLIs locais como workers.</strong> O assistente invoca os binários já instalados
+   na máquina: <code>claude -p</code>, <code>codex exec</code>, <code>gemini -p</code> e <code>copilot</code>.</li>
+<li><strong>APIs dos provedores.</strong> O assistente chama a API correspondente com o
+   token lido do vault. O token não aparece em argv, log ou telemetria.</li>
+</ol>
+<p>O compilador continua publicando regras e skills nas pastas nativas. O
+assistente é outra camada: ele escolhe um worker, mantém a sessão e aplica as
+ferramentas. Compilar o adapter Codex, por exemplo, continua diferente de
+executar <code>codex exec</code>.</p>
+<pre class="mermaid"><code>graph TD
+    Pessoa([Pessoa ou canal]) --&gt; Ask["cockpit ask"]
+    Ask --&gt; Router[Router]
+    Router --&gt; CLI["CLIBackend"]
+    Router --&gt; API["APIBackend"]
+    CLI --&gt; W1["claude -p"]
+    CLI --&gt; W2["codex exec"]
+    CLI --&gt; W3["gemini -p"]
+    CLI --&gt; W4["copilot"]
+    API --&gt; Vault[Tokens no vault]
+    Vault --&gt; APIs[APIs dos provedores]
+    Ask --&gt; Loop["Tool loop"]
+    Loop --&gt; MCP[MCP]
+    Loop --&gt; Perms["permissions.yaml"]
+    Loop --&gt; Sess[Sessões]
+    Ask --&gt; Mem["internal/memory"]
+    Mem --&gt; KB[KB local]
+    Mem --&gt; HS["Hindsight opcional"]</code></pre>
+<h2 id="memoria">Memória<a class="headerlink" href="#memoria" title="Permanent link">&para;</a></h2>
+<p>A memória do assistente entra por uma interface Go em <code>internal/memory</code>.
+A primeira implementação usa o KB local: gravar, buscar e recuperar contexto
+a partir dos documentos já indexados. Pacotes e <code>cockpit ask</code>
+dependem dessa interface. O fornecedor concreto fica atrás do backend.</p>
+<h3 id="hindsight-como-servico-opcional">Hindsight como serviço opcional<a class="headerlink" href="#hindsight-como-servico-opcional" title="Permanent link">&para;</a></h3>
+<p><a href="https://github.com/vectorize-io/hindsight">Hindsight</a> é o serviço externo
+opcional de memória. Características usadas nesta decisão:</p>
+<table>
+<thead>
+<tr>
+<th>Aspecto</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Repositório</td>
+<td>https://github.com/vectorize-io/hindsight</td>
+</tr>
+<tr>
+<td>Licença</td>
+<td>MIT</td>
+</tr>
+<tr>
+<td>Stack</td>
+<td>Python e Postgres</td>
+</tr>
+<tr>
+<td>Acesso</td>
+<td>MCP, um servidor por <em>bank</em></td>
+</tr>
+<tr>
+<td>Cliente</td>
+<td>biblioteca Go</td>
+</tr>
+</tbody>
+</table>
+<p>O Hindsight permanece um processo que <code>cockpit memory up</code> administra fora da
+árvore de módulos Go, com a imagem oficial e o Postgres embutido (pg0). O
+código Python e o Postgres dele não são copiados para este repositório, não
+entram em <code>vendor/</code> e não viram um pacote embutido no binário. <code>internal/memoryhindsight</code> fala com a API por HTTP usando o cliente Go
+oficial, atrás de uma interface coberta por dublês. Sem o serviço, ou
+quando ele não responde, o backend de KB local continua válido. O MCP de
+cada bank é declarado pelos compiladores quando o serviço está habilitado.</p>
+<h2 id="roteiro-por-fases">Roteiro por fases<a class="headerlink" href="#roteiro-por-fases" title="Permanent link">&para;</a></h2>
+<p>Cada fase entrega um contrato testável e deixa as seguintes intactas. As
+fases 1 a 4 estão no código. As fases 5 e 6 estão em <code>internal/agents</code>
+(<code>CLIBackend</code> para <code>claude</code> e <code>codex</code>, <code>APIBackend</code> para as APIs). A fase 7
+é o comando <code>cockpit ask</code>. Os nomes das fases seguintes são o alvo do
+desenho e ainda não existem na CLI.</p>
+<table>
+<thead>
+<tr>
+<th>Fase</th>
+<th>Entrega</th>
+<th>Resultado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Interface <code>internal/memory</code></td>
+<td>Contrato de memória com backend no KB local. Sem rede e sem Hindsight.</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>cockpit memory up</code>, <code>down</code>, <code>status</code> e check no <code>cockpit doctor</code></td>
+<td>A CLI sobe e derruba o container oficial do Hindsight (portas 8888 e 9999, pg0, segredo do vault só no ambiente do container). O doctor reporta a saúde e não falha quando o serviço não está configurado. Sem extensão de KB e sem MCP.</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Integração <code>memory-hindsight</code></td>
+<td>Backend <code>memory.Memory</code> com o cliente Go oficial, atrás de uma interface de teste. <code>kb search</code> acrescenta o recall e <code>kb index</code> retém documentos em <code>RunSearchExtensions</code> e <code>RunIndexExtensions</code>. Um bank por projeto e um por usuário. Serviço desligado ou inacessível deixa só o KB local. O código do Hindsight continua fora do repositório.</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Compiladores injetam o MCP do Hindsight</td>
+<td>Cada bank configurado vira um servidor MCP declarado aos provedores que já recebem skills e MCP. Sem bank, os compiladores não inventam um endpoint.</td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>internal/agents</code> com <code>Backend</code> e <code>CLIBackend</code></td>
+<td>Interface única de worker para uma tarefa. <code>CLIBackend</code> executa <code>claude -p</code> (stream-json) e <code>codex exec</code> (JSONL), com timeout, cancelamento, diretório e modelo opcional. <code>gemini -p</code> e <code>copilot</code> ficam para depois.</td>
+</tr>
+<tr>
+<td>6</td>
+<td><code>APIBackend</code></td>
+<td>O mesmo <code>Backend</code> chama a API do provedor com o token do vault. Anthropic Messages e Chat Completions compatível com OpenAI. Falha de vault fechado ou token ausente nega a chamada. Sem laço de ferramentas.</td>
+</tr>
+<tr>
+<td>7</td>
+<td><code>cockpit ask</code></td>
+<td>Um turno: recall, prompt, um <code>Backend</code> e retain. <code>--backend</code> fixa o worker; sem flag, vale <code>agents.backend</code> ou o primeiro disponível. Ainda sem laço de ferramentas e sem router.</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Tool loop</td>
+<td>Laço de ferramentas com MCP, guardrails lidos de <code>permissions.yaml</code> e sessões persistidas. Comando negado pela política não executa.</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Router</td>
+<td>Escolhe worker, modo CLI ou API e modelo conforme a tarefa, a disponibilidade local e a política. O chamador ainda pode fixar o backend.</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Daemon, rotinas e canais</td>
+<td>Processo residente, rotinas agendadas e canais de entrada para o mesmo <code>cockpit ask</code>. Os canais concretos entram quando houver um desenho próprio.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="fase-1-interface-de-memoria">Fase 1 — Interface de memória<a class="headerlink" href="#fase-1-interface-de-memoria" title="Permanent link">&para;</a></h3>
+<p>Implementada em <code>internal/memory</code>. A interface <code>Memory</code> expõe <code>Retain</code>,
+<code>Recall</code> e <code>Reflect</code>, com contexto cancelável e erros embrulhados. O backend
+<code>KB</code> lê e escreve no KB local por meio de <code>internal/kb</code>: <code>Recall</code> usa a busca
+do KB e <code>Retain</code> grava um markdown em <code>memory/&lt;bank&gt;/&lt;id&gt;.md</code> na primeira
+raiz. <code>Reflect</code> agrega os trechos encontrados; um backend sem síntese pode
+devolver <code>ErrReflectNotSupported</code>. <code>InMemory</code> e o dublê <code>Fake</code> cobrem testes
+sem disco. Nenhum import de cliente Hindsight entra no core. O backend
+Hindsight vive em <code>internal/memoryhindsight</code> e implementa a mesma interface.</p>
+<h3 id="fase-2-ciclo-de-vida-e-doctor">Fase 2 — Ciclo de vida e doctor<a class="headerlink" href="#fase-2-ciclo-de-vida-e-doctor" title="Permanent link">&para;</a></h3>
+<p>Implementada em <code>internal/hindsight</code> e nos comandos <code>cockpit memory</code>.
+<code>memory status</code> informa se o Hindsight está configurado, se o container está
+em execução e se <code>GET /health</code> na porta 8888 responde. <code>memory up</code> cria o
+container da imagem <code>ghcr.io/vectorize-io/hindsight:latest</code> (portas de host
+8888 e 9999, volume nomeado em <code>/home/hindsight/.pg0</code>, sem
+<code>HINDSIGHT_API_DATABASE_URL</code>, portanto pg0 embutido). <code>memory down</code> para e
+remove o container e mantém o volume. A chave de LLM e os demais segredos
+saem do vault no momento da criação e entram só como variáveis de ambiente;
+não são gravados na configuração nem em logs. Docker é uma interface com
+dublê de teste. <code>cockpit doctor</code> inclui o mesmo status em texto e JSON. Sem
+<code>memory.hindsight.enabled</code>, o check fica <code>skipped</code> e não reprova o doctor.
+O backend de KB da fase 1 não muda.</p>
+<h3 id="fase-3-integracao-memory-hindsight">Fase 3 — Integração memory-hindsight<a class="headerlink" href="#fase-3-integracao-memory-hindsight" title="Permanent link">&para;</a></h3>
+<p>Implementada em <code>internal/memoryhindsight</code>. O backend implementa
+<code>memory.Memory</code> com o cliente Go oficial
+(<code>github.com/vectorize-io/hindsight/hindsight-clients/go</code>). Os testes usam
+um dublê e não abrem rede.</p>
+<p>A integração é opcional e entra em <code>RunSearchExtensions</code> e
+<code>RunIndexExtensions</code>, os mesmos pontos que executam
+<code>extensions.kb.search</code> e <code>extensions.kb.index</code>. Com
+<code>memory.hindsight.enabled</code>, <code>kb search</code> mantém o resultado local e
+acrescenta o recall. <code>kb index</code> retém os documentos no bank do projeto.
+A configuração guarda a URL (<code>memory.hindsight.api_url</code>, por omissão a
+porta publicada por <code>memory up</code>), os banks e a referência
+<code>api_token_name</code> no vault. Os nomes vazios viram <code>project-&lt;nome&gt;</code> e
+<code>user-&lt;nome&gt;</code>.</p>
+<p>Serviço desligado, mal configurado ou inacessível não falha a busca nem
+a indexação: o comando avisa e fica só com o KB local. O código do
+Hindsight continua fora deste repositório.</p>
+<h3 id="fase-4-mcp-nos-compiladores">Fase 4 — MCP nos compiladores<a class="headerlink" href="#fase-4-mcp-nos-compiladores" title="Permanent link">&para;</a></h3>
+<p>Implementada em <code>internal/providers</code>. Com <code>memory.hindsight.enabled</code>,
+<code>cockpit deploy</code> grava um servidor MCP por bank nos provedores que
+implementam <code>MCPCompiler</code>. O transporte é HTTP (streamable HTTP, não SSE)
+em <code>{api}/mcp/{bank}/</code>, com barra no final. A base vem de
+<code>memory.hindsight.api_url</code> ou, vazia, de <code>http://127.0.0.1:&lt;api_port&gt;</code>.
+Os ids saem de <code>memoryhindsight.ResolveBanks</code>: o bank do projeto, onde
+<code>kb index</code> retém documentos, e o bank do usuário, que o recall também lê.
+Serviço desligado não cria endpoint. Bank inválido falha o deploy em vez
+de inventar uma URL. O token do vault não é gravado no arquivo.</p>
+<table>
+<thead>
+<tr>
+<th>Provedor</th>
+<th>Arquivo</th>
+<th>Forma</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Claude Code (<code>claude</code>)</td>
+<td><code>.mcp.json</code></td>
+<td><code>type: http</code> e <code>url</code></td>
+</tr>
+<tr>
+<td>Codex (<code>codex</code>)</td>
+<td><code>.codex/config.toml</code></td>
+<td>tabela <code>mcp_servers</code> com <code>url</code></td>
+</tr>
+<tr>
+<td>Gemini CLI (<code>gemini</code>)</td>
+<td><code>.gemini/settings.json</code></td>
+<td><code>httpUrl</code></td>
+</tr>
+<tr>
+<td>GitHub Copilot CLI</td>
+<td><code>~/.copilot/mcp-config.json</code></td>
+<td><code>type: http</code>, <code>url</code> e <code>tools</code></td>
+</tr>
+</tbody>
+</table>
+<p>O provedor precisa estar em <code>enabled_providers</code>. A feature <code>mcp</code> pode ser
+desligada nele. Desligar o Hindsight depois não apaga uma entrada já
+gravada; os outros arquivos compilados seguem iguais ao deploy sem o
+serviço.</p>
+<p>Devin, Goose e Antigravity não recebem essa entrada. Nenhum dos três tem
+um documento HTTP de MCP que o compilador possa preencher sem gravar um
+arquivo que o agente ignora. O formato desses produtos fica para um
+follow-up. O Gemini CLI não é o provider Antigravity. O GitHub Copilot
+continua sem traduzir <code>permissions.yaml</code>.</p>
+<h3 id="fase-5-backend-de-cli">Fase 5 — Backend de CLI<a class="headerlink" href="#fase-5-backend-de-cli" title="Permanent link">&para;</a></h3>
+<p>Implementada em <code>internal/agents</code> para <code>claude</code> e <code>codex</code>. <code>Backend.Run</code>
+recebe uma tarefa (prompt, diretório de trabalho, timeout e modelo opcional),
+entrega eventos em fluxo e devolve o resultado final. Cancelar o contexto
+encerra o subprocesso. <code>CLIBackend</code> fala com o binário por um <code>Runner</code>
+injetável. Os testes leem fixtures do formato de saída e não invocam as CLIs
+reais. Este pacote não acrescenta variáveis de ambiente e não lê o vault.</p>
+<p>Os argumentos seguem a documentação atual de cada CLI:</p>
+<ul>
+<li>Claude Code headless: <code>claude -p --output-format stream-json --verbose --include-partial-messages</code>, com <code>--model</code> só quando a tarefa pede um modelo. O comando principal não tem flag de diretório; o processo usa o diretório da tarefa. <code>CLAUDECODE</code> e <code>CLAUDE_CODE_ENTRYPOINT</code> saem do ambiente herdado para um <code>claude</code> aninhado não recusar o arranque.</li>
+<li>Codex non-interactive: <code>codex exec --json --skip-git-repo-check</code>, com <code>--model</code> e <code>--cd</code> opcionais. <code>--skip-git-repo-check</code> existe porque a tarefa pode apontar para um diretório que não é um repositório Git. O sandbox não é alterado e permanece o padrão read-only da CLI.</li>
+</ul>
+<p><code>gemini -p</code> e <code>copilot</code> continuam nas fases seguintes. <code>cockpit ask</code> está
+na fase 7. <code>cockpit doctor</code> reporta instalação e versão de <code>claude</code> e
+<code>codex</code>. A ausência não reprova o doctor.</p>
+<h3 id="fase-6-backend-de-api">Fase 6 — Backend de API<a class="headerlink" href="#fase-6-backend-de-api" title="Permanent link">&para;</a></h3>
+<p>Implementada em <code>internal/agents</code>. <code>APIBackend</code> implementa o mesmo <code>Backend</code>
+e faz uma completação simples, ainda sem laço de ferramentas. O token sai do
+vault no momento da chamada, pelo namespace e pela chave configurados, e não
+é ecoado em erro, log ou arquivo. Vault fechado ou token ausente recusa a
+chamada antes do HTTP.</p>
+<p>Dois clientes, ambos com streaming:</p>
+<ul>
+<li>Anthropic Messages (<code>provider: anthropic</code>), em <code>{base}/v1/messages</code>.</li>
+<li>Chat Completions compatível com OpenAI (<code>openai</code>, <code>ollama</code>, <code>lmstudio</code>,
+  <code>openrouter</code>). A URL base escolhe o host; o payload é o mesmo
+  <code>{base}/v1/chat/completions</code>.</li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">agents</span><span class="p">:</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">api</span><span class="p">:</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nt">provider</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">anthropic</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">claude-sonnet-4-5</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="nt">base_url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://api.anthropic.com</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="nt">vault_namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">agents</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="nt">vault_key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">anthropic_api_key</span>
+</code></pre></div>
+<p>O valor do token fica no vault (<code>cockpit vault set --namespace agents anthropic_api_key</code>) e não entra neste arquivo. A omissão de <code>vault_namespace</code> usa <code>agents</code>. A omissão de <code>vault_key</code> usa <code>&lt;provider&gt;_api_key</code>. <code>ToolSpec</code> e <code>ToolCall</code> reservam o formato das ferramentas; <code>Run</code> não as envia e não as executa. Os testes injetam um <code>HTTPDoer</code> e usam <code>httptest</code>, sem rede.</p>
+<p><code>cockpit doctor</code> acrescenta uma linha por provedor conhecido. A linha diz se o token está configurado e nunca imprime o segredo. Token ausente ou vault fechado não reprova o doctor.</p>
+<h3 id="fase-7-cockpit-ask">Fase 7 — cockpit ask<a class="headerlink" href="#fase-7-cockpit-ask" title="Permanent link">&para;</a></h3>
+<p>Implementada no comando <code>cockpit ask</code> e no pacote <code>internal/ask</code>. Um turno
+faz recall na memória, monta o prompt, executa um <code>Backend</code> e retém um
+registro curto da tarefa e do resultado. Não há laço de ferramentas nem
+router. A sessão da fase 8 ainda não existe.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>cockpit<span class="w"> </span>ask<span class="w"> </span><span class="s2">"explique o pacote internal/memory"</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>cockpit<span class="w"> </span>ask<span class="w"> </span>--backend<span class="w"> </span>claude<span class="w"> </span>--model<span class="w"> </span>sonnet<span class="w"> </span>--workdir<span class="w"> </span>.<span class="w"> </span>--timeout<span class="w"> </span>2m<span class="w"> </span><span class="s2">"revise este diff"</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>cockpit<span class="w"> </span>ask<span class="w"> </span>--backend<span class="w"> </span>api:anthropic<span class="w"> </span>--no-memory<span class="w"> </span><span class="s2">"responda sem consultar a memória"</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>cockpit<span class="w"> </span>ask<span class="w"> </span>--json<span class="w"> </span><span class="s2">"resuma o estado do vault"</span>
+</code></pre></div>
+<p>O backend explícito é <code>--backend</code>, com <code>claude</code>, <code>codex</code>, <code>api</code> ou
+<code>api:&lt;provider&gt;</code>. Sem a flag, vale <code>agents.backend</code> na configuração. Sem os
+dois, a escolha é o primeiro disponível, nesta ordem: <code>claude</code>, <code>codex</code> e,
+se <code>agents.api.provider</code> estiver definido e o token existir no vault, a API.
+Nenhum disponível produz um erro que lista o que foi verificado. Um backend
+nomeado e indisponível também falha, sem cair no seguinte. Esta ordem fixa
+não é o router da fase 9.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">agents</span><span class="p">:</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">backend</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">claude</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="nt">api</span><span class="p">:</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="nt">provider</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">anthropic</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">claude-sonnet-4-5</span>
+</code></pre></div>
+<p>A saída humana escreve o texto do worker conforme os eventos chegam.
+<code>--json</code> imprime o mesmo resultado (<code>backend</code>, <code>model</code>, <code>text</code>,
+<code>session_id</code>, <code>recalled</code>, <code>retained</code>) sem misturar tokens no objeto.</p>
+<p>Com memória, <code>Recall</code> usa a tarefa como consulta no KB local. Se o
+Hindsight está habilitado, o recall dele entra no prompt; falha de rede
+não impede o turno e fica só com o KB. O retain grava o registro no KB e,
+quando o serviço responde, também no Hindsight. <code>--no-memory</code> pula os dois.
+Os testes usam <code>memory.Fake</code> e um <code>Backend</code> falso e não invocam CLIs nem a
+rede.</p>
+<p><code>cockpit ask</code> é o sucessor da ideia antiga de <code>cockpit agent run</code>. Não há
+comando <code>cockpit agent</code>.</p>
+<h3 id="fase-8-laco-de-ferramentas">Fase 8 — Laço de ferramentas<a class="headerlink" href="#fase-8-laco-de-ferramentas" title="Permanent link">&para;</a></h3>
+<p>O laço permite ao worker pedir ferramentas. Ferramentas MCP entram pela
+configuração injetada na fase 4 e por servidores declarados na sessão. Antes
+de executar um comando ou um caminho, o laço consulta <code>permissions.yaml</code> no
+mesmo formato que os compiladores já leem. Negação, pergunta (<code>ask</code>) e
+diretório fora de <code>allowed_dirs</code> interrompem a ferramenta e registram o
+motivo. Sessões guardam histórico, backend e grants usados, em diretório
+privado sob <code>~/.cockpit/</code>.</p>
+<h3 id="fase-9-router">Fase 9 — Router<a class="headerlink" href="#fase-9-router" title="Permanent link">&para;</a></h3>
+<p>O router implementa a escolha que <code>cockpit ask</code> usa quando a pessoa não fixa
+o worker. A decisão considera binário presente no <code>PATH</code>, token no vault,
+política do projeto e o pedido. A escolha fica na sessão para auditoria. Um
+flag explícito de backend continua tendo prioridade. A ordem fixa da fase 7
+(claude, codex, API configurada) não é este router.</p>
+<h3 id="fase-10-daemon-rotinas-e-canais">Fase 10 — Daemon, rotinas e canais<a class="headerlink" href="#fase-10-daemon-rotinas-e-canais" title="Permanent link">&para;</a></h3>
+<p>Um daemon reutiliza <code>ask</code>, o router e as sessões para trabalho que não cabe
+num único processo de terminal: rotinas com agenda e canais que entregam uma
+mensagem e recebem a resposta. A definição de cada canal (transporte, autenticação,
+permissão) é um desenho separado desta visão. O daemon observa o mesmo estado
+de lock do vault; vault fechado recusa rotinas que leiam segredo.</p>
+<h2 id="leitura-relacionada">Leitura relacionada<a class="headerlink" href="#leitura-relacionada" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../architecture/01-overview/">01. Visão geral da arquitetura</a></li>
+<li><a href="../architecture/02-provider-compilers/">02. Compiladores e provedores</a></li>
+<li><a href="../architecture/04-package-registries/">04. Registries</a></li>
+<li><a href="../architecture/05-vault-system/">05. Vault</a> e o <a href="../vault/">índice do vault</a></li>
+<li><a href="../architecture/06-knowledge-base/">06. Knowledge base</a></li>
+<li><a href="../commands/">Índice de comandos</a></li>
+<li><a href="../plans/package-profiles/">Perfis de pacote</a></li>
+<li><a href="https://github.com/vectorize-io/hindsight">Hindsight</a></li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "toc.integrate", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.c21346df.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,10 @@
+# config.yaml
+GOOSE_PROVIDER: openai
+GOOSE_MODEL: gpt-4o
+
+permissions:
+  allowed_directories:
+    - "/Users/dev/projects/frontend"
+  blocked_directories:
+    - "/Users/dev/.ssh"
+    - "/etc"
