@@ -404,4 +404,9 @@ func TestValidateUpgradePackageAcceptsNamespacedModuleName(t *testing.T) {
 	if err := validateUpgradePackage(pkg, source); err != nil {
 		t.Fatalf("valid namespaced module rejected: %v", err)
 	}
+
+	pkg.Features.Modules[0].Name = "project::partilhar"
+	if err := validateUpgradePackage(pkg, source); err == nil {
+		t.Fatal("empty namespace segment accepted")
+	}
 }
