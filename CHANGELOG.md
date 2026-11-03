@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.61] - 2026-11-03
+
+### Changed since v0.4.60
+
+
 ### Features
 No features
 
@@ -27,6 +32,7 @@ No test changes
 
 ### Other Changes
 No other changes
+
 
 
 ## [0.4.60] - 2026-10-28
