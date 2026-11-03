@@ -11,34 +11,8 @@ import (
 	"strings"
 )
 
-var upgradeName = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_.-]*package packages
-
-import (
-	"errors"
-	"fmt"
-	"io/fs"
-	"os"
-	"path/filepath"
-	"regexp"
-	"sort"
-	"strings"
-)
-
-)
-var upgradeModuleName = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_.-]*(?::[a-zA-Z0-9][a-zA-Z0-9_.-]*)*package packages
-
-import (
-	"errors"
-	"fmt"
-	"io/fs"
-	"os"
-	"path/filepath"
-	"regexp"
-	"sort"
-	"strings"
-)
-
-)
+var upgradeName = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_.-]*$`)
+var upgradeModuleName = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_.-]*(?::[a-zA-Z0-9][a-zA-Z0-9_.-]*)*$`)
 
 func safeUpgradeName(name string) bool { return upgradeName.MatchString(name) && len(name) <= 128 }
 
