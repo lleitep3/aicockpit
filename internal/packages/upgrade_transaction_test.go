@@ -383,3 +383,29 @@ func TestUpgradePermissionFailures(t *testing.T) {
 		t.Fatal("restore failure swallowed")
 	}
 }
+
+func TestValidateUpgradePackageAcceptsNamespacedModuleName(t *testing.T) {
+	root := t.TempDir()
+	source := writeUpgradeFixture(t, root, "1.0.0", "valid-skill", "")
+	if err := os.MkdirAll(filepath.Join(source, "bin"), 0700); err != nil {
+		t.Fatal(err)
+	}
+	modulePath := filepath.Join(source, "bin", "module")
+	if err := os.WriteFile(modulePath, []byte("#!/bin/sh\n"), 0700); err != nil {
+		t.Fatal(err)
+	}
+	pkg, err := LoadPackage(source)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pkg.Features.Modules = []Feature{{Name: "project:partilhar", Path: "bin/module"}}
+
+	if err := validateUpgradePackage(pkg, source); err != nil {
+		t.Fatalf("valid namespaced module rejected: %v", err)
+	}
+
+	pkg.Features.Modules[0].Name = "project::partilhar"
+	if err := validateUpgradePackage(pkg, source); err == nil {
+		t.Fatal("empty namespace segment accepted")
+	}
+}

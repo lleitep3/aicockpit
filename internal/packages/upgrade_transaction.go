@@ -12,8 +12,13 @@ import (
 )
 
 var upgradeName = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_.-]*$`)
+var upgradeModuleName = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_.-]*(?::[a-zA-Z0-9][a-zA-Z0-9_.-]*)*$`)
 
 func safeUpgradeName(name string) bool { return upgradeName.MatchString(name) && len(name) <= 128 }
+
+func safeUpgradeModuleName(name string) bool {
+	return upgradeModuleName.MatchString(name) && len(name) <= 128
+}
 
 type upgradeSnapshot struct {
 	target, backup string
@@ -58,7 +63,15 @@ func validateUpgradePackage(pkg *Package, root string) error {
 	if err := checkUpgradeTree(filepath.Join(root, "cockpit-package.yml")); err != nil {
 		return err
 	}
-	groups := [][]Feature{pkg.Features.Modules, pkg.Features.Skills, pkg.Features.Agents, pkg.Features.Rules, pkg.Features.Workflows}
+	for _, f := range pkg.Features.Modules {
+		if !safeUpgradeModuleName(f.Name) || !relativeUpgradePath(f.Path) {
+			return fmt.Errorf("invalid module name or path")
+		}
+		if err := validateUpgradeAsset(root, f.Path); err != nil {
+			return err
+		}
+	}
+	groups := [][]Feature{pkg.Features.Skills, pkg.Features.Agents, pkg.Features.Rules, pkg.Features.Workflows}
 	for _, group := range groups {
 		for _, f := range group {
 			if !safeUpgradeName(f.Name) || !relativeUpgradePath(f.Path) {
