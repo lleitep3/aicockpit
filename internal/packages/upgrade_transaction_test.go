@@ -384,7 +384,6 @@ func TestUpgradePermissionFailures(t *testing.T) {
 	}
 }
 
-
 func TestValidateUpgradePackageAcceptsNamespacedModuleName(t *testing.T) {
 	root := t.TempDir()
 	source := writeUpgradeFixture(t, root, "1.0.0", "valid-skill", "")
